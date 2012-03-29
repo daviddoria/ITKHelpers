@@ -38,10 +38,11 @@
 #include <vtkXMLImageDataWriter.h>
 #include <vtkXMLPolyDataWriter.h>
 
+// Helpers submodule
+#include "Helpers/Helpers.h"
+
 // Custom
-#include "ImageProcessing/Derivatives.h"
-#include "Helpers.h"
-#include "ImageProcessing/itkRGBToLabColorSpacePixelAccessor.h"
+#include "itkRGBToLabColorSpacePixelAccessor.h"
 
 namespace ITKHelpers
 {
@@ -328,10 +329,6 @@ void OutputImageType(const itk::ImageBase<2>* const input)
     {
     std::cout << "Image type FloatScalarImageType" << std::endl;
     }
-  else if(dynamic_cast<const Mask*>(input)) // This must come before UnsignedCharScalarImageType
-    {
-    std::cout << "Image type Mask" << std::endl;
-    }
   else if(dynamic_cast<const UnsignedCharScalarImageType*>(input))
     {
     std::cout << "Image type UnsignedCharScalarImageType" << std::endl;
@@ -339,14 +336,6 @@ void OutputImageType(const itk::ImageBase<2>* const input)
   else if(dynamic_cast<const FloatVectorImageType*>(input))
     {
     std::cout << "Image type FloatVectorImageType" << std::endl;
-    }
-  else if(dynamic_cast<const FloatVector2ImageType*>(input))
-    {
-    std::cout << "Image type FloatVector2ImageType" << std::endl;
-    }
-  else if(dynamic_cast<const IntImageType*>(input))
-    {
-    std::cout << "Image type IntImageType" << std::endl;
     }
   else
     {

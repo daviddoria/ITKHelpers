@@ -228,41 +228,6 @@ itk::Index<2> MinValueLocation(const TImage* const image)
   return imageCalculatorFilter->GetIndexOfMinimum();
 }
 
-template <class TImage>
-void CopyPatchIntoImage(const TImage* const patch, TImage* const image, const Mask* const mask,
-                        const itk::Index<2>& position)
-{
-  // This function copies 'patch' into 'image' centered at 'position' only where the 'mask' is non-zero
-
-  // 'Mask' must be the same size as 'image'
-  if(mask->GetLargestPossibleRegion().GetSize() != image->GetLargestPossibleRegion().GetSize())
-    {
-    throw std::runtime_error("mask and image must be the same size!");
-    }
-
-  // The PasteFilter expects the lower left corner of the destination position, but we have passed the center pixel.
-  position[0] -= patch->GetLargestPossibleRegion().GetSize()[0]/2;
-  position[1] -= patch->GetLargestPossibleRegion().GetSize()[1]/2;
-
-  itk::ImageRegion<2> region = GetRegionInRadiusAroundPixel(position,
-                                                            patch->GetLargestPossibleRegion().GetSize()[0]/2);
-
-  itk::ImageRegionConstIterator<TImage> patchIterator(patch,patch->GetLargestPossibleRegion());
-  itk::ImageRegionConstIterator<Mask> maskIterator(mask,region);
-  itk::ImageRegionIterator<TImage> imageIterator(image, region);
-
-  while(!patchIterator.IsAtEnd())
-    {
-    if(mask->IsHole(maskIterator.GetIndex())) // we are in the target region
-      {
-      imageIterator.Set(patchIterator.Get());
-      }
-    ++imageIterator;
-    ++maskIterator;
-    ++patchIterator;
-    }
-}
-
 
 template <class TImage>
 void CopyPatchIntoImage(const TImage* patch, TImage* const image, const itk::Index<2>& centerPixel)
@@ -695,12 +660,12 @@ void ReplaceChannel(const itk::VectorImage<TPixel, 2>* const image, const unsign
 template<typename TImage>
 void ReadImage(const std::string& fileName, TImage* const image)
 {
-  typedef itk::ImageFileReader<Mask> ReaderType;
-  ReaderType::Pointer reader = ReaderType::New();
+  typedef itk::ImageFileReader<TImage> ReaderType;
+  typename ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName(fileName);
   reader->Update();
 
-  ITKHelpers::DeepCopy<TImage>(reader->GetOutput(), image);
+  ITKHelpers::DeepCopy(reader->GetOutput(), image);
 }
 
 
@@ -888,47 +853,6 @@ typename TypeTraits<typename TImage::PixelType>::LargerType VarianceInRegion(con
   return Statistics::Variance(pixels);
 }
 
-/** Compute the average of all unmasked pixels in a region.*/
-template<typename TImage>
-typename TypeTraits<typename TImage::PixelType>::LargerType AverageInRegionMasked(const TImage* const image,
-                                                                                  const Mask* const mask,
-                                                                            const itk::ImageRegion<2>& region)
-{
-  typename itk::ImageRegionConstIteratorWithIndex<Mask> maskIterator(mask, region);
-  std::vector<typename TImage::PixelType> pixels;
-  while(!maskIterator.IsAtEnd())
-    {
-    if(mask->IsValid(maskIterator.GetIndex()))
-      {
-      pixels.push_back(image->GetPixel(maskIterator.GetIndex()));
-      }
-    ++maskIterator;
-    }
-
-  using Statistics::Average;
-  //using ITKHelpers::Average;
-  return Average(pixels);
-}
-
-/** Compute the average of all unmasked pixels in a region.*/
-template<typename TImage>
-typename TypeTraits<typename TImage::PixelType>::LargerType VarianceInRegionMasked(const TImage* const image,
-                                                                                   const Mask* const mask,
-                                                                             const itk::ImageRegion<2>& region)
-{
-  typename itk::ImageRegionConstIterator<Mask> maskIterator(mask, region);
-  std::vector<typename TImage::PixelType> pixels;
-  while(!maskIterator.IsAtEnd())
-    {
-    if(mask->IsValid(maskIterator.GetIndex()))
-      {
-      pixels.push_back(image->GetPixel(maskIterator.GetIndex()));
-      }
-    ++maskIterator;
-    }
-
-  return Statistics::Variance(pixels);
-}
 
 template<typename TImage, typename TDifferenceFunctor>
 float AverageDifferenceInRegion(const TImage* const image, const itk::ImageRegion<2>& region1,
