@@ -40,8 +40,55 @@ namespace ITKHelpers
 typedef itk::Image<float, 2> FloatScalarImageType;
 typedef itk::Image<unsigned char, 2> UnsignedCharScalarImageType;
 typedef itk::CovariantVector<float, 2> FloatVector2Type;
+typedef itk::Image<FloatVector2Type , 2> FloatVector2ImageType;
 typedef itk::Image<itk::RGBPixel<unsigned char>, 2> RGBImageType;
 typedef itk::VectorImage<float, 2> FloatVectorImageType;
+
+/** Paraview requires 3D vectors to display glyphs, even if the vectors are really 2D.
+    These functions appends a 0 to each vectors of a 2D vector image so that it can be easily visualized with Paraview. */
+void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::ImageRegion<2>& region, const std::string& filename);
+
+/**  Calls Write2DVectorRegion on a full image. */
+void Write2DVectorImage(const FloatVector2ImageType* const image, const std::string& filename);
+
+/**  Write the first 3 channels of a FloatVectorImageType as an unsigned char (RGB) image. */
+void WriteVectorImageAsRGB(const FloatVectorImageType* const image, const std::string& fileName);
+
+/** Write a 'region' of an 'image' to 'filename'.*/
+void WriteVectorImageRegionAsRGB(const FloatVectorImageType* const image, const itk::ImageRegion<2>& region, const std::string& filename);
+
+////////////////////////////////////////////////////////////////////////
+///////// Function templates (defined in HelpersOutput.hxx) /////////
+////////////////////////////////////////////////////////////////////////
+
+/**  Write the first 3 channels of an image to a file as unsigned chars. */
+template<typename TImage>
+void WriteRGBImage(const TImage* const input, const std::string& filename);
+
+/** Write an image to a file named 'prefix'_'iteration'.mha*/
+template <typename TImage>
+void WriteSequentialImage(const TImage* const image, const std::string& filePrefix, const unsigned int iteration);
+
+/** Write 'image' to 'fileName' if 'condition' is true. */
+template <typename TImage>
+void WriteImageConditional(const TImage* const image, const std::string& fileName, const bool condition);
+
+/** Scale a scalar image to the range (0-255) and then write it to a file as an unsigned char image. */
+template <class TImage>
+void WriteScaledScalarImage(const TImage* const image, const std::string& filename);
+
+/** Write 'image' to 'fileName'.*/
+template<typename TImage>
+void WriteImage(const TImage* const image, const std::string& fileName);
+
+
+/** Write a 'region' of an 'image' to 'filename'.*/
+template<typename TImage>
+void WriteRegion(const TImage* const image, const itk::ImageRegion<2>& region, const std::string& filename);
+
+template <typename T>
+void OutputVector(const std::vector<T>& v);
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Non-template function declarations (defined in Helpers.cpp) ///////////////////
