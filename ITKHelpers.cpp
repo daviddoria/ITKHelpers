@@ -47,6 +47,25 @@
 namespace ITKHelpers
 {
 
+
+std::vector<itk::Index<2> > GetIndicesInRegion(const itk::ImageRegion<2>& region)
+{
+  std::vector<itk::Index<2> > indices;
+
+  typedef itk::Image<unsigned char, 2> DummyImageType;
+  DummyImageType::Pointer image = DummyImageType::New();
+  image->SetRegions(region);
+  image->Allocate();
+
+  itk::ImageRegionConstIteratorWithIndex<DummyImageType> regionIterator(image, region);
+  while(!regionIterator.IsAtEnd())
+    {
+    indices.push_back(regionIterator.GetIndex());
+    ++regionIterator;
+    }
+  return indices;
+}
+
 itk::ImageRegion<2> GetQuadrant(const itk::ImageRegion<2>& region, const unsigned int requestedQuadrant)
 {
   // Note: the four quadrants might not cover the entire 'region'.

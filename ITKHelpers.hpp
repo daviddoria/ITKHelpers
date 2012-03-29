@@ -66,8 +66,8 @@ bool HasNeighborWithValue(const itk::Index<2>& pixel, const TImage* const image,
 }
 
 /** Copy the input to the output*/
-template<typename TImage>
-void DeepCopy(const TImage* input, TImage* output)
+template<typename TInputImage, typename TOutputImage>
+void DeepCopy(const TInputImage* input, TOutputImage* output)
 {
   //std::cout << "DeepCopy()" << std::endl;
   if(output->GetLargestPossibleRegion() != input->GetLargestPossibleRegion())
@@ -75,16 +75,16 @@ void DeepCopy(const TImage* input, TImage* output)
     output->SetRegions(input->GetLargestPossibleRegion());
     output->Allocate();
     }
-  DeepCopyInRegion<TImage>(input, input->GetLargestPossibleRegion(), output);
+  DeepCopyInRegion(input, input->GetLargestPossibleRegion(), output);
 }
 
-template<typename TImage>
-void DeepCopyInRegion(const TImage* input, const itk::ImageRegion<2>& region, TImage* output)
+template<typename TInputImage, typename TOutputImage>
+void DeepCopyInRegion(const TInputImage* input, const itk::ImageRegion<2>& region, TOutputImage* output)
 {
   // This function assumes that the size of input and output are the same.
 
-  itk::ImageRegionConstIterator<TImage> inputIterator(input, region);
-  itk::ImageRegionIterator<TImage> outputIterator(output, region);
+  itk::ImageRegionConstIterator<TInputImage> inputIterator(input, region);
+  itk::ImageRegionIterator<TOutputImage> outputIterator(output, region);
 
   while(!inputIterator.IsAtEnd())
     {

@@ -44,6 +44,8 @@ typedef itk::Image<FloatVector2Type , 2> FloatVector2ImageType;
 typedef itk::Image<itk::RGBPixel<unsigned char>, 2> RGBImageType;
 typedef itk::VectorImage<float, 2> FloatVectorImageType;
 
+std::vector<itk::Index<2> > GetIndicesInRegion(const itk::ImageRegion<2>& region);
+
 /** Paraview requires 3D vectors to display glyphs, even if the vectors are really 2D.
     These functions appends a 0 to each vectors of a 2D vector image so that it can be easily visualized with Paraview. */
 void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::ImageRegion<2>& region, const std::string& filename);
@@ -154,8 +156,6 @@ std::vector<itk::Offset<2> > Get8NeighborOffsets();
 /** Get the indices of the neighbors of a pixel that are inside of a region. */
 std::vector<itk::Index<2> > Get8NeighborsInRegion(const itk::ImageRegion<2>& region, const itk::Index<2>& pixel);
 
-//void DeepCopyUnknownType(const itk::ImageBase<2>* input, itk::ImageBase<2>* output);
-
 /** The return value MUST be a smart pointer. */
 itk::ImageBase<2>::Pointer CreateImageWithSameType(const itk::ImageBase<2>* input);
 
@@ -205,8 +205,8 @@ template<typename TImage>
 void OutlineRegion(TImage* image, const itk::ImageRegion<2>& region, const typename TImage::PixelType& value);
 
 /** Deep copy an image. */
-template<typename TImage>
-void DeepCopy(const TImage* const input, TImage* const output);
+template<typename TInputImage, typename TOutputImage>
+void DeepCopy(const TInputImage* const input, TOutputImage* const output);
 
 /** Deep copy a vector image.
  * Note: specialization declarations must appear in the header or the compiler does
@@ -215,8 +215,8 @@ void DeepCopy(const TImage* const input, TImage* const output);
 template<>
 void DeepCopy<FloatVectorImageType>(const FloatVectorImageType* const input, FloatVectorImageType* const output);
 
-template<typename TImage>
-void DeepCopyInRegion(const TImage* const input, const itk::ImageRegion<2>& region, TImage* const output);
+template<typename TInputImage, typename TOutputImage>
+void DeepCopyInRegion(const TInputImage* const input, const itk::ImageRegion<2>& region, TOutputImage* const output);
 
 template <class TImage>
 void CopyRegion(const TImage* const sourceImage, TImage* const targetImage, const itk::Index<2>& sourcePosition,
