@@ -1,0 +1,3 @@
+[submodule "Helpers"]
+	path = Helpers
+	url = git@github.com:daviddoria/Helpers.git
