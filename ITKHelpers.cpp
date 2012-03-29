@@ -352,45 +352,6 @@ itk::ImageBase<2>::Pointer CreateImageWithSameType(const itk::ImageBase<2>* cons
 
   return objectCopy;
 }
-/*
-void DeepCopyUnknownType(const itk::ImageBase<2>* const input, itk::ImageBase<2>* const output)
-{
-  if(dynamic_cast<const FloatScalarImageType*>(input))
-    {
-    std::cout << "Deep copying FloatScalarImageType" << std::endl;
-    ITKHelpers::DeepCopy<FloatScalarImageType>(dynamic_cast<const FloatScalarImageType*>(input), dynamic_cast<FloatScalarImageType*>(output));
-    }
-  else if(dynamic_cast<const Mask*>(input)) // This must come before UnsignedCharScalarImageType because they will both succeed.
-    {
-    std::cout << "Deep copying Mask" << std::endl;
-    ITKHelpers::DeepCopy<Mask>(dynamic_cast<const Mask*>(input), dynamic_cast<Mask*>(output));
-    }
-  else if(dynamic_cast<const UnsignedCharScalarImageType*>(input))
-    {
-    std::cout << "Deep copying UnsignedCharScalarImageType" << std::endl;
-    ITKHelpers::DeepCopy<UnsignedCharScalarImageType>(dynamic_cast<const UnsignedCharScalarImageType*>(input), dynamic_cast<UnsignedCharScalarImageType*>(output));
-    }
-  else if(dynamic_cast<const FloatVectorImageType*>(input))
-    {
-    std::cout << "Deep copying FloatVectorImageType" << std::endl;
-    ITKHelpers::DeepCopy<FloatVectorImageType>(dynamic_cast<const FloatVectorImageType*>(input), dynamic_cast<FloatVectorImageType*>(output));
-    }
-  else if(dynamic_cast<const FloatVector2ImageType*>(input))
-    {
-    std::cout << "Deep copying FloatVector2ImageType" << std::endl;
-    ITKHelpers::DeepCopy<FloatVector2ImageType>(dynamic_cast<const FloatVector2ImageType*>(input), dynamic_cast<FloatVector2ImageType*>(output));
-    }
-  else if(dynamic_cast<const IntImageType*>(input))
-    {
-    std::cout << "Deep copying IntImageType" << std::endl;
-    ITKHelpers::DeepCopy<IntImageType>(dynamic_cast<const IntImageType*>(input), dynamic_cast<IntImageType*>(output));
-    }
-  else
-    {
-    std::cout << "Image is Invalid type!" << std::endl;
-    std::cerr << "Cannot cast to any of the specified types!" << std::endl;
-    }
-}*/
 
 std::vector<itk::Index<2> > Get8NeighborsInRegion(const itk::ImageRegion<2>& region, const itk::Index<2>& pixel)
 {
