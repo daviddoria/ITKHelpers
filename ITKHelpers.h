@@ -39,9 +39,15 @@ namespace ITKHelpers
 /** Some useful types. */
 typedef itk::Image<float, 2> FloatScalarImageType;
 typedef itk::Image<unsigned char, 2> UnsignedCharScalarImageType;
+
 typedef itk::CovariantVector<float, 2> FloatVector2Type;
 typedef itk::Image<FloatVector2Type , 2> FloatVector2ImageType;
+
+typedef itk::CovariantVector<float, 3> FloatVector3Type;
+typedef itk::Image<FloatVector3Type , 2> FloatVector3ImageType;
+
 typedef itk::Image<itk::RGBPixel<unsigned char>, 2> RGBImageType;
+
 typedef itk::VectorImage<float, 2> FloatVectorImageType;
 
 std::vector<itk::Index<2> > GetIndicesInRegion(const itk::ImageRegion<2>& region);

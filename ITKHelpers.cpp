@@ -232,14 +232,14 @@ void RGBImageToCIELabImage(RGBImageType* const rgbImage, FloatVectorImageType* c
     channels.push_back(FloatScalarImageType::New());
     vectorIndexSelectionFilter->SetIndex(i);
     vectorIndexSelectionFilter->Update();
-    DeepCopy<FloatScalarImageType>(vectorIndexSelectionFilter->GetOutput(), channels[i]);
+    DeepCopy(vectorIndexSelectionFilter->GetOutput(), channels[i].GetPointer());
     reassembler->SetNthInput(i, channels[i]);
     }
 
   reassembler->Update();
 
   // Copy to the output
-  DeepCopy<FloatVectorImageType>(reassembler->GetOutput(), cielabImage);
+  DeepCopy(reassembler->GetOutput(), cielabImage);
 }
 
 void VectorImageToRGBImage(const FloatVectorImageType* const image, RGBImageType* const rgbImage)
