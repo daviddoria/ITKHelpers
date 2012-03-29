@@ -6,6 +6,10 @@ add_library(libITKHelpers ITKHelpers.cpp)
 # to be treated as the 0th component of a vector.
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++0x")
 
+# ITK
+FIND_PACKAGE(ITK REQUIRED)
+INCLUDE(${ITK_USE_FILE})
+
 if(BuildTests)
   add_subdirectory(Tests)
 endif(BuildTests)

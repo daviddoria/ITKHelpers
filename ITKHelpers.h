@@ -430,6 +430,6 @@ void ScaleTo255(TImage* const image);
 
 }// end namespace
 
-#include "ITKHelpers.hxx"
+#include "ITKHelpers.hpp"
 
 #endif

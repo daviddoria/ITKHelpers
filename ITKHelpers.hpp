@@ -43,9 +43,8 @@
 #include "itkVectorIndexSelectionCastImageFilter.h"
 
 // Custom
-#include "ImageProcessing/Mask.h"
 #include "Helpers/Helpers.h"
-#include "Utilities/Statistics.h"
+#include "Helpers/Statistics.h"
 
 namespace ITKHelpers
 {
