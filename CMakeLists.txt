@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 2.8)
 
 add_library(libITKHelpers ITKHelpers.cpp)
+target_link_libraries(libITKHelpers libHelpers)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+#add_subdirectory(Helpers)
 
 # This is needed for shared_ptr and the trick using enable_if and if_fundamental to allow scalars
 # to be treated as the 0th component of a vector.
