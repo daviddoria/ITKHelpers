@@ -36,6 +36,8 @@ class Mask;
 namespace ITKHelpers
 {
 
+itk::Size<2> Get1x1Radius();
+  
 /** Some useful types. */
 typedef itk::Image<float, 2> FloatScalarImageType;
 typedef itk::Image<unsigned char, 2> UnsignedCharScalarImageType;
@@ -101,6 +103,9 @@ void OutputVector(const std::vector<T>& v);
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Non-template function declarations (defined in Helpers.cpp) ///////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
+
+/** Mark each pixel at the specified 'indices' as a non-zero pixel in 'image' */
+void IndicesToBinaryImage(const std::vector<itk::Index<2> >& indices, UnsignedCharScalarImageType* const image);
 
 /** Get the number of components per pixel in an image file. */
 unsigned int GetNumberOfComponentsPerPixelInFile(const std::string& filename);
@@ -191,6 +196,9 @@ std::vector<float> MinValues(const itk::VectorImage<float, 2>* const image);
 
 /** Compute the max value of each channel of the image. */
 std::vector<float> MaxValues(const itk::VectorImage<float, 2>* const image);
+
+std::vector<itk::Index<2> > DilatePixelList(const std::vector<itk::Index<2> >& pixelList,
+                                            const itk::ImageRegion<2>& region, const unsigned int radius);
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Template function declarations (defined in ITKHelpers.hxx) ///////////////////
@@ -351,7 +359,7 @@ void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image,
 /** Replace a channel of an image. */
 template<typename TPixel>
 void ReplaceChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned int channel,
-                    typename itk::Image<TPixel, 2>* const replacement,
+                    const typename itk::Image<TPixel, 2>* const replacement,
                     typename itk::VectorImage<TPixel, 2>* const output);
 
 /** Read an image from a file. */
@@ -480,6 +488,32 @@ void ScaleTo255(TImage* const image);
 
 // template<typename TImage>
 // void StackImages(const TImage* const image1, const TImage* const image2, const TImage* const output);
+
+template <typename TImage, typename TPixel>
+void SetPixels(TImage* const image, const std::vector<itk::Index<2> >& pixels, const TPixel& value);
+
+template <typename TImage>
+void SetPixelsInRegionToValue(TImage* const image, const itk::ImageRegion<2>& region,
+                              const typename TImage::PixelType& value);
+
+template<typename TImage>
+void NormalizeImageChannels(const TImage* const image, TImage* const outputImage);
+
+template<typename TImage>
+float MeanValue(const TImage* const image);
+
+template<typename TImage>
+float StandardDeviation(const TImage* const image);
+
+template<typename TImage>
+float Variance(const TImage* const image);
+
+template<typename TImage>
+std::vector<typename TImage::InternalPixelType> ComputeMinOfAllChannels(const TImage* const image);
+
+template<typename TImage>
+std::vector<typename TImage::InternalPixelType> ComputeMaxOfAllChannels(const TImage* const image);
+
 
 }// end namespace
 

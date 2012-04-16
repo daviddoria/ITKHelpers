@@ -711,4 +711,80 @@ void WriteVectorImageRegionAsRGB(const FloatVectorImageType* const image, const 
 }
 
 
+std::vector<itk::Index<2> > DilatePixelList(const std::vector<itk::Index<2> >& pixelList,
+                                            const itk::ImageRegion<2>& region, const unsigned int radius)
+{
+  //std::cout << "DilatePixelList: input has " << pixelList.size() << " pixels." << std::endl;
+  // Construct an image of the pixels in the list
+  typedef itk::Image<unsigned char, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+  image->SetRegions(region);
+  image->Allocate();
+  image->FillBuffer(0);
+
+  typedef std::vector<itk::Index<2> > PixelVectorType;
+
+  for(PixelVectorType::const_iterator iter = pixelList.begin(); iter != pixelList.end(); ++iter)
+  {
+    // Note, this must be 255, not just any non-zero number, for BinaryDilateImageFilter to work properly.
+    image->SetPixel(*iter, 255);
+  }
+
+  //WriteImage(image.GetPointer(), "beforeDilation.png");
+
+  // Dilate the image
+  typedef itk::BinaryBallStructuringElement<ImageType::PixelType,2> StructuringElementType;
+  StructuringElementType structuringElement;
+  structuringElement.SetRadius(radius);
+  structuringElement.CreateStructuringElement();
+
+  typedef itk::BinaryDilateImageFilter<ImageType, ImageType, StructuringElementType> BinaryDilateImageFilterType;
+
+  BinaryDilateImageFilterType::Pointer dilateFilter = BinaryDilateImageFilterType::New();
+  dilateFilter->SetInput(image);
+  dilateFilter->SetKernel(structuringElement);
+  dilateFilter->Update();
+
+  //WriteImage(dilateFilter->GetOutput(), "afterDilation.png");
+
+  PixelVectorType dilatedPixelList;
+
+  itk::ImageRegionConstIteratorWithIndex<ImageType> imageIterator(dilateFilter->GetOutput(),
+                                                         dilateFilter->GetOutput()->GetLargestPossibleRegion());
+  while(!imageIterator.IsAtEnd())
+    {
+    if(imageIterator.Get())
+      {
+      dilatedPixelList.push_back(imageIterator.GetIndex());
+      }
+    ++imageIterator;
+    }
+
+  //std::cout << "DilatePixelList: output has " << dilatedPixelList.size() << " pixels." << std::endl;
+  return dilatedPixelList;
+}
+
+
+void IndicesToBinaryImage(const std::vector<itk::Index<2> >& indices, UnsignedCharScalarImageType* const image)
+{
+  // The Regions of the 'image' must be set before calling this function
+  //std::cout << "Setting " << indices.size() << " points to non-zero." << std::endl;
+
+  image->Allocate();
+  image->FillBuffer(0);
+
+  // Set the pixels of indices in list to 255
+  for(unsigned int i = 0; i < indices.size(); i++)
+    {
+    image->SetPixel(indices[i], 255);
+    }
+}
+
+itk::Size<2> Get1x1Radius()
+{
+  itk::Size<2> radius;
+  radius.Fill(1);
+  return radius;
+}
+
 } // end namespace

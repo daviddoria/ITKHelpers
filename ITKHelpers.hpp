@@ -612,7 +612,8 @@ void ExtractChannels(const TImage* const image, const std::vector<unsigned int> 
 }
 
 template<typename TPixel>
-void ScaleChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned int channel, const TPixel channelMax, itk::VectorImage<TPixel, 2>* const output)
+void ScaleChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned int channel,
+                  const TPixel channelMax, itk::VectorImage<TPixel, 2>* const output)
 {
   typedef itk::VectorImage<TPixel, 2> VectorImageType;
   typedef itk::Image<TPixel, 2> ScalarImageType;
@@ -630,9 +631,9 @@ void ScaleChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned
   rescaleFilter->SetOutputMaximum(channelMax);
   rescaleFilter->Update();
 
-  DeepCopy<itk::VectorImage<TPixel, 2> >(image, output);
+  DeepCopy(image, output);
 
-  ReplaceChannel<TPixel>(output, channel, rescaleFilter->GetOutput(), output);
+  ReplaceChannel(output, channel, rescaleFilter->GetOutput(), output);
 }
 
 template<typename TPixel>
@@ -644,7 +645,7 @@ void ReplaceChannel(const itk::VectorImage<TPixel, 2>* const image, const unsign
     throw std::runtime_error("Image and replacement channel are not the same size!");
     }
 
-  DeepCopy<typename itk::VectorImage<TPixel, 2> >(image, output);
+  DeepCopy(image, output);
 
   itk::ImageRegionConstIterator<itk::VectorImage<TPixel, 2> > iterator(image, image->GetLargestPossibleRegion());
 
@@ -675,7 +676,7 @@ void FilterImage(const TInputImage* input, TOutputImage* output)
   typename TFilter::Pointer filter = TFilter::New();
   filter->SetInput(input);
   filter->Update();
-  DeepCopy<TOutputImage>(filter->GetOutput(), output);
+  DeepCopy(filter->GetOutput(), output);
 }
 
 template<typename TImage>
@@ -703,7 +704,8 @@ itk::Index<2> CreateIndex(const T& v)
 }
 
 template<typename TImage>
-typename TypeTraits<typename TImage::PixelType>::LargerComponentType AverageNeighborValue(const TImage* const image, const itk::Index<2>& pixel)
+typename TypeTraits<typename TImage::PixelType>::LargerComponentType
+AverageNeighborValue(const TImage* const image, const itk::Index<2>& pixel)
 {
   itk::ImageRegion<2> neighborhoodRegion = GetRegionInRadiusAroundPixel(pixel, 1);
   neighborhoodRegion.Crop(image->GetLargestPossibleRegion());
@@ -1316,5 +1318,150 @@ void OutputVector(const std::vector<T>& v)
   std::cout << std::endl;
 }
 
+template <typename TImage, typename TPixel>
+void SetPixels(TImage* const image, const std::vector<itk::Index<2> >& pixels, const TPixel& value)
+{
+  for(unsigned int i = 0; i < pixels.size(); ++i)
+    {
+    image->SetPixel(pixels[i], value);
+    }
+}
+
+
+template <typename TImage>
+void SetPixelsInRegionToValue(TImage* const image, const itk::ImageRegion<2>& region,
+                              const typename TImage::PixelType& value)
+{
+  itk::ImageRegionIterator<TImage> imageIterator(image, region);
+
+  while(!imageIterator.IsAtEnd())
+    {
+    imageIterator.Set(value);
+    ++imageIterator;
+    }
+}
+
+
+template<typename TImage>
+void NormalizeImageChannels(const TImage* const image, TImage* const outputImage)
+{
+  DeepCopy(image, outputImage);
+
+  for(unsigned int channel = 0; channel < image->GetNumberOfComponentsPerPixel(); ++channel)
+  {
+    std::cout << "Normalizing channel " << channel << std::endl;
+    typedef itk::Image<float, 2> ScalarImageType;
+    ScalarImageType::Pointer scalarImage = ScalarImageType::New();
+    ExtractChannel(image, channel, scalarImage.GetPointer());
+
+    float mean = MeanValue(scalarImage.GetPointer());
+    std::cout << "Channel " << channel << " mean is " << mean << std::endl;
+
+//     float variance = Variance(scalarImage.GetPointer());
+//     std::cout << "Channel " << channel << " variance is " << variance << std::endl;
+    float standardDeviation = StandardDeviation(scalarImage.GetPointer());
+    std::cout << "Channel " << channel << " standardDeviation is " << standardDeviation << std::endl;
+
+    itk::ImageRegionIterator<ScalarImageType> imageIterator(scalarImage, scalarImage->GetLargestPossibleRegion());
+    while(!imageIterator.IsAtEnd())
+      {
+      float newValue = (imageIterator.Get() - mean) / standardDeviation;
+      imageIterator.Set(newValue);
+      ++imageIterator;
+      }
+    ReplaceChannel(outputImage, channel, scalarImage.GetPointer(), outputImage);
+  }
+}
+
+template<typename TImage>
+float MeanValue(const TImage* const image)
+{
+  itk::ImageRegionConstIterator<TImage> imageIterator(image, image->GetLargestPossibleRegion());
+
+  float sum = 0.0f;
+  while(!imageIterator.IsAtEnd())
+    {
+    sum += imageIterator.Get();
+
+    ++imageIterator;
+    }
+  return sum / static_cast<float>(image->GetLargestPossibleRegion().GetNumberOfPixels());
+}
+
+
+template<typename TImage>
+float Variance(const TImage* const image)
+{
+  float average = MeanValue(image);
+
+  float channelVarianceSummation = 0.0f;
+
+  itk::ImageRegionConstIterator<TImage> imageIterator(image, image->GetLargestPossibleRegion());
+  while(!imageIterator.IsAtEnd())
+    {
+    channelVarianceSummation += pow(imageIterator.Get() - average, 2);
+    ++imageIterator;
+    }
+  // This (N-1) term in the denominator is for the "unbiased" sample variance.
+  // This is what is used by Matlab, Wolfram alpha, etc.
+  float variance = channelVarianceSummation /
+         static_cast<float>(image->GetLargestPossibleRegion().GetNumberOfPixels() - 1);
+
+  return variance;
+}
+
+template<typename TImage>
+float StandardDeviation(const TImage* const image)
+{
+  return sqrt(Variance(image));
+}
+
+template<typename TImage>
+std::vector<typename TImage::InternalPixelType> ComputeMinOfAllChannels(const TImage* const image)
+{
+  std::vector<typename TImage::InternalPixelType> mins(image->GetNumberOfComponentsPerPixel(), -1);
+
+  for(unsigned int i = 0; i < image->GetNumberOfComponentsPerPixel(); ++i)
+    {
+    typedef itk::VectorIndexSelectionCastImageFilter<TImage, FloatScalarImageType> IndexSelectionType;
+    typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
+    indexSelectionFilter->SetIndex(i);
+    indexSelectionFilter->SetInput(image);
+    indexSelectionFilter->Update();
+
+    typedef itk::MinimumMaximumImageCalculator <FloatScalarImageType> ImageCalculatorFilterType;
+    ImageCalculatorFilterType::Pointer imageCalculatorFilter = ImageCalculatorFilterType::New();
+    imageCalculatorFilter->SetImage(indexSelectionFilter->GetOutput());
+    imageCalculatorFilter->Compute();
+
+    mins[i] = imageCalculatorFilter->GetMinimum();
+    }
+
+  return mins;
+}
+
+template<typename TImage>
+std::vector<typename TImage::InternalPixelType> ComputeMaxOfAllChannels(const TImage* const image)
+{
+  std::vector<typename TImage::InternalPixelType> maxs(image->GetNumberOfComponentsPerPixel(), -1);
+
+  for(unsigned int i = 0; i < image->GetNumberOfComponentsPerPixel(); ++i)
+    {
+    typedef itk::VectorIndexSelectionCastImageFilter<TImage, FloatScalarImageType> IndexSelectionType;
+    typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
+    indexSelectionFilter->SetIndex(i);
+    indexSelectionFilter->SetInput(image);
+    indexSelectionFilter->Update();
+
+    typedef itk::MinimumMaximumImageCalculator <FloatScalarImageType> ImageCalculatorFilterType;
+    ImageCalculatorFilterType::Pointer imageCalculatorFilter = ImageCalculatorFilterType::New();
+    imageCalculatorFilter->SetImage(indexSelectionFilter->GetOutput());
+    imageCalculatorFilter->Compute();
+
+    maxs[i] = imageCalculatorFilter->GetMaximum();
+    }
+
+  return maxs;
+}
 
 }// end namespace ITKHelpers
