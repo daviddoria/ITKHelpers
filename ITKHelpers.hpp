@@ -31,6 +31,7 @@
 #include "itkBinaryDilateImageFilter.h"
 #include "itkCastImageFilter.h"
 #include "itkComposeImageFilter.h"
+#include "itkDerivativeImageFilter.h"
 #include "itkGaussianOperator.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -50,7 +51,8 @@ namespace ITKHelpers
 {
 
 template<typename TImage>
-bool HasNeighborWithValue(const itk::Index<2>& pixel, const TImage* const image, const typename TImage::PixelType& value)
+bool HasNeighborWithValue(const itk::Index<2>& pixel, const TImage* const image,
+                          const typename TImage::PixelType& value)
 {
   std::vector<itk::Offset<2> > offsets = Get8NeighborOffsets();
 
@@ -1463,5 +1465,20 @@ std::vector<typename TImage::InternalPixelType> ComputeMaxOfAllChannels(const TI
 
   return maxs;
 }
+
+
+template <class TImage>
+void CentralDifferenceDerivative(const TImage* const image, const unsigned int direction, TImage* const output)
+{
+  typedef itk::DerivativeImageFilter<TImage, TImage> DerivativeImageFilterType;
+  typename DerivativeImageFilterType::Pointer derivativeFilter = DerivativeImageFilterType::New();
+  derivativeFilter->SetDirection(direction);
+  derivativeFilter->SetOrder(1);
+  derivativeFilter->SetInput(image);
+  derivativeFilter->Update();
+
+  DeepCopy(derivativeFilter->GetOutput(), output);
+}
+
 
 }// end namespace ITKHelpers

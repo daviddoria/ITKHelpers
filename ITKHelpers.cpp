@@ -787,4 +787,47 @@ itk::Size<2> Get1x1Radius()
   return radius;
 }
 
+
+std::vector<itk::Index<2> > Get4NeighborIndicesInsideRegion(const itk::Index<2>& pixel,
+                                                            const itk::ImageRegion<2>& region)
+{
+  std::vector<itk::Index<2> > indices;
+
+  itk::Offset<2> offset;
+  offset[0] = -1;
+  offset[1] = 0;
+
+  if(region.IsInside(pixel + offset))
+  {
+    indices.push_back(pixel + offset);
+  }
+
+  offset[0] = 1;
+  offset[1] = 0;
+
+  if(region.IsInside(pixel + offset))
+  {
+    indices.push_back(pixel + offset);
+  }
+
+  offset[0] = 0;
+  offset[1] = -1;
+
+  if(region.IsInside(pixel + offset))
+  {
+    indices.push_back(pixel + offset);
+  }
+
+  offset[0] = 0;
+  offset[1] = 1;
+
+  if(region.IsInside(pixel + offset))
+  {
+    indices.push_back(pixel + offset);
+  }
+
+  return indices;
+}
+
+
 } // end namespace

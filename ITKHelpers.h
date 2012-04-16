@@ -37,7 +37,10 @@ namespace ITKHelpers
 {
 
 itk::Size<2> Get1x1Radius();
-  
+
+std::vector<itk::Index<2> > Get4NeighborIndicesInsideRegion(const itk::Index<2>& pixel,
+                                                            const itk::ImageRegion<2>& region);
+
 /** Some useful types. */
 typedef itk::Image<float, 2> FloatScalarImageType;
 typedef itk::Image<unsigned char, 2> UnsignedCharScalarImageType;
@@ -70,6 +73,9 @@ void WriteVectorImageRegionAsRGB(const FloatVectorImageType* const image, const 
 ////////////////////////////////////////////////////////////////////////
 ///////// Function templates (defined in HelpersOutput.hxx) /////////
 ////////////////////////////////////////////////////////////////////////
+
+template <class TImage>
+void CentralDifferenceDerivative(const TImage* const image, const unsigned int direction, TImage* const output);
 
 /**  Write the first 3 channels of an image to a file as unsigned chars. */
 template<typename TImage>
