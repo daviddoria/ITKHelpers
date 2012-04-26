@@ -830,4 +830,30 @@ std::vector<itk::Index<2> > Get4NeighborIndicesInsideRegion(const itk::Index<2>&
 }
 
 
+void RGBImageToVectorImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* const image,
+                           itk::VectorImage<float, 2>* const outputImage)
+{
+  outputImage->SetRegions(image->GetLargestPossibleRegion());
+  outputImage->SetNumberOfComponentsPerPixel(3);
+  outputImage->Allocate();
+
+  typedef itk::Image<itk::RGBPixel<unsigned char>, 2> RGBImageType;
+  typedef itk::VectorImage<float, 2> VectorImageType;
+
+  itk::ImageRegionConstIteratorWithIndex<RGBImageType> imageIterator(image, image->GetLargestPossibleRegion());
+
+  while(!imageIterator.IsAtEnd())
+    {
+    // Can't get a reference of a pixel from a VectorImage apparently?
+    //VectorImageType::PixelType& outputPixel = outputImage->GetPixel(imageIterator.GetIndex());
+    VectorImageType::PixelType outputPixel = outputImage->GetPixel(imageIterator.GetIndex());
+    outputPixel[0] = imageIterator.Get().GetRed();
+    outputPixel[1] = imageIterator.Get().GetGreen();
+    outputPixel[2] = imageIterator.Get().GetBlue();
+    outputImage->SetPixel(imageIterator.GetIndex(), outputPixel);
+
+    ++imageIterator;
+    }
+}
+
 } // end namespace

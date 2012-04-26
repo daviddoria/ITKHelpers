@@ -140,6 +140,9 @@ itk::Offset<2> OffsetFrom1DOffset(const itk::Offset<1>& offset1D, const unsigned
 /** Convert an RGB image to the CIELAB colorspace. 'rgbImage' cannot be const because the adaptor doesn't allow it. */
 void RGBImageToCIELabImage(RGBImageType* const rgbImage, FloatVectorImageType* const cielabImage);
 
+void RGBImageToVectorImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* const image,
+                           itk::VectorImage<float, 2>* const outputImage);
+
 /** Convert the first 3 channels of an ITK image to the CIELAB colorspace. */
 void ITKImageToCIELabImage(const FloatVectorImageType* const rgbImage, FloatVectorImageType* const cielabImage);
 
