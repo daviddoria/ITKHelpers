@@ -36,6 +36,8 @@ class Mask;
 namespace ITKHelpers
 {
 
+std::pair<itk::Index<2>, itk::Index<2> > IntersectLineWithHole(std::vector<itk::Index<2> > line, UnsignedCharImageType::Pointer mask, bool &hasInteriorLine);
+
 itk::Size<2> Get1x1Radius();
 
 std::vector<itk::Index<2> > Get4NeighborIndicesInsideRegion(const itk::Index<2>& pixel,
