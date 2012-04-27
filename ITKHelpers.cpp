@@ -857,7 +857,7 @@ void RGBImageToVectorImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* co
 }
 
 
-std::pair<itk::Index<2>, itk::Index<2> > IntersectLineWithHole(std::vector<itk::Index<2> > line, UnsignedCharImageType::Pointer mask, bool &hasInteriorLine)
+std::pair<itk::Index<2>, itk::Index<2> > IntersectLineWithHole(std::vector<itk::Index<2> > line, UnsignedCharScalarImageType::Pointer mask, bool &hasInteriorLine)
 {
   // We consider the hole to be non-zero pixels of the mask. We want to find where the line enters the mask, and where it leaves the mask.
   // This function assumes that the line starts outside the mask. Nothing is assumed about where the line ends (if it ends inside the mask, then there is no interior line).

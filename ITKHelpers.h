@@ -36,13 +36,6 @@ class Mask;
 namespace ITKHelpers
 {
 
-std::pair<itk::Index<2>, itk::Index<2> > IntersectLineWithHole(std::vector<itk::Index<2> > line, UnsignedCharImageType::Pointer mask, bool &hasInteriorLine);
-
-itk::Size<2> Get1x1Radius();
-
-std::vector<itk::Index<2> > Get4NeighborIndicesInsideRegion(const itk::Index<2>& pixel,
-                                                            const itk::ImageRegion<2>& region);
-
 /** Some useful types. */
 typedef itk::Image<float, 2> FloatScalarImageType;
 typedef itk::Image<unsigned char, 2> UnsignedCharScalarImageType;
@@ -59,6 +52,12 @@ typedef itk::VectorImage<float, 2> FloatVectorImageType;
 
 std::vector<itk::Index<2> > GetIndicesInRegion(const itk::ImageRegion<2>& region);
 
+std::pair<itk::Index<2>, itk::Index<2> > IntersectLineWithHole(std::vector<itk::Index<2> > line, UnsignedCharScalarImageType::Pointer mask, bool &hasInteriorLine);
+
+itk::Size<2> Get1x1Radius();
+
+std::vector<itk::Index<2> > Get4NeighborIndicesInsideRegion(const itk::Index<2>& pixel,
+                                                            const itk::ImageRegion<2>& region);
 /** Paraview requires 3D vectors to display glyphs, even if the vectors are really 2D.
     These functions appends a 0 to each vectors of a 2D vector image so that it can be easily visualized with Paraview. */
 void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::ImageRegion<2>& region, const std::string& filename);
