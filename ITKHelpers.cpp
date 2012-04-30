@@ -26,18 +26,6 @@
 #include "itkVectorMagnitudeImageFilter.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
 
-// VTK
-#include <vtkCell.h>
-#include <vtkFloatArray.h>
-#include <vtkImageData.h>
-#include <vtkImageMagnitude.h>
-#include <vtkPointData.h>
-#include <vtkPolyData.h>
-#include <vtkSmartPointer.h>
-#include <vtkThresholdPoints.h>
-#include <vtkXMLImageDataWriter.h>
-#include <vtkXMLPolyDataWriter.h>
-
 // Helpers submodule
 #include "Helpers/Helpers.h"
 
