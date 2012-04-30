@@ -22,9 +22,6 @@
 #include <iomanip> // for setfill()
 #include <stdexcept>
 
-// VTK
-#include <vtkImageData.h>
-
 // ITK
 #include "itkBilateralImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
