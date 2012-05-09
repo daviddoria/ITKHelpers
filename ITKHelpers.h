@@ -66,10 +66,12 @@ void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::Im
 void Write2DVectorImage(const FloatVector2ImageType* const image, const std::string& filename);
 
 /**  Write the first 3 channels of a FloatVectorImageType as an unsigned char (RGB) image. */
-void WriteVectorImageAsRGB(const FloatVectorImageType* const image, const std::string& fileName);
+template <typename TPixel>
+void WriteVectorImageAsRGB(const itk::VectorImage<TPixel,2>* const image, const std::string& fileName);
 
 /** Write a 'region' of an 'image' to 'filename'.*/
-void WriteVectorImageRegionAsRGB(const FloatVectorImageType* const image, const itk::ImageRegion<2>& region, const std::string& filename);
+template <typename TPixel>
+void WriteVectorImageRegionAsRGB(const itk::VectorImage<TPixel,2>* const image, const itk::ImageRegion<2>& region, const std::string& filename);
 
 ////////////////////////////////////////////////////////////////////////
 ///////// Function templates (defined in HelpersOutput.hxx) /////////
@@ -154,7 +156,8 @@ float AngleBetween(const FloatVector2Type& v1, const FloatVector2Type& v2);
 itk::ImageRegion<2> GetQuadrant(const itk::ImageRegion<2>& region, const unsigned int quadrant);
 
 /** Convert the first 3 channels of a float vector image to an unsigned char/color/rgb image. */
-void VectorImageToRGBImage(const FloatVectorImageType* const image, RGBImageType* const rgbImage);
+template <typename TPixel>
+void VectorImageToRGBImage(const itk::VectorImage<TPixel, 2>* const image, RGBImageType* const rgbImage);
 
 /** Get the center pixel of a region. The region is assumed to have odd dimensions. */
 itk::Index<2> GetRegionCenter(const itk::ImageRegion<2>& region);
@@ -524,6 +527,8 @@ std::vector<typename TImage::InternalPixelType> ComputeMinOfAllChannels(const TI
 template<typename TImage>
 std::vector<typename TImage::InternalPixelType> ComputeMaxOfAllChannels(const TImage* const image);
 
+template <typename TVector>
+std::string VectorToString(const TVector& vec);
 
 }// end namespace
 

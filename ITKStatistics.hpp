@@ -1,6 +1,8 @@
 #ifndef ITKStatistics_HPP
 #define ITKStatistics_HPP
 
+#include "Helpers/Helpers.h"
+
 namespace ITKStatistics
 {
   

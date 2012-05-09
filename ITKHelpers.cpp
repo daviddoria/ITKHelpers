@@ -230,27 +230,6 @@ void RGBImageToCIELabImage(RGBImageType* const rgbImage, FloatVectorImageType* c
   DeepCopy(reassembler->GetOutput(), cielabImage);
 }
 
-void VectorImageToRGBImage(const FloatVectorImageType* const image, RGBImageType* const rgbImage)
-{
-  // Only the first 3 components are used (assumed to be RGB)
-  rgbImage->SetRegions(image->GetLargestPossibleRegion());
-  rgbImage->Allocate();
-
-  itk::ImageRegionConstIteratorWithIndex<FloatVectorImageType> inputIterator(image, image->GetLargestPossibleRegion());
-
-  while(!inputIterator.IsAtEnd())
-    {
-    FloatVectorImageType::PixelType inputPixel = inputIterator.Get();
-    RGBImageType::PixelType outputPixel;
-    outputPixel.SetRed(inputPixel[0]);
-    outputPixel.SetGreen(inputPixel[1]);
-    outputPixel.SetBlue(inputPixel[2]);
-
-    rgbImage->SetPixel(inputIterator.GetIndex(), outputPixel);
-    ++inputIterator;
-    }
-}
-
 itk::ImageRegion<2> GetRegionInRadiusAroundPixel(const itk::Index<2>& pixel, const unsigned int radius)
 {
   // This function returns a Region with the specified 'radius' centered at 'pixel'. By the definition of the radius of a square patch, the output region is (radius*2 + 1)x(radius*2 + 1).
@@ -673,31 +652,6 @@ void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::Im
   writer->SetInput(vectors3D);
   writer->Update();
 }
-
-
-void WriteVectorImageAsRGB(const FloatVectorImageType* const image, const std::string& fileName)
-{
-  RGBImageType::Pointer rgbImage = RGBImageType::New();
-  ITKHelpers::VectorImageToRGBImage(image, rgbImage);
-  WriteImage<RGBImageType>(rgbImage, fileName);
-}
-
-void WriteVectorImageRegionAsRGB(const FloatVectorImageType* const image, const itk::ImageRegion<2>& region, const std::string& filename)
-{
-  //std::cout << "WriteRegion() " << filename << std::endl;
-  //std::cout << "region " << region << std::endl;
-  typedef itk::RegionOfInterestImageFilter<FloatVectorImageType, FloatVectorImageType> RegionOfInterestImageFilterType;
-
-  typename RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
-  regionOfInterestImageFilter->SetRegionOfInterest(region);
-  regionOfInterestImageFilter->SetInput(image);
-  regionOfInterestImageFilter->Update();
-
-  RGBImageType::Pointer rgbImage = RGBImageType::New();
-  ITKHelpers::VectorImageToRGBImage(regionOfInterestImageFilter->GetOutput(), rgbImage);
-  WriteImage<RGBImageType>(rgbImage, filename);
-}
-
 
 std::vector<itk::Index<2> > DilatePixelList(const std::vector<itk::Index<2> >& pixelList,
                                             const itk::ImageRegion<2>& region, const unsigned int radius)

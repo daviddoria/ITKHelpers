@@ -17,6 +17,7 @@
  *=========================================================================*/
 
 #include "ITKHelpers.h" // make syntax parser happy
+#include "ITKStatistics.h"
 
 // STL
 #include <iomanip> // for setfill()
@@ -851,7 +852,7 @@ typename TypeTraits<typename TImage::PixelType>::LargerType VarianceInRegion(con
     ++imageIterator;
     }
 
-  return Statistics::Variance(pixels);
+  return ITKStatistics::Variance(pixels);
 }
 
 
@@ -1477,5 +1478,75 @@ void CentralDifferenceDerivative(const TImage* const image, const unsigned int d
   DeepCopy(derivativeFilter->GetOutput(), output);
 }
 
+template <typename TPixel>
+void WriteVectorImageAsRGB(const itk::VectorImage<TPixel,2>* const image, const std::string& fileName)
+{
+  RGBImageType::Pointer rgbImage = RGBImageType::New();
+  ITKHelpers::VectorImageToRGBImage(image, rgbImage);
+  WriteImage(rgbImage.GetPointer(), fileName);
+}
+
+template <typename TPixel>
+void WriteVectorImageRegionAsRGB(const itk::VectorImage<TPixel,2>* const image, const itk::ImageRegion<2>& region, const std::string& filename)
+{
+  typedef itk::VectorImage<TPixel,2> VectorImageType;
+  
+  //std::cout << "WriteRegion() " << filename << std::endl;
+  //std::cout << "region " << region << std::endl;
+  typedef itk::RegionOfInterestImageFilter<VectorImageType, VectorImageType> RegionOfInterestImageFilterType;
+
+  typename RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
+  regionOfInterestImageFilter->SetRegionOfInterest(region);
+  regionOfInterestImageFilter->SetInput(image);
+  regionOfInterestImageFilter->Update();
+
+  RGBImageType::Pointer rgbImage = RGBImageType::New();
+  ITKHelpers::VectorImageToRGBImage(regionOfInterestImageFilter->GetOutput(), rgbImage);
+  WriteImage(rgbImage.GetPointer(), filename);
+}
+
+template <typename TPixel>
+void VectorImageToRGBImage(const itk::VectorImage<TPixel,2>* const image, RGBImageType* const rgbImage)
+{
+  typedef itk::VectorImage<TPixel,2> VectorImageType;
+  
+  // Only the first 3 components are used (assumed to be RGB)
+  rgbImage->SetRegions(image->GetLargestPossibleRegion());
+  rgbImage->Allocate();
+
+  itk::ImageRegionConstIteratorWithIndex<VectorImageType> inputIterator(image, image->GetLargestPossibleRegion());
+
+  while(!inputIterator.IsAtEnd())
+    {
+    typename VectorImageType::PixelType inputPixel = inputIterator.Get();
+    RGBImageType::PixelType outputPixel;
+    outputPixel.SetRed(inputPixel[0]);
+    outputPixel.SetGreen(inputPixel[1]);
+    outputPixel.SetBlue(inputPixel[2]);
+
+    rgbImage->SetPixel(inputIterator.GetIndex(), outputPixel);
+    ++inputIterator;
+    }
+}
+
+template <typename TVector>
+std::string VectorToString(const TVector& vec)
+{
+  std::stringstream ss;
+  ss << "(";
+  for(unsigned int i = 0; i < vec.GetSize(); ++i)
+  {
+    ss << static_cast<float>(vec[i]);
+    if(i == vec.GetSize() - 1)
+    {
+      ss << ")";
+    }
+    else
+    {
+      ss << ", ";
+    }
+  }
+  return ss.str();
+}
 
 }// end namespace ITKHelpers
