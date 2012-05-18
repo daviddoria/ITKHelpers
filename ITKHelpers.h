@@ -231,16 +231,13 @@ void AnisotropicBlurAllChannels(const TVectorImage* const image, TVectorImage* c
 template<typename TImage>
 void OutlineRegion(TImage* image, const itk::ImageRegion<2>& region, const typename TImage::PixelType& value);
 
-/** Deep copy an image. */
-template<typename TInputImage, typename TOutputImage>
-void DeepCopy(const TInputImage* const input, TOutputImage* const output);
+/** Deep copy a scalar image. */
+template<typename TInputPixel, typename TOutputPixel>
+void DeepCopy(const itk::Image<TInputPixel, 2>* const input, itk::Image<TOutputPixel, 2>* const output);
 
-/** Deep copy a vector image.
- * Note: specialization declarations must appear in the header or the compiler does
- * not know about their definition in the .cpp file!
- */
-template<>
-void DeepCopy<FloatVectorImageType>(const FloatVectorImageType* const input, FloatVectorImageType* const output);
+/** Deep copy a vector image. */
+template<typename TInputPixel, typename TOutputPixel>
+void DeepCopy(const itk::VectorImage<TInputPixel, 2>* const input, itk::VectorImage<TOutputPixel, 2>* const output);
 
 template<typename TInputImage, typename TOutputImage>
 void DeepCopyInRegion(const TInputImage* const input, const itk::ImageRegion<2>& region, TOutputImage* const output);

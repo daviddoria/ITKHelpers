@@ -66,8 +66,8 @@ bool HasNeighborWithValue(const itk::Index<2>& pixel, const TImage* const image,
 }
 
 /** Copy the input to the output*/
-template<typename TInputImage, typename TOutputImage>
-void DeepCopy(const TInputImage* input, TOutputImage* output)
+template<typename TInputPixel, typename TOutputPixel>
+void DeepCopy(const itk::Image<TInputPixel, 2>* const input, itk::Image<TOutputPixel, 2>* const output)
 {
   //std::cout << "DeepCopy()" << std::endl;
   if(output->GetLargestPossibleRegion() != input->GetLargestPossibleRegion())
@@ -75,6 +75,32 @@ void DeepCopy(const TInputImage* input, TOutputImage* output)
     output->SetRegions(input->GetLargestPossibleRegion());
     output->Allocate();
     }
+  DeepCopyInRegion(input, input->GetLargestPossibleRegion(), output);
+}
+
+// This is a specialization that ensures that the number of pixels per component also matches.
+template<typename TInputPixel, typename TOutputPixel>
+void DeepCopy(const itk::VectorImage<TInputPixel, 2>* const input, itk::VectorImage<TOutputPixel, 2>* const output)
+{
+  //std::cout << "DeepCopy<FloatVectorImageType>()" << std::endl;
+  bool changed = false;
+  if(input->GetNumberOfComponentsPerPixel() != output->GetNumberOfComponentsPerPixel())
+    {
+    output->SetNumberOfComponentsPerPixel(input->GetNumberOfComponentsPerPixel());
+    //std::cout << "Set output NumberOfComponentsPerPixel to " << input->GetNumberOfComponentsPerPixel() << std::endl;
+    changed = true;
+    }
+
+  if(input->GetLargestPossibleRegion() != output->GetLargestPossibleRegion())
+    {
+    output->SetRegions(input->GetLargestPossibleRegion());
+    changed = true;
+    }
+  if(changed)
+    {
+    output->Allocate();
+    }
+
   DeepCopyInRegion(input, input->GetLargestPossibleRegion(), output);
 }
 

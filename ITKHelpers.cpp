@@ -271,34 +271,6 @@ itk::Offset<2> OffsetFrom1DOffset(const itk::Offset<1>& offset1D, const unsigned
   return offset;
 }
 
-
-// This is a specialization that ensures that the number of pixels per component also matches.
-template<>
-void DeepCopy<FloatVectorImageType>(const FloatVectorImageType* const input, FloatVectorImageType* const output)
-{
-  //std::cout << "DeepCopy<FloatVectorImageType>()" << std::endl;
-  bool changed = false;
-  if(input->GetNumberOfComponentsPerPixel() != output->GetNumberOfComponentsPerPixel())
-    {
-    output->SetNumberOfComponentsPerPixel(input->GetNumberOfComponentsPerPixel());
-    //std::cout << "Set output NumberOfComponentsPerPixel to " << input->GetNumberOfComponentsPerPixel() << std::endl;
-    changed = true;
-    }
-
-  if(input->GetLargestPossibleRegion() != output->GetLargestPossibleRegion())
-    {
-    output->SetRegions(input->GetLargestPossibleRegion());
-    changed = true;
-    }
-  if(changed)
-    {
-    output->Allocate();
-    }
-
-  DeepCopyInRegion<FloatVectorImageType>(input, input->GetLargestPossibleRegion(), output);
-}
-
-
 itk::ImageRegion<2> CropToRegion(const itk::ImageRegion<2>& inputRegion, const itk::ImageRegion<2>& targetRegion)
 {
   // Returns the overlap of the inputRegion with the targetRegion.

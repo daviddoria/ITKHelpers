@@ -17,8 +17,9 @@ INCLUDE(${ITK_USE_FILE})
 
 add_library(ITKHelpers ITKHelpers.cpp)
 #target_link_libraries(ITKHelpers LINK_INTERFACE_LIBRARIES Helpers)
-target_link_libraries(ITKHelpers Helpers)
+target_link_libraries(ITKHelpers Helpers ${ITK_LIBRARIES})
 
-if(BuildTests)
+SET(ITKHelpers_BuildTests ON CACHE BOOL "ITKHelpers_BuildTests" FORCE)
+if(ITKHelpers_BuildTests)
   add_subdirectory(Tests)
-endif(BuildTests)
+endif()
