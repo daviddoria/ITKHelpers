@@ -814,5 +814,16 @@ std::pair<itk::Index<2>, itk::Index<2> > IntersectLineWithHole(std::vector<itk::
   return interiorLine;
 }
 
+itk::ImageRegion<2> GetInternalRegion(const itk::ImageRegion<2>& wholeRegion, const unsigned int patchRadius)
+{
+  unsigned int width = wholeRegion.GetSize()[0];
+  unsigned int height = wholeRegion.GetSize()[1];
+
+  itk::Index<2> regionCorner = {{patchRadius, patchRadius}};
+  itk::Size<2> regionSize = {{width - 2*patchRadius, height - 2*patchRadius}};
+  itk::ImageRegion<2> region(regionCorner, regionSize);
+
+  return region;
+}
 
 } // end namespace
