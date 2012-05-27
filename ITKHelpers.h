@@ -215,6 +215,10 @@ std::vector<itk::Index<2> > DilatePixelList(const std::vector<itk::Index<2> >& p
 
 itk::ImageRegion<2> GetInternalRegion(const itk::ImageRegion<2>& wholeRegion, const unsigned int patchRadius);
 
+std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<2>& pixel,
+                                                               const unsigned int patchRadius,
+                                                               const itk::ImageRegion<2>& imageRegion);
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Template function declarations (defined in ITKHelpers.hxx) ///////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////

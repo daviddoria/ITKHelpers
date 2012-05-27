@@ -826,4 +826,39 @@ itk::ImageRegion<2> GetInternalRegion(const itk::ImageRegion<2>& wholeRegion, co
   return region;
 }
 
+std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<2>& pixel,
+                                                               const unsigned int patchRadius,
+                                                               const itk::ImageRegion<2>& imageRegion)
+{
+  typedef itk::Image<float,2> DummyImageType;
+  DummyImageType::Pointer dummyImage = DummyImageType::New();
+  dummyImage->SetRegions(imageRegion);
+  //dummyImage->Allocate(); // Do we actually need this to iterate over the image?
+
+  // This region includes all patch centers
+  itk::Index<2> possibleRegionCorner = {{pixel[0] - patchRadius, pixel[1] - patchRadius}};
+  itk::Size<2> possibleRegionSize = {{patchRadius*2 + 1, patchRadius*2 + 1}};
+  itk::ImageRegion<2> possibleRegion(possibleRegionCorner, possibleRegionSize);
+
+  // Don't include patch centers that fall outside the image
+  possibleRegion.Crop(imageRegion);
+
+  itk::ImageRegionIteratorWithIndex<DummyImageType> imageIterator(dummyImage, possibleRegion);
+
+  std::vector<itk::ImageRegion<2> > regions;
+
+  // Each pixel in this loop is a potential patch center
+  while(!imageIterator.IsAtEnd())
+  {
+    itk::ImageRegion<2> region = GetRegionInRadiusAroundPixel(imageIterator.GetIndex(), patchRadius);
+    if(imageRegion.IsInside(region))
+    {
+      regions.push_back(region);
+    }
+    ++imageIterator;
+  }
+
+  return regions;
+}
+
 } // end namespace

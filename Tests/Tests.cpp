@@ -1,5 +1,6 @@
 #include "ITKHelpers.h"
 
+void TestGetAllPatchesContainingPixel();
 void TestDeepCopyFloatScalar();
 void TestDeepCopyUnsignedCharScalar();
 void TestDeepCopyFloatVector();
@@ -7,12 +8,35 @@ void TestDeepCopyUnsignedCharVector();
 
 int main( int argc, char ** argv )
 {
+  TestGetAllPatchesContainingPixel();
   TestDeepCopyFloatScalar();
   TestDeepCopyUnsignedCharScalar();
   TestDeepCopyFloatVector();
   TestDeepCopyUnsignedCharVector();
 
-  return 0;	
+  return 0;
+}
+
+void TestGetAllPatchesContainingPixel()
+{
+  typedef itk::Image<float, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{10,10}};
+  itk::ImageRegion<2> imageRegion(corner,size);
+
+  image->SetRegions(imageRegion);
+  image->Allocate();
+  image->FillBuffer(0.0f);
+
+  itk::Index<2> queryPixel = {{5,5}};
+  
+  std::vector<itk::ImageRegion<2> > allPatches =
+        ITKHelpers::GetAllPatchesContainingPixel(queryPixel, 1, imageRegion);
+
+  std::cout << "Number of patches " << allPatches.size() << std::endl;
+
 }
 
 void TestDeepCopyFloatScalar()
