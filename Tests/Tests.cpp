@@ -3,6 +3,7 @@
 void TestGetAllPatchesContainingPixel();
 
 void TestDownsample();
+void TestUpsample();
 
 void TestDeepCopyFloatScalar();
 void TestDeepCopyUnsignedCharScalar();
@@ -14,6 +15,7 @@ int main( int argc, char ** argv )
   TestGetAllPatchesContainingPixel();
 
   TestDownsample();
+  TestUpsample();
   
   TestDeepCopyFloatScalar();
   TestDeepCopyUnsignedCharScalar();
@@ -125,4 +127,24 @@ void TestDownsample()
 
   std::cout << "TestDownsample() output size: "
             << downsampled->GetLargestPossibleRegion().GetSize() << std::endl;
+}
+
+void TestUpsample()
+{
+  typedef itk::Image<unsigned char, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->Allocate();
+
+  ImageType::Pointer upsampled = ImageType::New();
+
+  ITKHelpers::Upsample(image.GetPointer(), 2, upsampled.GetPointer());
+
+  std::cout << "TestUpsample() output size: "
+            << upsampled->GetLargestPossibleRegion().GetSize() << std::endl;
 }
