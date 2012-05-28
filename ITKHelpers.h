@@ -533,6 +533,13 @@ std::vector<typename TImage::InternalPixelType> ComputeMaxOfAllChannels(const TI
 template <typename TVector>
 std::string VectorToString(const TVector& vec);
 
+template <typename TImage>
+void Downsample(const TImage* const image, const float factor, TImage* const output);
+
+template <typename TImage>
+void Upsample(const TImage* const image, const float factor, TImage* const output);
+
+
 }// end namespace
 
 #include "ITKHelpers.hpp"

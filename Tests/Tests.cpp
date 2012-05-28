@@ -1,6 +1,9 @@
 #include "ITKHelpers.h"
 
 void TestGetAllPatchesContainingPixel();
+
+void TestDownsample();
+
 void TestDeepCopyFloatScalar();
 void TestDeepCopyUnsignedCharScalar();
 void TestDeepCopyFloatVector();
@@ -9,6 +12,9 @@ void TestDeepCopyUnsignedCharVector();
 int main( int argc, char ** argv )
 {
   TestGetAllPatchesContainingPixel();
+
+  TestDownsample();
+  
   TestDeepCopyFloatScalar();
   TestDeepCopyUnsignedCharScalar();
   TestDeepCopyFloatVector();
@@ -99,4 +105,24 @@ void TestDeepCopyUnsignedCharVector()
 
   ImageType::Pointer imageOut = ImageType::New();
   ITKHelpers::DeepCopy(imageIn.GetPointer(), imageOut.GetPointer());
+}
+
+void TestDownsample()
+{
+  typedef itk::Image<unsigned char, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->Allocate();
+
+  ImageType::Pointer downsampled = ImageType::New();
+  
+  ITKHelpers::Downsample(image.GetPointer(), 2, downsampled.GetPointer());
+
+  std::cout << "TestDownsample() output size: "
+            << downsampled->GetLargestPossibleRegion().GetSize() << std::endl;
 }

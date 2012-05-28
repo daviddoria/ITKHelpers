@@ -37,6 +37,7 @@
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkPasteImageFilter.h"
 #include "itkRegionOfInterestImageFilter.h"
+#include "itkResampleImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkVectorMagnitudeImageFilter.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
@@ -1573,6 +1574,37 @@ std::string VectorToString(const TVector& vec)
     }
   }
   return ss.str();
+}
+
+template <typename TImage>
+void Downsample(const TImage* const image, const float factor, TImage* const output)
+{
+  typename TImage::SizeType inputSize = image->GetLargestPossibleRegion().GetSize();
+
+  typename TImage::SizeType outputSize = image->GetLargestPossibleRegion().GetSize();
+  outputSize[0] /= factor;
+  outputSize[1] /= factor;
+  
+  typename TImage::SpacingType outputSpacing;
+  outputSpacing[0] = image->GetSpacing()[0] * (static_cast<double>(inputSize[0]) / static_cast<double>(outputSize[0]));
+  outputSpacing[1] = image->GetSpacing()[1] * (static_cast<double>(inputSize[1]) / static_cast<double>(outputSize[1]));
+
+  typedef itk::IdentityTransform<double, 2> TransformType;
+  typedef itk::ResampleImageFilter<TImage, TImage> ResampleImageFilterType;
+  typename ResampleImageFilterType::Pointer resampleFilter = ResampleImageFilterType::New();
+  resampleFilter->SetInput(image);
+  resampleFilter->SetSize(outputSize);
+  resampleFilter->SetOutputSpacing(outputSpacing);
+  resampleFilter->SetTransform(TransformType::New());
+  resampleFilter->UpdateLargestPossibleRegion();
+
+  ITKHelpers::DeepCopy(resampleFilter->GetOutput(), output);
+}
+
+template <typename TImage>
+void Upsample(const TImage* const image, const float factor, TImage* const output)
+{
+  Downsample(image, 1.0f/factor, output);
 }
 
 }// end namespace ITKHelpers
