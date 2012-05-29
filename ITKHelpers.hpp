@@ -287,7 +287,8 @@ void CopySelfRegion(TImage* const image, const itk::ImageRegion<2>& sourceRegion
 }
 
 template <class TImage>
-void CopyRegion(const TImage* sourceImage, TImage* targetImage, const itk::ImageRegion<2>& sourceRegion, const itk::ImageRegion<2>& targetRegion)
+void CopyRegion(const TImage* sourceImage, TImage* targetImage,
+                const itk::ImageRegion<2>& sourceRegion, const itk::ImageRegion<2>& targetRegion)
 {
   if(targetRegion.GetSize() != sourceRegion.GetSize())
     {
@@ -1627,6 +1628,40 @@ template <typename TImage>
 void Upsample(const TImage* const image, const float factor, TImage* const output)
 {
   Downsample(image, 1.0f/factor, output);
+}
+
+template <typename TImage>
+void FillDifference(const TImage* const image, const itk::ImageRegion<2>& region,
+                    TImage* const output, const typename TImage::PixelType& value)
+{
+  // If the image is not inside the region (i.e. not smaller than the region), there is nothing to do
+  if(!region.IsInside(image->GetLargestPossibleRegion()))
+  {
+    return;
+  }
+
+  itk::ImageRegion<2> differenceRegion = region;
+  differenceRegion.Crop(image->GetLargestPossibleRegion());
+
+  itk::ImageRegionIterator<TImage> imageIterator(output, differenceRegion);
+
+  while(!imageIterator.IsAtEnd())
+    {
+    imageIterator.Set(value);
+    ++imageIterator;
+    }
+}
+
+template <typename TImage>
+void CreateEvenSizeImage(const TImage* const image, TImage* const output)
+{
+  itk::Size<2> evenSize = ITKHelpers::MakeSizeEven(image->GetLargestPossibleRegion().GetSize());
+  itk::Index<2> corner = {{0,0}};
+  itk::ImageRegion<2> evenRegion(corner, evenSize);
+  output->SetRegions(evenRegion);
+  output->Allocate();
+
+  CopyRegion(image, output, evenRegion, evenRegion);
 }
 
 }// end namespace ITKHelpers

@@ -221,6 +221,9 @@ std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<
 
 unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec, const itk::CovariantVector<float, 3>& value);
 
+/** Subtract 1 if necessary from each or either component to make both components even. */
+itk::Size<2> MakeSizeEven(const itk::Size<2>& inputSize);
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Template function declarations (defined in ITKHelpers.hxx) ///////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -556,6 +559,12 @@ void Downsample(const TImage* const image, const float factor, TImage* const out
 template <typename TImage>
 void Upsample(const TImage* const image, const float factor, TImage* const output);
 
+template <typename TImage>
+void FillDifference(const TImage* const image, const itk::ImageRegion<2>& region,
+                    TImage* const output, const typename TImage::PixelType& value);
+
+template <typename TImage>
+void CreateEvenSizeImage(const TImage* const image, TImage* const output);
 
 }// end namespace
 

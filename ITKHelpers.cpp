@@ -875,4 +875,21 @@ unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& ve
   return Helpers::argmin(distances);
 }
 
+itk::Size<2> MakeSizeEven(const itk::Size<2>& inputSize)
+{
+  itk::Size<2> outputSize = inputSize;
+  
+  if(Helpers::IsOdd(inputSize[0]))
+  {
+    outputSize[0]--;
+  }
+
+  if(Helpers::IsOdd(inputSize[1]))
+  {
+    outputSize[1]--;
+  }
+
+  return outputSize;
+}
+
 } // end namespace
