@@ -1653,6 +1653,27 @@ void FillDifference(const TImage* const image, const itk::ImageRegion<2>& region
 }
 
 template <typename TImage>
+void ScaleImage(const TImage* const image, const itk::Size<2>& destinationSize, TImage* const output)
+{
+  typename TImage::SizeType inputSize = image->GetLargestPossibleRegion().GetSize();
+
+  typename TImage::SpacingType outputSpacing;
+  outputSpacing[0] = image->GetSpacing()[0] * (static_cast<double>(inputSize[0]) / static_cast<double>(destinationSize[0]));
+  outputSpacing[1] = image->GetSpacing()[1] * (static_cast<double>(inputSize[1]) / static_cast<double>(destinationSize[1]));
+
+  typedef itk::IdentityTransform<double, 2> TransformType;
+  typedef itk::ResampleImageFilter<TImage, TImage> ResampleImageFilterType;
+  typename ResampleImageFilterType::Pointer resampleFilter = ResampleImageFilterType::New();
+  resampleFilter->SetInput(image);
+  resampleFilter->SetSize(destinationSize);
+  resampleFilter->SetOutputSpacing(outputSpacing);
+  resampleFilter->SetTransform(TransformType::New());
+  resampleFilter->UpdateLargestPossibleRegion();
+
+  ITKHelpers::DeepCopy(resampleFilter->GetOutput(), output);
+}
+
+template <typename TImage>
 void CreateEvenSizeImage(const TImage* const image, TImage* const output)
 {
   itk::Size<2> evenSize = ITKHelpers::MakeSizeEven(image->GetLargestPossibleRegion().GetSize());

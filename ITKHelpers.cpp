@@ -892,4 +892,34 @@ itk::Size<2> MakeSizeEven(const itk::Size<2>& inputSize)
   return outputSize;
 }
 
+float PixelDistance(const itk::Index<2>& p0, const itk::Index<2>& p1)
+{
+  itk::Point<float,2> point0;
+  point0[0] = p0[0];
+  point0[1] = p0[1];
+
+  itk::Point<float,2> point1;
+  point1[0] = p1[0];
+  point1[1] = p1[1];
+
+  return point1.EuclideanDistanceTo(point0);
+}
+
+unsigned int ClosestPixel(const std::vector<itk::Index<2> >& pixels, const itk::Index<2>& queryPixel)
+{
+  float minDistance = std::numeric_limits<float>::max();
+  unsigned int closestId = 0;
+  
+  for(unsigned int i = 0; i < pixels.size(); ++i)
+  {
+    float distance = PixelDistance(queryPixel, pixels[i]);
+    if(distance < minDistance)
+    {
+      closestId = i;
+    }
+  }
+
+  return closestId;
+}
+
 } // end namespace
