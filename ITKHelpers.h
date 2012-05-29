@@ -219,6 +219,8 @@ std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<
                                                                const unsigned int patchRadius,
                                                                const itk::ImageRegion<2>& imageRegion);
 
+unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec, const itk::CovariantVector<float, 3>& value);
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Template function declarations (defined in ITKHelpers.hxx) ///////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
