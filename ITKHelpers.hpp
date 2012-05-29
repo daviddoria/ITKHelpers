@@ -915,10 +915,28 @@ float AverageDifferenceInRegion(const TImage* const image1, const itk::ImageRegi
   return averageDifference;
 }
 
+template<typename T, unsigned int N>
+unsigned int length(const itk::CovariantVector<T, N>& v)
+{
+  return v.Dimension;
+}
+
 template<typename T>
 unsigned int length(const itk::VariableLengthVector<T>& v)
 {
   return v.GetSize();
+}
+
+template<typename T, unsigned int N>
+T& index(itk::CovariantVector<T, N>& v, size_t i)
+{
+  return v[i];
+}
+
+template<typename T, unsigned int N>
+T index(const itk::CovariantVector<T, N>& v, size_t i)
+{
+  return v[i];
 }
 
 template<typename T>
@@ -961,7 +979,8 @@ void SubtractRegions(const TImage* const image1, const itk::ImageRegion<2>& regi
   while(!image1Iterator.IsAtEnd())
     {
     float difference = image1Iterator.Get() - image2Iterator.Get();
-    itk::Index<2> index = Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >(image1Iterator.GetIndex() - image1->GetLargestPossibleRegion().GetIndex());
+    itk::Index<2> index = Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >(image1Iterator.GetIndex() -
+                                                                               image1->GetLargestPossibleRegion().GetIndex());
     output.SetPixel(index, difference);
     ++image1Iterator;
     ++image2Iterator;
@@ -969,7 +988,8 @@ void SubtractRegions(const TImage* const image1, const itk::ImageRegion<2>& regi
 }
 
 template<typename TImage>
-void ANDRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, const TImage* const image2, const itk::ImageRegion<2>& region2, itk::Image<bool, 2>* const output)
+void ANDRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, const TImage* const image2,
+                const itk::ImageRegion<2>& region2, itk::Image<bool, 2>* const output)
 {
   assert(region1.GetSize() == region2.GetSize());
 
@@ -983,7 +1003,8 @@ void ANDRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, 
   while(!image1Iterator.IsAtEnd())
     {
     bool result = image1Iterator.Get() && image2Iterator.Get();
-    itk::Index<2> index = Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >(image1Iterator.GetIndex() - image1->GetLargestPossibleRegion().GetIndex());
+    itk::Index<2> index = Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >(image1Iterator.GetIndex() -
+                                                                               image1->GetLargestPossibleRegion().GetIndex());
     output->SetPixel(index, result);
     ++image1Iterator;
     ++image2Iterator;
@@ -991,7 +1012,8 @@ void ANDRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, 
 }
 
 template<typename TImage>
-void XORRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, const TImage* const image2, const itk::ImageRegion<2>& region2, itk::Image<bool, 2>* const output)
+void XORRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, const TImage* const image2,
+                const itk::ImageRegion<2>& region2, itk::Image<bool, 2>* const output)
 {
   assert(region1.GetSize() == region2.GetSize());
 

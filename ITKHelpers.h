@@ -468,6 +468,11 @@ typename TypeTraits<T>::LargerComponentType SumOfComponentMagnitudes(const T& v)
 template<typename T>
 unsigned int length(const itk::VariableLengthVector<T>& v);
 
+/** Return the length of the vector through the same interface that we have defined for
+ * std::vector and scalars in Helpers.*/
+template<typename T, unsigned int N>
+unsigned int length(const itk::CovariantVector<T, N>& v);
+
 /** Return the specified component of the vector using the same interface that we have
  * defined for std::vector and scalars in Helpers.*/
 template<typename T>
@@ -475,6 +480,16 @@ T& index(itk::VariableLengthVector<T>& v, size_t i);
 
 template<typename T>
 T index(const itk::VariableLengthVector<T>& v, size_t i);
+
+/** Return the specified component of the vector using the same interface that we have
+ * defined for std::vector and scalars in Helpers.*/
+template<typename T, unsigned int N>
+T& index(itk::CovariantVector<T, N>& v, size_t i);
+
+template<typename T, unsigned int N>
+T index(const itk::CovariantVector<T, N>& v, size_t i);
+
+
 
 /** Attempt to set any object to all zeros. Usually scalars or vectors */
 template<typename T>
