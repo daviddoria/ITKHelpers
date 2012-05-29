@@ -475,6 +475,11 @@ typename TypeTraits<T>::LargerComponentType SumOfComponentMagnitudes(const T& v)
 /** Return the length of the vector through the same interface that we have defined for
  * std::vector and scalars in Helpers.*/
 template<typename T>
+unsigned int length(const itk::RGBPixel<T>& v);
+
+/** Return the length of the vector through the same interface that we have defined for
+ * std::vector and scalars in Helpers.*/
+template<typename T>
 unsigned int length(const itk::VariableLengthVector<T>& v);
 
 /** Return the length of the vector through the same interface that we have defined for
@@ -498,7 +503,11 @@ T& index(itk::CovariantVector<T, N>& v, size_t i);
 template<typename T, unsigned int N>
 T index(const itk::CovariantVector<T, N>& v, size_t i);
 
+template<typename T>
+T index(const itk::RGBPixel<T>& v, size_t i);
 
+template<typename T>
+T& index(itk::RGBPixel<T>& v, size_t i);
 
 /** Attempt to set any object to all zeros. Usually scalars or vectors */
 template<typename T>

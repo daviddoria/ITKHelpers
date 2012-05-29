@@ -66,7 +66,10 @@ typename TypeTraits<TVector>::LargerComponentType Average(const TVector& v)
     }
   // std::cout << "Average: sum " << vectorSum << std::endl;
   //typename T::value_type vectorAverage = vectorSum / static_cast<float>(v.size());
-  AverageType vectorAverage = vectorSum / static_cast<float>(v.size());
+
+  // Prefer multiplication by inverse to division because more types have * defined than /
+  //AverageType vectorAverage = vectorSum / static_cast<float>(v.size());
+  AverageType vectorAverage = vectorSum * (1.0f / static_cast<float>(v.size()));
 
   // std::cout << "Average: average " << vectorAverage << std::endl;
 

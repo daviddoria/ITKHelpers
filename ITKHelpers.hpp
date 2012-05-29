@@ -916,6 +916,12 @@ float AverageDifferenceInRegion(const TImage* const image1, const itk::ImageRegi
   return averageDifference;
 }
 
+template<typename T>
+unsigned int length(const itk::RGBPixel<T>& v)
+{
+  return 3;
+}
+
 template<typename T, unsigned int N>
 unsigned int length(const itk::CovariantVector<T, N>& v)
 {
@@ -926,6 +932,18 @@ template<typename T>
 unsigned int length(const itk::VariableLengthVector<T>& v)
 {
   return v.GetSize();
+}
+
+template<typename T>
+T index(const itk::RGBPixel<T>& v, size_t i)
+{
+  return v[i];
+}
+
+template<typename T>
+T& index(itk::RGBPixel<T>& v, size_t i)
+{
+  return v[i];
 }
 
 template<typename T, unsigned int N>
