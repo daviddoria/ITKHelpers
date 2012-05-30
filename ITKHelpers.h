@@ -28,6 +28,7 @@ class Mask;
 
 // ITK
 #include "itkImage.h"
+#include "itkImageIOBase.h" // For GetPixelTypeFromFile
 #include "itkIndex.h"
 #include "itkRGBPixel.h"
 #include "itkSize.h"
@@ -58,6 +59,9 @@ itk::Size<2> Get1x1Radius();
 
 std::vector<itk::Index<2> > Get4NeighborIndicesInsideRegion(const itk::Index<2>& pixel,
                                                             const itk::ImageRegion<2>& region);
+
+itk::ImageIOBase::IOComponentType GetPixelTypeFromFile(const std::string& filename);
+
 /** Paraview requires 3D vectors to display glyphs, even if the vectors are really 2D.
     These functions appends a 0 to each vectors of a 2D vector image so that it can be easily visualized with Paraview. */
 void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::ImageRegion<2>& region, const std::string& filename);
