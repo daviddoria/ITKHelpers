@@ -358,18 +358,18 @@ std::vector<itk::Offset<2> > Get8NeighborOffsets()
 //   itk::VariableLengthVector<float> vectorSum;
 //   vectorSum.SetSize(v[0].GetSize());
 //   vectorSum.Fill(0);
-// 
+//
 //   for(unsigned int i = 0; i < v.size(); ++i)
 //     {
 //     //std::cout << "Average: Adding value " << v[i] << std::endl;
 //     vectorSum += v[i];
 //     //std::cout << "Average: Current vectorSum " << vectorSum << std::endl;
 //     }
-// 
+//
 //   itk::VariableLengthVector<float> averageVector;
 //   averageVector.SetSize(v[0].GetSize());
 //   averageVector = vectorSum / static_cast<float>(v.size());
-// 
+//
 //   return averageVector;
 // }
 
@@ -445,7 +445,7 @@ void StackImages(const itk::VectorImage<float, 2>* const image1, const itk::Vect
 {
   typedef itk::VectorImage<float, 2> VectorImageType;
   typedef itk::Image<float, 2> ScalarImageType;
-  
+
   if(image1->GetLargestPossibleRegion() != image2->GetLargestPossibleRegion())
     {
     std::stringstream ss;
@@ -475,7 +475,7 @@ void StackImages(const itk::VectorImage<float, 2>* const image1, const itk::Vect
     ScalarImageType::Pointer channel = ScalarImageType::New();
     channel->SetRegions(region);
     channel->Allocate();
-  
+
     ExtractChannel(image1, i, channel.GetPointer());
     SetChannel(output, i, channel.GetPointer());
     }
@@ -538,7 +538,7 @@ std::vector<float> MaxValues(const itk::VectorImage<float, 2>* const image, cons
 std::vector<float> MinValues(const itk::VectorImage<float, 2>* const image)
 {
   std::vector<float> mins(image->GetNumberOfComponentsPerPixel());
-  
+
   for(unsigned int channel = 0; channel < image->GetNumberOfComponentsPerPixel(); ++channel)
   {
     typedef itk::VectorImage<float, 2> VectorImageType;
@@ -878,7 +878,7 @@ unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& ve
 itk::Size<2> MakeSizeEven(const itk::Size<2>& inputSize)
 {
   itk::Size<2> outputSize = inputSize;
-  
+
   if(Helpers::IsOdd(inputSize[0]))
   {
     outputSize[0]--;
@@ -892,7 +892,7 @@ itk::Size<2> MakeSizeEven(const itk::Size<2>& inputSize)
   return outputSize;
 }
 
-float PixelDistance(const itk::Index<2>& p0, const itk::Index<2>& p1)
+float IndexDistance(const itk::Index<2>& p0, const itk::Index<2>& p1)
 {
   itk::Point<float,2> point0;
   point0[0] = p0[0];
@@ -905,17 +905,18 @@ float PixelDistance(const itk::Index<2>& p0, const itk::Index<2>& p1)
   return point1.EuclideanDistanceTo(point0);
 }
 
-unsigned int ClosestPixel(const std::vector<itk::Index<2> >& pixels, const itk::Index<2>& queryPixel)
+unsigned int ClosestIndexId(const std::vector<itk::Index<2> >& pixels, const itk::Index<2>& queryPixel)
 {
   float minDistance = std::numeric_limits<float>::max();
   unsigned int closestId = 0;
-  
+
   for(unsigned int i = 0; i < pixels.size(); ++i)
   {
-    float distance = PixelDistance(queryPixel, pixels[i]);
+    float distance = IndexDistance(queryPixel, pixels[i]);
     if(distance < minDistance)
     {
       closestId = i;
+      minDistance = distance;
     }
   }
 
