@@ -2,6 +2,8 @@
 
 void TestGetAllPatchesContainingPixel();
 
+void TestClosestPoint();
+
 void TestDownsample();
 void TestUpsample();
 
@@ -12,11 +14,13 @@ void TestDeepCopyUnsignedCharVector();
 
 int main( int argc, char ** argv )
 {
+  TestClosestPoint();
+
   TestGetAllPatchesContainingPixel();
 
   TestDownsample();
   TestUpsample();
-  
+
   TestDeepCopyFloatScalar();
   TestDeepCopyUnsignedCharScalar();
   TestDeepCopyFloatVector();
@@ -39,7 +43,7 @@ void TestGetAllPatchesContainingPixel()
   image->FillBuffer(0.0f);
 
   itk::Index<2> queryPixel = {{5,5}};
-  
+
   std::vector<itk::ImageRegion<2> > allPatches =
         ITKHelpers::GetAllPatchesContainingPixel(queryPixel, 1, imageRegion);
 
@@ -52,12 +56,12 @@ void TestDeepCopyFloatScalar()
   itk::Index<2> corner = {{0,0}};
   itk::Size<2> size = {{10,10}};
   itk::ImageRegion<2> region(corner, size);
-  
+
   typedef itk::Image<float, 2> ImageType;
   ImageType::Pointer imageIn = ImageType::New();
   imageIn->SetRegions(region);
   imageIn->Allocate();
-  
+
   ImageType::Pointer imageOut = ImageType::New();
   ITKHelpers::DeepCopy(imageIn.GetPointer(), imageOut.GetPointer());
 }
@@ -122,7 +126,7 @@ void TestDownsample()
   image->Allocate();
 
   ImageType::Pointer downsampled = ImageType::New();
-  
+
   ITKHelpers::Downsample(image.GetPointer(), 2, downsampled.GetPointer());
 
   std::cout << "TestDownsample() output size: "
@@ -148,3 +152,29 @@ void TestUpsample()
   std::cout << "TestUpsample() output size: "
             << upsampled->GetLargestPossibleRegion().GetSize() << std::endl;
 }
+
+void TestClosestPoint()
+{
+  typedef itk::CovariantVector<float, 3> PointType;
+  std::vector<PointType> vec;
+
+  PointType a;
+  a.Fill(1.1);
+  vec.push_back(a);
+
+  PointType b;
+  b.Fill(2.1);
+  vec.push_back(b);
+
+  PointType c;
+  c.Fill(3.1);
+  vec.push_back(c);
+
+  PointType query;
+  query.Fill(1.2);
+
+  unsigned int closestId = ITKHelpers::ClosestPoint(vec, query);
+
+  std::cout << "Closest point to " << query << " is " << vec[closestId] << std::endl;
+}
+

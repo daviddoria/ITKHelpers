@@ -382,7 +382,7 @@ void ScaleChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned
                   const TPixel channelMax, typename itk::VectorImage<TPixel, 2>* const output);
 
 template<typename TPixel>
-void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image, 
+void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image,
                       typename itk::VectorImage<TPixel, 2>* const output);
 
 /** Replace a channel of an image. */
