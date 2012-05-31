@@ -223,6 +223,8 @@ std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<
                                                                const unsigned int patchRadius,
                                                                const itk::ImageRegion<2>& imageRegion);
 
+std::vector<itk::ImageRegion<2> > GetAllPatches(const itk::ImageRegion<2>& region, const unsigned int patchRadius);
+
 unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec, const itk::CovariantVector<float, 3>& value);
 
 unsigned int ClosestIndexId(const std::vector<itk::Index<2> >& pixels, const itk::Index<2>& queryPixel);
@@ -440,12 +442,20 @@ template<typename TImage>
 typename TypeTraits<typename TImage::PixelType>::LargerType VarianceOfPixelsAtIndices(
   const TImage* const image, const std::vector<itk::Index<2> >& indices);
 
+/** Compute the average of all pixels in an image.*/
+template<typename TImage>
+typename TypeTraits<typename TImage::PixelType>::LargerType AverageOfImage(const TImage* const image);
+
 /** Compute the average of all pixels in a region.*/
 template<typename TImage>
 typename TypeTraits<typename TImage::PixelType>::LargerType AverageInRegion(const TImage* const image,
                                                                             const itk::ImageRegion<2>& region);
 
-/** Compute the average of all pixels in a region.*/
+/** Compute the variance of all pixels in an image.*/
+template<typename TImage>
+typename TypeTraits<typename TImage::PixelType>::LargerType VarianceOfImage(const TImage* const image);
+
+/** Compute the variance of all pixels in a region.*/
 template<typename TImage>
 typename TypeTraits<typename TImage::PixelType>::LargerType VarianceInRegion(const TImage* const image,
                                                                              const itk::ImageRegion<2>& region);
@@ -552,6 +562,9 @@ void SetPixels(TImage* const image, const std::vector<itk::Index<2> >& pixels, c
 template <typename TImage>
 void SetPixelsInRegionToValue(TImage* const image, const itk::ImageRegion<2>& region,
                               const typename TImage::PixelType& value);
+
+template<typename TImage>
+void ExtractAndNormalizeRegion(const TImage* const image, const itk::ImageRegion<2>& region, TImage* const outputImage);
 
 template<typename TImage>
 void NormalizeImageChannels(const TImage* const image, TImage* const outputImage);

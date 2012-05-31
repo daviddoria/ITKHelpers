@@ -24,6 +24,7 @@
 #include <stdexcept>
 
 // ITK
+#include "itkAddImageFilter.h"
 #include "itkBilateralImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
 #include "itkBinaryDilateImageFilter.h"
@@ -35,6 +36,7 @@
 #include "itkImageFileWriter.h"
 #include "itkJoinImageFilter.h"
 #include "itkMinimumMaximumImageCalculator.h"
+#include "itkMultiplyImageFilter.h"
 #include "itkPasteImageFilter.h"
 #include "itkRegionOfInterestImageFilter.h"
 #include "itkResampleImageFilter.h"
@@ -860,6 +862,12 @@ typename TypeTraits<T>::LargerComponentType SumOfComponentMagnitudes(const T& v)
 }
 
 template<typename TImage>
+typename TypeTraits<typename TImage::PixelType>::LargerType AverageOfImage(const TImage* const image)
+{
+  return AverageInRegion(image, image->GetLargestPossibleRegion());
+}
+
+template<typename TImage>
 typename TypeTraits<typename TImage::PixelType>::LargerType AverageInRegion(const TImage* const image,
                                                                             const itk::ImageRegion<2>& region)
 {
@@ -874,6 +882,12 @@ typename TypeTraits<typename TImage::PixelType>::LargerType AverageInRegion(cons
   using Statistics::Average;
   //using ITKHelpers::Average;
   return Average(pixels);
+}
+
+template<typename TImage>
+typename TypeTraits<typename TImage::PixelType>::LargerType VarianceOfImage(const TImage* const image)
+{
+  return VarianceInRegion(image, image->GetLargestPossibleRegion());
 }
 
 template<typename TImage>
@@ -1417,6 +1431,31 @@ void SetPixelsInRegionToValue(TImage* const image, const itk::ImageRegion<2>& re
     }
 }
 
+template<typename TImage>
+void ExtractAndNormalizeRegion(const TImage* const image, const itk::ImageRegion<2>& region, TImage* const outputImage)
+{
+  ITKHelpers::ExtractRegion(image, region, outputImage);
+
+  typename TypeTraits<typename TImage::PixelType>::LargerType mean = ITKHelpers::AverageOfImage(outputImage);
+  typename TypeTraits<typename TImage::PixelType>::LargerType standardDeviation =
+             sqrt(ITKHelpers::VarianceOfImage(outputImage));
+
+  typedef itk::AddImageFilter<TImage, TImage, TImage> AddImageFilterType;
+  typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
+  addImageFilter->SetInput(outputImage);
+  addImageFilter->SetConstant2(-1.0f * mean);
+  addImageFilter->Update();
+
+  DeepCopy(addImageFilter->GetOutput(), outputImage);
+
+  typedef itk::MultiplyImageFilter<TImage, TImage, TImage> MultiplyImageFilterType;
+  typename MultiplyImageFilterType::Pointer multiplyImageFilter = MultiplyImageFilterType::New();
+  multiplyImageFilter->SetInput(outputImage);
+  multiplyImageFilter->SetConstant(1.0f/standardDeviation);
+  multiplyImageFilter->Update();
+
+  DeepCopy(multiplyImageFilter->GetOutput(), outputImage);
+}
 
 template<typename TImage>
 void NormalizeImageChannels(const TImage* const image, TImage* const outputImage)
