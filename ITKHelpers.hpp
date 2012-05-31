@@ -45,6 +45,7 @@
 // Custom
 #include "Helpers/Helpers.h"
 #include "Helpers/Statistics.h"
+#include "ITKTypeTraits.h"
 
 namespace ITKHelpers
 {

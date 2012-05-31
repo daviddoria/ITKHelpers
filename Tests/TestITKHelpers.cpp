@@ -184,10 +184,10 @@ void TestClosestPoint()
 
 void TestSumOfComponentMagnitudes()
 {
-  itk::VariableLengthVector<float, 2> a;
+  itk::VariableLengthVector<float> a(2);
   a.Fill(3.0);
 
   float sum = ITKHelpers::SumOfComponentMagnitudes(a);
 
-  std::cout << "Sum: " << sum << std::endl;
+  std::cout << "Sum of " << a << " is " << sum << std::endl;
 }
