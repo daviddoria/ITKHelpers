@@ -826,11 +826,11 @@ itk::ImageRegion<2> GetInternalRegion(const itk::ImageRegion<2>& wholeRegion, co
   return region;
 }
 
-std::vector<itk::ImageRegion<2> > GetAllPatches(const itk::ImageRegion<2>& region, const unsigned int patchRadius)
+std::vector<itk::ImageRegion<2> > GetAllPatches(const itk::ImageRegion<2>& fullImageRegion, const unsigned int patchRadius)
 {
   typedef itk::Image<float,2> DummyImageType;
   DummyImageType::Pointer dummyImage = DummyImageType::New();
-  dummyImage->SetRegions(region);
+  dummyImage->SetRegions(fullImageRegion);
   //dummyImage->Allocate(); // Do we actually need this to iterate over the image?
 
   itk::Size<2> patchSize;
@@ -850,7 +850,7 @@ std::vector<itk::ImageRegion<2> > GetAllPatches(const itk::ImageRegion<2>& regio
 
     if(fullRegion.IsInside(possibleRegion))
     {
-      regions.push_back(region);
+      regions.push_back(possibleRegion);
     }
     ++imageIterator;
   }
