@@ -166,7 +166,7 @@ float MinValue(const TImage* const image, const itk::ImageRegion<2>& region)
   extractFilter->SetRegionOfInterest(region);
   extractFilter->SetInput(image);
   extractFilter->Update();
-  
+
   typedef typename itk::MinimumMaximumImageCalculator<TImage>
           ImageCalculatorFilterType;
 
@@ -607,7 +607,7 @@ void ExtractChannels(const TImage* const image, const std::vector<unsigned int> 
        << " components and there are " << channels.size() << " channels";
     throw std::runtime_error(ss.str());
   }
-  
+
   if(channels.size() == 0)
   {
     throw std::runtime_error("Cannot extract 0 channels!");
@@ -764,6 +764,13 @@ std::vector<itk::Index<2> > Get8NeighborsWithValue(const itk::Index<2>& pixel, c
       }
     }
   return neighborsWithValue;
+}
+
+template<typename TImage>
+std::vector<itk::Index<2> > GetPixelsWithValue(const TImage* const image,
+                                               const typename TImage::PixelType& value)
+{
+  return GetPixelsWithValue(image, image->GetLargestPossibleRegion(), value);
 }
 
 template<typename TImage>
@@ -987,7 +994,7 @@ template<typename TImage>
 void SubtractRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, const TImage* const image2, const itk::ImageRegion<2>& region2, TImage* const output)
 {
   assert(region1.GetSize() == region2.GetSize());
-  
+
   itk::ImageRegion<2> outputRegion(ZeroIndex(), region1.GetSize());
   output->SetRegions(outputRegion);
   output->Allocate();
@@ -1108,13 +1115,13 @@ std::vector<typename TImage::PixelType> GetPixelValues(const TImage* const image
 // template<typename TImage>
 // void StackImages(const TImage* const image1, const TImage* const image2, const TImage* const output)
 // {
-//   
+//
 //   typedef itk::JoinImageFilter<TImage, TImage> JoinImageFilterType;
 //   typename JoinImageFilterType::Pointer joinFilter = JoinImageFilterType::New();
 //   joinFilter->SetInput1(image1);
 //   joinFilter->SetInput2(image2);
 //   joinFilter->Update();
-// 
+//
 //   DeepCopy(joinFilter->GetOutput(), output);
 //}
 
@@ -1148,7 +1155,7 @@ void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image,
                       typename itk::VectorImage<TPixel, 2>* const output)
 {
   typedef itk::VectorImage<TPixel, 2> ImageType;
-  
+
   if(image->GetNumberOfComponentsPerPixel() == 3)
   {
     DeepCopy(image,output);
@@ -1558,7 +1565,7 @@ template <typename TPixel>
 void WriteVectorImageRegionAsRGB(const itk::VectorImage<TPixel,2>* const image, const itk::ImageRegion<2>& region, const std::string& filename)
 {
   typedef itk::VectorImage<TPixel,2> VectorImageType;
-  
+
   //std::cout << "WriteRegion() " << filename << std::endl;
   //std::cout << "region " << region << std::endl;
   typedef itk::RegionOfInterestImageFilter<VectorImageType, VectorImageType> RegionOfInterestImageFilterType;
@@ -1577,7 +1584,7 @@ template <typename TPixel>
 void VectorImageToRGBImage(const itk::VectorImage<TPixel,2>* const image, RGBImageType* const rgbImage)
 {
   typedef itk::VectorImage<TPixel,2> VectorImageType;
-  
+
   // Only the first 3 components are used (assumed to be RGB)
   rgbImage->SetRegions(image->GetLargestPossibleRegion());
   rgbImage->Allocate();
@@ -1625,7 +1632,7 @@ void Downsample(const TImage* const image, const float factor, TImage* const out
   typename TImage::SizeType outputSize = image->GetLargestPossibleRegion().GetSize();
   outputSize[0] /= factor;
   outputSize[1] /= factor;
-  
+
   typename TImage::SpacingType outputSpacing;
   outputSpacing[0] = image->GetSpacing()[0] * (static_cast<double>(inputSize[0]) / static_cast<double>(outputSize[0]));
   outputSpacing[1] = image->GetSpacing()[1] * (static_cast<double>(inputSize[1]) / static_cast<double>(outputSize[1]));

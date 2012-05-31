@@ -28,6 +28,7 @@ class Mask;
 
 // ITK
 #include "itkImage.h"
+#include "itkImageIOBase.h" // For GetPixelTypeFromFile
 #include "itkIndex.h"
 #include "itkRGBPixel.h"
 #include "itkSize.h"
@@ -58,6 +59,9 @@ itk::Size<2> Get1x1Radius();
 
 std::vector<itk::Index<2> > Get4NeighborIndicesInsideRegion(const itk::Index<2>& pixel,
                                                             const itk::ImageRegion<2>& region);
+
+itk::ImageIOBase::IOComponentType GetPixelTypeFromFile(const std::string& filename);
+
 /** Paraview requires 3D vectors to display glyphs, even if the vectors are really 2D.
     These functions appends a 0 to each vectors of a 2D vector image so that it can be easily visualized with Paraview. */
 void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::ImageRegion<2>& region, const std::string& filename);
@@ -221,12 +225,12 @@ std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<
 
 unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec, const itk::CovariantVector<float, 3>& value);
 
-unsigned int ClosestPixel(const std::vector<itk::Index<2> >& pixels, const itk::Index<2>& queryPixel);
+unsigned int ClosestIndexId(const std::vector<itk::Index<2> >& pixels, const itk::Index<2>& queryPixel);
 
 /** Subtract 1 if necessary from each or either component to make both components even. */
 itk::Size<2> MakeSizeEven(const itk::Size<2>& inputSize);
 
-float PixelDistance(const itk::Index<2>& p0, const itk::Index<2>& p1);
+float IndexDistance(const itk::Index<2>& p0, const itk::Index<2>& p1);
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Template function declarations (defined in ITKHelpers.hxx) ///////////////////
@@ -378,7 +382,7 @@ void ScaleChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned
                   const TPixel channelMax, typename itk::VectorImage<TPixel, 2>* const output);
 
 template<typename TPixel>
-void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image, 
+void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image,
                       typename itk::VectorImage<TPixel, 2>* const output);
 
 /** Replace a channel of an image. */
@@ -414,6 +418,10 @@ std::vector<itk::Index<2> > Get8NeighborsWithValue(const itk::Index<2>& pixel, c
 
 template<typename TImage>
 std::vector<itk::Index<2> > GetPixelsWithValue(const TImage* const image, const itk::ImageRegion<2>& region,
+                                               const typename TImage::PixelType& value);
+
+template<typename TImage>
+std::vector<itk::Index<2> > GetPixelsWithValue(const TImage* const image,
                                                const typename TImage::PixelType& value);
 
 /** Fetch the values in the image at the specified indices. */
