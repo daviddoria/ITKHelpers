@@ -290,6 +290,13 @@ void CopySelfRegion(TImage* const image, const itk::ImageRegion<2>& sourceRegion
 }
 
 template <class TImage>
+void CopyRegion(const TImage* const sourceImage, const itk::ImageRegion<2>& sourceRegion,
+                TImage* const targetImage, const itk::ImageRegion<2>& targetRegion)
+{
+  CopyRegion(sourceImage, targetImage, sourceRegion, targetRegion);
+}
+
+template <class TImage>
 void CopyRegion(const TImage* sourceImage, TImage* targetImage,
                 const itk::ImageRegion<2>& sourceRegion, const itk::ImageRegion<2>& targetRegion)
 {

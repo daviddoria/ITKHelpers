@@ -271,6 +271,11 @@ template <class TImage>
 void CopyRegion(const TImage* const sourceImage, TImage* const targetImage, const itk::ImageRegion<2>& sourceRegion,
                const itk::ImageRegion<2>& targetRegion);
 
+/** The same as the other function by the same name, but with the argument order switched. */
+template <class TImage>
+void CopyRegion(const TImage* const sourceImage, const itk::ImageRegion<2>& sourceRegion,
+                TImage* const targetImage, const itk::ImageRegion<2>& targetRegion);
+
 template <class TImage>
 void CopySelfRegion(TImage* const image, const itk::ImageRegion<2>& sourceRegion,
                     const itk::ImageRegion<2>& targetRegion);
