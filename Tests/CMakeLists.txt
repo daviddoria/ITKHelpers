@@ -1,2 +1,2 @@
-add_executable(Tests Tests.cpp)
-target_link_libraries(Tests ITKHelpers)
+add_executable(TestITKHelpers TestITKHelpers.cpp)
+target_link_libraries(TestITKHelpers ITKHelpers)

@@ -1,5 +1,7 @@
 #include "ITKHelpers.h"
 
+void TestSumOfComponentMagnitudes();
+
 void TestGetAllPatchesContainingPixel();
 
 void TestClosestPoint();
@@ -14,6 +16,8 @@ void TestDeepCopyUnsignedCharVector();
 
 int main( int argc, char ** argv )
 {
+  TestSumOfComponentMagnitudes();
+
   TestClosestPoint();
 
   TestGetAllPatchesContainingPixel();
@@ -178,3 +182,12 @@ void TestClosestPoint()
   std::cout << "Closest point to " << query << " is " << vec[closestId] << std::endl;
 }
 
+void TestSumOfComponentMagnitudes()
+{
+  itk::VariableLengthVector<float> a(2);
+  a.Fill(3.0);
+
+  float sum = ITKHelpers::SumOfComponentMagnitudes(a);
+
+  std::cout << "Sum of " << a << " is " << sum << std::endl;
+}
