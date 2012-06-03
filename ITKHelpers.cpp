@@ -213,7 +213,7 @@ void RGBImageToCIELabImage(RGBImageType* const rgbImage, FloatVectorImageType* c
 
   // Reassembler
   typedef itk::ImageToVectorImageFilter<FloatScalarImageType> ReassemblerType;
-  typename ReassemblerType::Pointer reassembler = ReassemblerType::New();
+  ReassemblerType::Pointer reassembler = ReassemblerType::New();
 
   for(unsigned int i = 0; i < 3; ++i)
     {
@@ -502,7 +502,7 @@ std::vector<float> MinValues(const itk::VectorImage<float, 2>* const image, cons
     typedef itk::Image<float, 2> ScalarImageType;
 
     typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarImageType > IndexSelectionType;
-    typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
+    IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
     indexSelectionFilter->SetIndex(channel);
     indexSelectionFilter->SetInput(image);
     indexSelectionFilter->Update();
@@ -524,7 +524,7 @@ std::vector<float> MaxValues(const itk::VectorImage<float, 2>* const image, cons
     typedef itk::Image<float, 2> ScalarImageType;
 
     typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarImageType > IndexSelectionType;
-    typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
+    IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
     indexSelectionFilter->SetIndex(channel);
     indexSelectionFilter->SetInput(image);
     indexSelectionFilter->Update();
@@ -545,7 +545,7 @@ std::vector<float> MinValues(const itk::VectorImage<float, 2>* const image)
     typedef itk::Image<float, 2> ScalarImageType;
 
     typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarImageType > IndexSelectionType;
-    typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
+    IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
     indexSelectionFilter->SetIndex(channel);
     indexSelectionFilter->SetInput(image);
     indexSelectionFilter->Update();
@@ -567,7 +567,7 @@ std::vector<float> MaxValues(const itk::VectorImage<float, 2>* const image)
     typedef itk::Image<float, 2> ScalarImageType;
 
     typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarImageType > IndexSelectionType;
-    typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
+    IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
     indexSelectionFilter->SetIndex(channel);
     indexSelectionFilter->SetInput(image);
     indexSelectionFilter->Update();
@@ -590,7 +590,7 @@ void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::Im
 
   typedef itk::RegionOfInterestImageFilter<FloatVector2ImageType, FloatVector2ImageType> RegionOfInterestImageFilterType;
 
-  typename RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
+  RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
   regionOfInterestImageFilter->SetRegionOfInterest(region);
   regionOfInterestImageFilter->SetInput(image);
   regionOfInterestImageFilter->Update();
