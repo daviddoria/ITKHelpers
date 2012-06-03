@@ -9,8 +9,9 @@ to get the code in Helpers/ that ITKHelpers relies on.
 Building
 --------
 This repository does not depend on any external libraries. The only caveat is that it depends
-on c++0x/11 parts of the c++ language. For Linux, this means it must be built with the flag
-gnu++0x. For Windows, we are working on finding the comparable solution/flag.
+on c++0x/11 parts of the c++ language used in the Helpers submodule.
+For Linux, this means it must be built with the flag
+gnu++0x. For Windows (Visual Studio 2010), nothing special must be done.
 
 Usage
 -----
