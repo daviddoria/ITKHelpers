@@ -8,7 +8,9 @@ if(NOT TARGET Helpers)
 endif()
 
 # Required because of the c++0x used in Helpers
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++0x")
+if(UNIX)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
+endif(UNIX)
 
 # ITK
 FIND_PACKAGE(ITK REQUIRED)
