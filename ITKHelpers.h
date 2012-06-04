@@ -229,6 +229,10 @@ std::vector<itk::ImageRegion<2> > GetAllPatches(const itk::ImageRegion<2>& regio
 
 std::vector<itk::ImageRegion<2> > GetPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices, const unsigned int patchRadius);
 
+std::vector<itk::ImageRegion<2> > GetValidPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices,
+                                                                   const itk::ImageRegion<2>& imageRegion,
+                                                                   const unsigned int patchRadius);
+
 unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec, const itk::CovariantVector<float, 3>& value);
 
 unsigned int ClosestIndexId(const std::vector<itk::Index<2> >& pixels, const itk::Index<2>& queryPixel);
