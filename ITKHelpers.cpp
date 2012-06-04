@@ -35,6 +35,21 @@
 namespace ITKHelpers
 {
 
+std::vector<itk::Index<2> > GetDownsampledIndicesInRegion(const itk::ImageRegion<2>& region, const unsigned int stride)
+{
+  std::vector<itk::Index<2> > indices;
+
+  for(unsigned int i = 0; i < region.GetSize()[0]; i += stride)
+  {
+    for(unsigned int j = 0; j < region.GetSize()[1]; j += stride)
+    {
+    itk::Index<2> currentIndex = {{i,j}};
+    indices.push_back(currentIndex);
+    }
+  }
+
+  return indices;
+}
 
 std::vector<itk::Index<2> > GetIndicesInRegion(const itk::ImageRegion<2>& region)
 {

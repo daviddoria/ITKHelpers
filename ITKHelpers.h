@@ -53,6 +53,8 @@ typedef itk::VectorImage<float, 2> FloatVectorImageType;
 
 std::vector<itk::Index<2> > GetIndicesInRegion(const itk::ImageRegion<2>& region);
 
+std::vector<itk::Index<2> > GetDownsampledIndicesInRegion(const itk::ImageRegion<2>& region, const unsigned int stride);
+
 std::pair<itk::Index<2>, itk::Index<2> > IntersectLineWithHole(std::vector<itk::Index<2> > line, UnsignedCharScalarImageType::Pointer mask, bool &hasInteriorLine);
 
 itk::Size<2> Get1x1Radius();
