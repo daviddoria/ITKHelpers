@@ -841,6 +841,16 @@ itk::ImageRegion<2> GetInternalRegion(const itk::ImageRegion<2>& wholeRegion, co
   return region;
 }
 
+std::vector<itk::ImageRegion<2> > GetPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices, const unsigned int patchRadius)
+{
+  std::vector<itk::ImageRegion<2> > regions(indices.size());
+  for(unsigned int i = 0; i < indices.size(); ++i)
+  {
+    regions[i] = GetRegionInRadiusAroundPixel(indices[i], patchRadius);
+  }
+  return regions;
+}
+
 std::vector<itk::ImageRegion<2> > GetAllPatches(const itk::ImageRegion<2>& fullImageRegion, const unsigned int patchRadius)
 {
   typedef itk::Image<float,2> DummyImageType;
