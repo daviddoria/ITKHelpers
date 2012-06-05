@@ -576,7 +576,8 @@ void DilateImage(const TImage* const image, TImage* const dilatedImage, const un
 }
 
 template<typename TImage>
-void ChangeValue(TImage* const image, const typename TImage::PixelType& oldValue, const typename TImage::PixelType& newValue)
+void ChangeValue(TImage* const image, const typename TImage::PixelType& oldValue,
+                 const typename TImage::PixelType& newValue)
 {
   itk::ImageRegionIterator<TImage> iterator(image, image->GetLargestPossibleRegion());
 
@@ -590,14 +591,11 @@ void ChangeValue(TImage* const image, const typename TImage::PixelType& oldValue
     }
 }
 
-template<typename TPixel>
-void ExtractChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned int channel,
-                    itk::Image<TPixel, 2>* const output)
+template<typename TInputImage, typename TOutputImage>
+void ExtractChannel(const TInputImage* const image, const unsigned int channel,
+                    TOutputImage* const output)
 {
-  typedef itk::VectorImage<TPixel, 2> VectorImageType;
-  typedef itk::Image<TPixel, 2> ScalarImageType;
-
-  typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarImageType > IndexSelectionType;
+  typedef itk::VectorIndexSelectionCastImageFilter<TInputImage, TOutputImage> IndexSelectionType;
   typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
   indexSelectionFilter->SetIndex(channel);
   indexSelectionFilter->SetInput(image);
@@ -606,9 +604,9 @@ void ExtractChannel(const itk::VectorImage<TPixel, 2>* const image, const unsign
   DeepCopy(indexSelectionFilter->GetOutput(), output);
 }
 
-template<typename TImage>
-void ExtractChannels(const TImage* const image, const std::vector<unsigned int> channels,
-                    TImage* const output)
+template<typename TInputImage, typename TOutputImage>
+void ExtractChannels(const TInputImage* const image, const std::vector<unsigned int> channels,
+                    TOutputImage* const output)
 {
   if(output->GetNumberOfComponentsPerPixel() != channels.size())
   {
@@ -628,17 +626,19 @@ void ExtractChannels(const TImage* const image, const std::vector<unsigned int> 
     if(channels[i] > image->GetNumberOfComponentsPerPixel() - 1)
     {
       std::stringstream ss;
-      ss << "Cannot extract channel " << channels[i] << " from an image with " << image->GetNumberOfComponentsPerPixel() << " channels!";
+      ss << "Cannot extract channel " << channels[i] << " from an image with "
+         << image->GetNumberOfComponentsPerPixel() << " channels!";
       throw std::runtime_error(ss.str());
     }
   }
 
   typedef itk::Image<float, 2> ScalarImageType;
-  typedef itk::VectorIndexSelectionCastImageFilter<TImage, ScalarImageType> IndexSelectionType;
+  typedef itk::VectorIndexSelectionCastImageFilter<TInputImage, ScalarImageType> IndexSelectionType;
 
   for(unsigned int channelIndex = 0; channelIndex < channels.size(); ++channelIndex)
   {
-    std::cout << "Extracting channel " << channels[channelIndex] << " and setting channel " << channelIndex << std::endl;
+    std::cout << "Extracting channel " << channels[channelIndex]
+              << " and setting channel " << channelIndex << std::endl;
     typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
     indexSelectionFilter->SetIndex(channels[channelIndex]);
     indexSelectionFilter->SetInput(image);

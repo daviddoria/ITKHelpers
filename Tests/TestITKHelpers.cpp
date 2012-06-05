@@ -238,11 +238,11 @@ void TestExtractChannels()
   channels.push_back(0);
   channels.push_back(1);
 
-  typedef itk::Image<float, 2> FloatScalarImageType;
+  typedef itk::VectorImage<float, 2> FloatScalarImageType;
   FloatScalarImageType::Pointer floatScalarImage = FloatScalarImageType::New();
   ITKHelpers::ExtractChannels(image.GetPointer(), channels, floatScalarImage.GetPointer());
 
-  typedef itk::Image<unsigned char, 2> UnsignedCharScalarImageType;
+  typedef itk::VectorImage<unsigned char, 2> UnsignedCharScalarImageType;
   UnsignedCharScalarImageType::Pointer unsignedCharScalarImage = UnsignedCharScalarImageType::New();
   ITKHelpers::ExtractChannels(image.GetPointer(), channels, unsignedCharScalarImage.GetPointer());
 }

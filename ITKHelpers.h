@@ -376,15 +376,17 @@ template<typename TImage>
 void ChangeValue(const TImage* const image, const typename TImage::PixelType& oldValue,
                  const typename TImage::PixelType& newValue);
 
-/** Extract a channel of an image. */
-template<typename TPixel>
-void ExtractChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned int channel,
-                    typename itk::Image<TPixel, 2>* const output);
+/** Extract a channel of an image. The output image should be a scalar image,
+  * but does not have to have the same pixel type as the input image.
+  */
+template<typename TInputImage, typename TOutputImage>
+void ExtractChannel(const TInputImage* const image, const unsigned int channel,
+                    TOutputImage* const output);
 
 /** Extract a channels of an image. */
-template<typename TImage>
-void ExtractChannels(const TImage* const image, const std::vector<unsigned int> channels,
-                    TImage* const output);
+template<typename TInputImage, typename TOutputImage>
+void ExtractChannels(const TInputImage* const image, const std::vector<unsigned int> channels,
+                    TOutputImage* const output);
 
 /** Extract a region of an image. */
 template<typename TImage>
