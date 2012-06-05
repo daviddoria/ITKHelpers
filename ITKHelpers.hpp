@@ -534,7 +534,7 @@ void AnisotropicBlurAllChannels(const TVectorImage* image, TVectorImage* output,
     indexSelectionFilter->Update();
 
     typename ScalarImageType::Pointer imageChannel = ScalarImageType::New();
-    DeepCopy<ScalarImageType>(indexSelectionFilter->GetOutput(), imageChannel);
+    DeepCopy(indexSelectionFilter->GetOutput(), imageChannel);
 
     typedef itk::BilateralImageFilter<ScalarImageType, ScalarImageType>  BilateralFilterType;
     typename BilateralFilterType::Pointer bilateralFilter = BilateralFilterType::New();
@@ -544,7 +544,7 @@ void AnisotropicBlurAllChannels(const TVectorImage* image, TVectorImage* output,
     bilateralFilter->Update();
 
     typename ScalarImageType::Pointer blurred = ScalarImageType::New();
-    DeepCopy<ScalarImageType>(bilateralFilter->GetOutput(), blurred);
+    DeepCopy(bilateralFilter->GetOutput(), blurred);
 
     filteredImages.push_back(blurred);
     imageToVectorImageFilter->SetInput(i, filteredImages[i]);
@@ -552,9 +552,8 @@ void AnisotropicBlurAllChannels(const TVectorImage* image, TVectorImage* output,
 
   imageToVectorImageFilter->Update();
 
-  DeepCopy<TVectorImage>(imageToVectorImageFilter->GetOutput(), output);
+  DeepCopy(imageToVectorImageFilter->GetOutput(), output);
 }
-
 
 template<typename TImage>
 void DilateImage(const TImage* const image, TImage* const dilatedImage, const unsigned int radius)
@@ -571,8 +570,7 @@ void DilateImage(const TImage* const image, TImage* const dilatedImage, const un
   dilateFilter->SetKernel(structuringElement);
   dilateFilter->Update();
 
-  DeepCopy<TImage>(dilateFilter->GetOutput(), dilatedImage);
-
+  DeepCopy(dilateFilter->GetOutput(), dilatedImage);
 }
 
 template<typename TImage>
@@ -1183,8 +1181,7 @@ void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image,
     DeepCopy(image,output);
     return;
   }
-
-  if(image->GetNumberOfComponentsPerPixel() > 3)
+  else if(image->GetNumberOfComponentsPerPixel() > 3)
   {
     output->SetRegions(image->GetLargestPossibleRegion());
     output->SetNumberOfComponentsPerPixel(3);
@@ -1199,8 +1196,7 @@ void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image,
       SetChannel(output, channel, outputComponent.GetPointer());
       }
   }
-
-  if(image->GetNumberOfComponentsPerPixel() == 1)
+  else if(image->GetNumberOfComponentsPerPixel() == 1)
   {
     output->SetRegions(image->GetLargestPossibleRegion());
     output->SetNumberOfComponentsPerPixel(3);
@@ -1226,6 +1222,13 @@ void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image,
       ++inputIterator;
       ++outputIterator;
       }
+  }
+  else
+  {
+    std::stringstream ss;
+    ss << "ConvertTo3Channel(): Not sure what to do with an image with "
+       << image->GetNumberOfComponentsPerPixel() << " channels!";
+    throw std::runtime_error(ss.str());
   }
 }
 
@@ -1441,27 +1444,28 @@ void SetPixelsInRegionToValue(TImage* const image, const itk::ImageRegion<2>& re
 template<typename TImage>
 void ExtractAndNormalizeRegion(const TImage* const image, const itk::ImageRegion<2>& region, TImage* const outputImage)
 {
-  ITKHelpers::ExtractRegion(image, region, outputImage);
+  ExtractRegion(image, region, outputImage);
 
-  typename TypeTraits<typename TImage::PixelType>::LargerType mean = ITKHelpers::AverageOfImage(outputImage);
-  typename TypeTraits<typename TImage::PixelType>::LargerType standardDeviation =
-             sqrt(ITKHelpers::VarianceOfImage(outputImage));
-
-  typedef itk::AddImageFilter<TImage, TImage, TImage> AddImageFilterType;
-  typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
-  addImageFilter->SetInput(outputImage);
-  addImageFilter->SetConstant2(-1.0f * mean);
-  addImageFilter->Update();
-
-  DeepCopy(addImageFilter->GetOutput(), outputImage);
-
-  typedef itk::MultiplyImageFilter<TImage, TImage, TImage> MultiplyImageFilterType;
-  typename MultiplyImageFilterType::Pointer multiplyImageFilter = MultiplyImageFilterType::New();
-  multiplyImageFilter->SetInput(outputImage);
-  multiplyImageFilter->SetConstant(1.0f/standardDeviation);
-  multiplyImageFilter->Update();
-
-  DeepCopy(multiplyImageFilter->GetOutput(), outputImage);
+  NormalizeImageChannels(outputImage, outputImage);
+//   typename TypeTraits<typename TImage::PixelType>::LargerType mean = ITKHelpers::AverageOfImage(outputImage);
+//   typename TypeTraits<typename TImage::PixelType>::LargerType standardDeviation =
+//              sqrt(ITKHelpers::VarianceOfImage(outputImage));
+//
+//   typedef itk::AddImageFilter<TImage, TImage, TImage> AddImageFilterType;
+//   typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
+//   addImageFilter->SetInput(outputImage);
+//   addImageFilter->SetConstant2(-1.0f * mean);
+//   addImageFilter->Update();
+//
+//   DeepCopy(addImageFilter->GetOutput(), outputImage);
+//
+//   typedef itk::MultiplyImageFilter<TImage, TImage, TImage> MultiplyImageFilterType;
+//   typename MultiplyImageFilterType::Pointer multiplyImageFilter = MultiplyImageFilterType::New();
+//   multiplyImageFilter->SetInput(outputImage);
+//   multiplyImageFilter->SetConstant(1.0f/standardDeviation);
+//   multiplyImageFilter->Update();
+//
+//   DeepCopy(multiplyImageFilter->GetOutput(), outputImage);
 }
 
 template<typename TImage>
@@ -1700,28 +1704,6 @@ template <typename TImage>
 void Upsample(const TImage* const image, const float factor, TImage* const output)
 {
   Downsample(image, 1.0f/factor, output);
-}
-
-template <typename TImage>
-void FillDifference(const TImage* const image, const itk::ImageRegion<2>& region,
-                    TImage* const output, const typename TImage::PixelType& value)
-{
-  // If the image is not inside the region (i.e. not smaller than the region), there is nothing to do
-  if(!region.IsInside(image->GetLargestPossibleRegion()))
-  {
-    return;
-  }
-
-  itk::ImageRegion<2> differenceRegion = region;
-  differenceRegion.Crop(image->GetLargestPossibleRegion());
-
-  itk::ImageRegionIterator<TImage> imageIterator(output, differenceRegion);
-
-  while(!imageIterator.IsAtEnd())
-    {
-    imageIterator.Set(value);
-    ++imageIterator;
-    }
 }
 
 template <typename TImage>

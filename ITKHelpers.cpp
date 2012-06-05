@@ -709,14 +709,6 @@ void IndicesToBinaryImage(const std::vector<itk::Index<2> >& indices, UnsignedCh
     }
 }
 
-itk::Size<2> Get1x1Radius()
-{
-  itk::Size<2> radius;
-  radius.Fill(1);
-  return radius;
-}
-
-
 std::vector<itk::Index<2> > Get4NeighborIndicesInsideRegion(const itk::Index<2>& pixel,
                                                             const itk::ImageRegion<2>& region)
 {
