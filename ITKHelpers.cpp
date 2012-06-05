@@ -106,13 +106,6 @@ itk::ImageRegion<2> GetQuadrant(const itk::ImageRegion<2>& region, const unsigne
   return quadrant;
 }
 
-itk::Index<2> ZeroIndex()
-{
-  itk::Index<2> index;
-  index.Fill(0);
-  return index;
-}
-
 unsigned int GetNumberOfComponentsPerPixelInFile(const std::string& filename)
 {
   typedef itk::VectorImage<float, 2> TestImageType;
@@ -286,16 +279,6 @@ itk::Offset<2> OffsetFrom1DOffset(const itk::Offset<1>& offset1D, const unsigned
   return offset;
 }
 
-itk::ImageRegion<2> CropToRegion(const itk::ImageRegion<2>& inputRegion, const itk::ImageRegion<2>& targetRegion)
-{
-  // Returns the overlap of the inputRegion with the targetRegion.
-
-  itk::ImageRegion<2> region = targetRegion;
-  region.Crop(inputRegion);
-
-  return region;
-}
-
 void OutputImageType(const itk::ImageBase<2>* const input)
 {
   if(dynamic_cast<const FloatScalarImageType*>(input))
@@ -451,61 +434,11 @@ std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region)
 
 itk::ImageRegion<2> CornerRegion(const itk::Size<2>& size)
 {
-  itk::ImageRegion<2> region(ZeroIndex(), size);
+  itk::Index<2> corner = {{0,0}};
+  itk::ImageRegion<2> region(corner, size);
   return region;
 }
 
-void StackImages(const itk::VectorImage<float, 2>* const image1, const itk::VectorImage<float, 2>* const image2,
-                 itk::VectorImage<float, 2>* const output)
-{
-  typedef itk::VectorImage<float, 2> VectorImageType;
-  typedef itk::Image<float, 2> ScalarImageType;
-
-  if(image1->GetLargestPossibleRegion() != image2->GetLargestPossibleRegion())
-    {
-    std::stringstream ss;
-    ss << "StackImages: Images must be the same size!" << std::endl
-       << "Image1 is " << image1->GetLargestPossibleRegion() << std::endl
-       << "Image2 is " << image2->GetLargestPossibleRegion() << std::endl;
-    throw std::runtime_error(ss.str());
-    }
-
-  std::cout << "StackImages: Image1 has " << image1->GetNumberOfComponentsPerPixel() << " components." << std::endl;
-  std::cout << "StackImages: Image2 has " << image2->GetNumberOfComponentsPerPixel() << " components." << std::endl;
-
-  // Create output image
-  itk::ImageRegion<2> region = image1->GetLargestPossibleRegion();
-
-  unsigned int newPixelLength = image1->GetNumberOfComponentsPerPixel() +
-                                image2->GetNumberOfComponentsPerPixel();
-
-  std::cout << "Output image has " << newPixelLength << " components." << std::endl;
-
-  output->SetNumberOfComponentsPerPixel(newPixelLength);
-  output->SetRegions(region);
-  output->Allocate();
-
-  for(unsigned int i = 0; i < image1->GetNumberOfComponentsPerPixel(); i++)
-    {
-    ScalarImageType::Pointer channel = ScalarImageType::New();
-    channel->SetRegions(region);
-    channel->Allocate();
-
-    ExtractChannel(image1, i, channel.GetPointer());
-    SetChannel(output, i, channel.GetPointer());
-    }
-
-  for(unsigned int i = 0; i < image2->GetNumberOfComponentsPerPixel(); i++)
-    {
-    ScalarImageType::Pointer channel = ScalarImageType::New();
-    channel->SetRegions(region);
-    channel->Allocate();
-
-    ExtractChannel(image2, i, channel.GetPointer());
-    SetChannel(output, image1->GetNumberOfComponentsPerPixel() + i, channel.GetPointer());
-    }
-
-}
 
 std::vector<float> MinValues(const itk::VectorImage<float, 2>* const image, const itk::ImageRegion<2>& region)
 {

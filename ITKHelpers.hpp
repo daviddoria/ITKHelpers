@@ -731,6 +731,58 @@ void NormalizeVectorImage(TImage* const image)
     }
 }
 
+template <typename TPixel>
+void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1, const typename itk::VectorImage<TPixel, 2>* const image2,
+                 typename itk::VectorImage<TPixel, 2>* const output)
+{
+  typedef typename itk::VectorImage<TPixel, 2> VectorImageType;
+  typedef typename itk::Image<TPixel, 2> ScalarImageType;
+
+  if(image1->GetLargestPossibleRegion() != image2->GetLargestPossibleRegion())
+    {
+    std::stringstream ss;
+    ss << "StackImages: Images must be the same size!" << std::endl
+       << "Image1 is " << image1->GetLargestPossibleRegion() << std::endl
+       << "Image2 is " << image2->GetLargestPossibleRegion() << std::endl;
+    throw std::runtime_error(ss.str());
+    }
+
+  std::cout << "StackImages: Image1 has " << image1->GetNumberOfComponentsPerPixel() << " components." << std::endl;
+  std::cout << "StackImages: Image2 has " << image2->GetNumberOfComponentsPerPixel() << " components." << std::endl;
+
+  // Create output image
+  itk::ImageRegion<2> region = image1->GetLargestPossibleRegion();
+
+  unsigned int newPixelLength = image1->GetNumberOfComponentsPerPixel() +
+                                image2->GetNumberOfComponentsPerPixel();
+
+  std::cout << "Output image has " << newPixelLength << " components." << std::endl;
+
+  output->SetNumberOfComponentsPerPixel(newPixelLength);
+  output->SetRegions(region);
+  output->Allocate();
+
+  for(unsigned int i = 0; i < image1->GetNumberOfComponentsPerPixel(); i++)
+    {
+    typename ScalarImageType::Pointer channel = ScalarImageType::New();
+    channel->SetRegions(region);
+    channel->Allocate();
+
+    ExtractChannel(image1, i, channel.GetPointer());
+    SetChannel(output, i, channel.GetPointer());
+    }
+
+  for(unsigned int i = 0; i < image2->GetNumberOfComponentsPerPixel(); i++)
+    {
+    typename ScalarImageType::Pointer channel = ScalarImageType::New();
+    channel->SetRegions(region);
+    channel->Allocate();
+
+    ExtractChannel(image2, i, channel.GetPointer());
+    SetChannel(output, image1->GetNumberOfComponentsPerPixel() + i, channel.GetPointer());
+    }
+
+}
 
 template<typename T>
 itk::Index<2> CreateIndex(const T& v)
@@ -1015,7 +1067,7 @@ void SubtractRegions(const TImage* const image1, const itk::ImageRegion<2>& regi
 {
   assert(region1.GetSize() == region2.GetSize());
 
-  itk::ImageRegion<2> outputRegion(ZeroIndex(), region1.GetSize());
+  itk::ImageRegion<2> outputRegion = CornerRegion(region1.GetSize());
   output->SetRegions(outputRegion);
   output->Allocate();
 
@@ -1039,7 +1091,7 @@ void ANDRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, 
 {
   assert(region1.GetSize() == region2.GetSize());
 
-  itk::ImageRegion<2> outputRegion(ZeroIndex(), region1.GetSize());
+  itk::ImageRegion<2> outputRegion = CornerRegion(region1.GetSize());
   output->SetRegions(outputRegion);
   output->Allocate();
 
@@ -1063,7 +1115,7 @@ void XORRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, 
 {
   assert(region1.GetSize() == region2.GetSize());
 
-  itk::ImageRegion<2> outputRegion(ZeroIndex(), region1.GetSize());
+  itk::ImageRegion<2> outputRegion = CornerRegion(region1.GetSize());
   output->SetRegions(outputRegion);
   output->Allocate();
 

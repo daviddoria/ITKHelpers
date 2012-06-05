@@ -92,6 +92,10 @@ void WriteRegion(const TImage* const image, const itk::ImageRegion<2>& region, c
 template <typename T>
 void OutputVector(const std::vector<T>& v);
 
+/** Combine two VectorImages into a VectorImage where the number of channels is the sum of the two input images. */
+template <typename TPixel>
+void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1, const typename itk::VectorImage<TPixel, 2>* const image2,
+                 typename itk::VectorImage<TPixel, 2>* const output);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Non-template function declarations (defined in Helpers.cpp) ///////////////////
@@ -109,12 +113,10 @@ std::string GetIndexString(const itk::Index<2>& index);
 /** Get a short string of an itk::Size */
 std::string GetSizeString(const itk::Size<2>& size);
 
-itk::Index<2> ZeroIndex();
-
+/** Get a region from the corner (0,0) with size 'size'. */
 itk::ImageRegion<2> CornerRegion(const itk::Size<2>& size);
 
-itk::ImageRegion<2> CropToRegion(const itk::ImageRegion<2>& inputRegion, const itk::ImageRegion<2>& targetRegion);
-
+/** If an image is one of our few predefined types, print it's type the the screen. */
 void OutputImageType(const itk::ImageBase<2>* const input);
 
 /** Average each component of a list of vectors then construct and return a new vector composed of these averaged components. */
@@ -127,6 +129,7 @@ itk::Offset<2> OffsetFrom1DOffset(const itk::Offset<1>& offset1D, const unsigned
 /** Convert an RGB image to the CIELAB colorspace. 'rgbImage' cannot be const because the adaptor doesn't allow it. */
 void RGBImageToCIELabImage(RGBImageType* const rgbImage, FloatVectorImageType* const cielabImage);
 
+/** Convert an RGB image to a 3-channel VectorImage. */
 void RGBImageToVectorImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* const image,
                            itk::VectorImage<float, 2>* const outputImage);
 
@@ -169,18 +172,19 @@ itk::ImageBase<2>::Pointer CreateImageWithSameType(const itk::ImageBase<2>* inpu
 
 // itk::VariableLengthVector<float> Average(const std::vector<itk::VariableLengthVector<float> >& v);
 
+/** Convert a list of offsets from 'index' to a list of absolute indices. */
 std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >& offsets,
                                              const itk::Index<2>& index);
 
+/** Interpret a list of offsets as a list of absolute indices. */
 std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >& offsets);
 
+/** Interpret a list of indices as a list of offsets. */
 std::vector<itk::Offset<2> > IndicesToOffsets(const std::vector<itk::Index<2> >& indices,
                                               const itk::Index<2>& index);
 
+/** Get the locations of the pixels on the boundary of a region. */
 std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region);
-
-void StackImages(const itk::VectorImage<float, 2>* const image1, const itk::VectorImage<float, 2>* const image2,
-                 itk::VectorImage<float, 2>* const output);
 
 /** Compute the min value of each channel of 'image' in 'region'. */
 std::vector<float> MinValues(const itk::VectorImage<float, 2>* const image, const itk::ImageRegion<2>& region);
@@ -194,30 +198,39 @@ std::vector<float> MinValues(const itk::VectorImage<float, 2>* const image);
 /** Compute the max value of each channel of the image. */
 std::vector<float> MaxValues(const itk::VectorImage<float, 2>* const image);
 
+/** Given a list of pixels, form them into an image, dilate the image, and get the list of pixels in the dilated image. */
 std::vector<itk::Index<2> > DilatePixelList(const std::vector<itk::Index<2> >& pixelList,
                                             const itk::ImageRegion<2>& region, const unsigned int radius);
 
+/** Get the region of an image where a patch with radius 'patchRadius' centered on every pixel will be entirely inside 'wholeRegion'. */
 itk::ImageRegion<2> GetInternalRegion(const itk::ImageRegion<2>& wholeRegion, const unsigned int patchRadius);
 
+/** Get all patches in 'imageRegion' with radius 'patchRadius' that contains a specified 'pixel'. */
 std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<2>& pixel,
                                                                const unsigned int patchRadius,
                                                                const itk::ImageRegion<2>& imageRegion);
 
+/** Get all patches with radius 'patchRadius'. */
 std::vector<itk::ImageRegion<2> > GetAllPatches(const itk::ImageRegion<2>& region, const unsigned int patchRadius);
 
+/** Get the regions of patches surrounding every pixel in 'indices'. */
 std::vector<itk::ImageRegion<2> > GetPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices, const unsigned int patchRadius);
 
+/** Get the regions of patches surrounding every pixel in 'indices' if they are entirely inside 'imageRegion'. */
 std::vector<itk::ImageRegion<2> > GetValidPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices,
                                                                    const itk::ImageRegion<2>& imageRegion,
                                                                    const unsigned int patchRadius);
 
+/** Find which point in 'vec' is closest to 'value'. */
 unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec, const itk::CovariantVector<float, 3>& value);
 
+/** Find which location in 'pixels' is closest to 'queryPixel'. */
 unsigned int ClosestIndexId(const std::vector<itk::Index<2> >& pixels, const itk::Index<2>& queryPixel);
 
 /** Subtract 1 if necessary from each or either component to make both components even. */
 itk::Size<2> MakeSizeEven(const itk::Size<2>& inputSize);
 
+/** Find the distance between two indices. */
 float IndexDistance(const itk::Index<2>& p0, const itk::Index<2>& p1);
 
 /////////////////////////////////////////////////////////////////////////////////////////////
