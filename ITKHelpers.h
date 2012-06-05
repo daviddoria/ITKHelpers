@@ -37,25 +37,29 @@ class Mask;
 namespace ITKHelpers
 {
 
-/** Some useful types. */
+/** Scalar types. */
 typedef itk::Image<float, 2> FloatScalarImageType;
 typedef itk::Image<unsigned char, 2> UnsignedCharScalarImageType;
 
+/** Fixed length vector types. */
 typedef itk::CovariantVector<float, 2> FloatVector2Type;
 typedef itk::Image<FloatVector2Type , 2> FloatVector2ImageType;
 
 typedef itk::CovariantVector<float, 3> FloatVector3Type;
 typedef itk::Image<FloatVector3Type , 2> FloatVector3ImageType;
 
+/** RGB types. */
 typedef itk::Image<itk::RGBPixel<unsigned char>, 2> RGBImageType;
 
+/** Variable length vector types. */
 typedef itk::VectorImage<float, 2> FloatVectorImageType;
 
+/** Get all of the indices in a 'region'. */
 std::vector<itk::Index<2> > GetIndicesInRegion(const itk::ImageRegion<2>& region);
 
-std::vector<itk::Index<2> > GetDownsampledIndicesInRegion(const itk::ImageRegion<2>& region, const unsigned int stride);
-
-std::pair<itk::Index<2>, itk::Index<2> > IntersectLineWithHole(std::vector<itk::Index<2> > line, UnsignedCharScalarImageType::Pointer mask, bool &hasInteriorLine);
+/** Get a list of the indices in a 'region' downsampled in both dimensions by 'stride' . */
+std::vector<itk::Index<2> > GetDownsampledIndicesInRegion(const itk::ImageRegion<2>& region,
+                                                          const unsigned int stride);
 
 itk::Size<2> Get1x1Radius();
 
