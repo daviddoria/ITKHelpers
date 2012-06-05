@@ -1757,4 +1757,17 @@ void CreateEvenSizeImage(const TImage* const image, TImage* const output)
   CopyRegion(image, output, evenRegion, evenRegion);
 }
 
+template <typename TInputImage, typename TOutputImage>
+void MagnitudeImage(const TInputImage* const image, TOutputImage* const output)
+{
+  typedef itk::VectorMagnitudeImageFilter<
+    TInputImage, TOutputImage >  VectorMagnitudeFilterType;
+  typename VectorMagnitudeFilterType::Pointer magnitudeFilter =
+    VectorMagnitudeFilterType::New();
+  magnitudeFilter->SetInput(image);
+  magnitudeFilter->Update();
+
+  ITKHelpers::DeepCopy(magnitudeFilter->GetOutput(), output);
+}
+
 }// end namespace ITKHelpers

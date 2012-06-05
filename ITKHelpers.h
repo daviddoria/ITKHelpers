@@ -618,6 +618,9 @@ void CreateEvenSizeImage(const TImage* const image, TImage* const output);
 template <typename TImage>
 void ScaleImage(const TImage* const image, const itk::Size<2>& destinationSize, TImage* const output);
 
+template <typename TInputImage, typename TOutputImage>
+void MagnitudeImage(const TInputImage* const image, TOutputImage* const output);
+
 }// end namespace
 
 #include "ITKHelpers.hpp"
