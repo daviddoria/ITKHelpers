@@ -1,5 +1,8 @@
 #include "ITKHelpers.h"
 
+void TestExtractChannel();
+void TestExtractChannels();
+
 void TestSumOfComponentMagnitudes();
 
 void TestGetAllPatchesContainingPixel();
@@ -16,6 +19,9 @@ void TestDeepCopyUnsignedCharVector();
 
 int main( int argc, char ** argv )
 {
+  TestExtractChannel();
+  TestExtractChannels();
+
   TestSumOfComponentMagnitudes();
 
   TestClosestPoint();
@@ -190,4 +196,53 @@ void TestSumOfComponentMagnitudes()
   float sum = ITKHelpers::SumOfComponentMagnitudes(a);
 
   std::cout << "Sum of " << a << " is " << sum << std::endl;
+}
+
+void TestExtractChannel()
+{
+  typedef itk::VectorImage<float, 2> VectorImageType;
+  VectorImageType::Pointer image = VectorImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->SetNumberOfComponentsPerPixel(2);
+  image->Allocate();
+
+  typedef itk::Image<float, 2> FloatScalarImageType;
+  FloatScalarImageType::Pointer floatScalarImage = FloatScalarImageType::New();
+  ITKHelpers::ExtractChannel(image.GetPointer(), 0, floatScalarImage.GetPointer());
+
+  typedef itk::Image<unsigned char, 2> UnsignedCharScalarImageType;
+  UnsignedCharScalarImageType::Pointer unsignedCharScalarImage = UnsignedCharScalarImageType::New();
+  ITKHelpers::ExtractChannel(image.GetPointer(), 0, unsignedCharScalarImage.GetPointer());
+}
+
+void TestExtractChannels()
+{
+  typedef itk::VectorImage<float, 2> VectorImageType;
+  VectorImageType::Pointer image = VectorImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->SetNumberOfComponentsPerPixel(3);
+  image->Allocate();
+
+  // Extract the first two channels
+  std::vector<unsigned int> channels;
+  channels.push_back(0);
+  channels.push_back(1);
+
+  typedef itk::Image<float, 2> FloatScalarImageType;
+  FloatScalarImageType::Pointer floatScalarImage = FloatScalarImageType::New();
+  ITKHelpers::ExtractChannels(image.GetPointer(), channels, floatScalarImage.GetPointer());
+
+  typedef itk::Image<unsigned char, 2> UnsignedCharScalarImageType;
+  UnsignedCharScalarImageType::Pointer unsignedCharScalarImage = UnsignedCharScalarImageType::New();
+  ITKHelpers::ExtractChannels(image.GetPointer(), channels, unsignedCharScalarImage.GetPointer());
 }
