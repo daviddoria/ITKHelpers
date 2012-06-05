@@ -35,6 +35,21 @@
 namespace ITKHelpers
 {
 
+std::vector<itk::Index<2> > GetDownsampledIndicesInRegion(const itk::ImageRegion<2>& region, const unsigned int stride)
+{
+  std::vector<itk::Index<2> > indices;
+
+  for(unsigned int i = 0; i < region.GetSize()[0]; i += stride)
+  {
+    for(unsigned int j = 0; j < region.GetSize()[1]; j += stride)
+    {
+    itk::Index<2> currentIndex = {{i,j}};
+    indices.push_back(currentIndex);
+    }
+  }
+
+  return indices;
+}
 
 std::vector<itk::Index<2> > GetIndicesInRegion(const itk::ImageRegion<2>& region)
 {
@@ -824,6 +839,33 @@ itk::ImageRegion<2> GetInternalRegion(const itk::ImageRegion<2>& wholeRegion, co
   itk::ImageRegion<2> region(regionCorner, regionSize);
 
   return region;
+}
+
+std::vector<itk::ImageRegion<2> > GetPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices, const unsigned int patchRadius)
+{
+  std::vector<itk::ImageRegion<2> > regions(indices.size());
+  for(unsigned int i = 0; i < indices.size(); ++i)
+  {
+    regions[i] = GetRegionInRadiusAroundPixel(indices[i], patchRadius);
+  }
+  return regions;
+}
+
+std::vector<itk::ImageRegion<2> > GetValidPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices,
+                                                                   const itk::ImageRegion<2>& imageRegion,
+                                                                   const unsigned int patchRadius)
+{
+  std::vector<itk::ImageRegion<2> > regions;
+  for(unsigned int i = 0; i < indices.size(); ++i)
+  {
+    itk::ImageRegion<2> region = GetRegionInRadiusAroundPixel(indices[i], patchRadius);
+
+    if(imageRegion.IsInside(region))
+    {
+      regions.push_back(region);
+    }
+  }
+  return regions;
 }
 
 std::vector<itk::ImageRegion<2> > GetAllPatches(const itk::ImageRegion<2>& fullImageRegion, const unsigned int patchRadius)

@@ -53,6 +53,8 @@ typedef itk::VectorImage<float, 2> FloatVectorImageType;
 
 std::vector<itk::Index<2> > GetIndicesInRegion(const itk::ImageRegion<2>& region);
 
+std::vector<itk::Index<2> > GetDownsampledIndicesInRegion(const itk::ImageRegion<2>& region, const unsigned int stride);
+
 std::pair<itk::Index<2>, itk::Index<2> > IntersectLineWithHole(std::vector<itk::Index<2> > line, UnsignedCharScalarImageType::Pointer mask, bool &hasInteriorLine);
 
 itk::Size<2> Get1x1Radius();
@@ -224,6 +226,12 @@ std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<
                                                                const itk::ImageRegion<2>& imageRegion);
 
 std::vector<itk::ImageRegion<2> > GetAllPatches(const itk::ImageRegion<2>& region, const unsigned int patchRadius);
+
+std::vector<itk::ImageRegion<2> > GetPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices, const unsigned int patchRadius);
+
+std::vector<itk::ImageRegion<2> > GetValidPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices,
+                                                                   const itk::ImageRegion<2>& imageRegion,
+                                                                   const unsigned int patchRadius);
 
 unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec, const itk::CovariantVector<float, 3>& value);
 
