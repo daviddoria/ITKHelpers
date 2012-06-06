@@ -1827,7 +1827,7 @@ void CreateEvenSizeImage(const TImage* const image, TImage* const output)
 }
 
 template <typename TInputImage, typename TOutputImage>
-void MagnitudeImage(const TInputImage* const image, TOutputImage* const output)
+void MagnitudeImage_Generic(const TInputImage* const image, TOutputImage* const output)
 {
   typedef itk::VectorMagnitudeImageFilter<
     TInputImage, TOutputImage >  VectorMagnitudeFilterType;
@@ -1837,6 +1837,12 @@ void MagnitudeImage(const TInputImage* const image, TOutputImage* const output)
   magnitudeFilter->Update();
 
   ITKHelpers::DeepCopy(magnitudeFilter->GetOutput(), output);
+}
+
+template <typename TInputImage, typename TOutputImage>
+void MagnitudeImage(const TInputImage* const image, TOutputImage* const output)
+{
+  MagnitudeImage_Generic(image, output);
 }
 
 template <typename TInputPixel, typename TOutputPixel>
@@ -1852,6 +1858,13 @@ void MagnitudeImage(const itk::Image<TInputPixel, 2>* const image, itk::Image<TO
   ITKHelpers::DeepCopy(absFilter->GetOutput(), output);
 }
 
+template <typename TInputPixel, unsigned int TVectorDim, typename TOutputPixel>
+void MagnitudeImage(const itk::Image<itk::CovariantVector<TInputPixel, TVectorDim>, 2>* const image,
+                    itk::Image<TOutputPixel,2>* const output)
+{
+  MagnitudeImage_Generic(image, output);
+}
+
 /** Compute a histogram of gradients. */
 template <typename TImage>
 std::vector<float> HistogramOfGradients(const TImage* const image,
@@ -1864,7 +1877,7 @@ std::vector<float> HistogramOfGradients(const TImage* const image,
   // Compute the gradient
   typedef itk::GradientImageFilter<FloatScalarImageType, float>  GradientFilterType;
   GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
-  gradientFilter->SetInput(image);
+  gradientFilter->SetInput(magnitudeImage);
   gradientFilter->Update();
 
   // The synatx is atan2(y,x). Returns in the range [-pi,pi]

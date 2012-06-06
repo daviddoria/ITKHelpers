@@ -618,6 +618,9 @@ void CreateEvenSizeImage(const TImage* const image, TImage* const output);
 template <typename TImage>
 void ScaleImage(const TImage* const image, const itk::Size<2>& destinationSize, TImage* const output);
 
+template <typename TInputImage, typename TOutputImage>
+void MagnitudeImage_Generic(const TInputImage* const image, TOutputImage* const output);
+
 /** Compute the magnitude image. */
 template <typename TInputImage, typename TOutputImage>
 void MagnitudeImage(const TInputImage* const image, TOutputImage* const output);
@@ -625,6 +628,10 @@ void MagnitudeImage(const TInputImage* const image, TOutputImage* const output);
 /** If MagnitudeImage is called on a scalar image, compute the absolute value rather than the magnitude. */
 template <typename TInputPixel, typename TOutputPixel>
 void MagnitudeImage(const itk::Image<TInputPixel, 2>* const image, itk::Image<TOutputPixel,2>* const output);
+
+template <typename TInputPixel, unsigned int TVectorDim, typename TOutputPixel>
+void MagnitudeImage(const itk::Image<itk::CovariantVector<TInputPixel, TVectorDim>, 2>* const image,
+                    itk::Image<TOutputPixel,2>* const output);
 
 /** Get all of the indices in a 'region'. */
 std::vector<itk::Index<2> > GetIndicesInRegion(const itk::ImageRegion<2>& region);
