@@ -667,6 +667,16 @@ template <typename TImage>
 std::vector<float> HistogramOfGradients(const TImage* const image,
                                         const itk::ImageRegion<2>& region, const unsigned int numberOfBins);
 
+/** Compute the gradient of an image. */
+template <typename TImage>
+void ComputeGradients(const TImage* const image,
+                      itk::Image<itk::CovariantVector<float, 2>, 2>* output);
+
+/** Compute a histogram of gradients when the gradients are already known. */
+template <typename TGradientImage>
+std::vector<float> HistogramOfGradientsPrecomputed(const TGradientImage* const image,
+                                                   const itk::ImageRegion<2>& region, const unsigned int numberOfBins);
+
 }// end namespace
 
 #include "ITKHelpers.hpp"

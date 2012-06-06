@@ -1865,10 +1865,9 @@ void MagnitudeImage(const itk::Image<itk::CovariantVector<TInputPixel, TVectorDi
   MagnitudeImage_Generic(image, output);
 }
 
-/** Compute a histogram of gradients. */
 template <typename TImage>
-std::vector<float> HistogramOfGradients(const TImage* const image,
-                                        const itk::ImageRegion<2>& region, const unsigned int numberOfBins)
+void ComputeGradients(const TImage* const image,
+                      itk::Image<itk::CovariantVector<float, 2>, 2>* output)
 {
   // Convert the image to a magnitude image
   FloatScalarImageType::Pointer magnitudeImage = FloatScalarImageType::New();
@@ -1880,6 +1879,26 @@ std::vector<float> HistogramOfGradients(const TImage* const image,
   gradientFilter->SetInput(magnitudeImage);
   gradientFilter->Update();
 
+  DeepCopy(gradientFilter->GetOutput(), output);
+}
+
+/** Compute a histogram of gradients. */
+template <typename TImage>
+std::vector<float> HistogramOfGradients(const TImage* const image,
+                                        const itk::ImageRegion<2>& region, const unsigned int numberOfBins)
+{
+  typedef itk::Image<itk::CovariantVector<float, 2>, 2> GradientImageType;
+  GradientImageType::Pointer gradientImage = GradientImageType::New();
+  // TODO: Should only compute gradients in 'region' (currently computes full image gradients)
+  ComputeGradients(image, gradientImage.GetPointer());
+
+  return HistogramOfGradientsPrecomputed(gradientImage.GetPointer(), region, numberOfBins);
+}
+
+template <typename TGradientImage>
+std::vector<float> HistogramOfGradientsPrecomputed(const TGradientImage* const gradientImage,
+                                                   const itk::ImageRegion<2>& region, const unsigned int numberOfBins)
+{
   // The synatx is atan2(y,x). Returns in the range [-pi,pi]
   float minValue = -1.0f * itk::Math::pi;
   float maxValue = itk::Math::pi;
@@ -1890,11 +1909,11 @@ std::vector<float> HistogramOfGradients(const TImage* const image,
 
   float binSize = range / static_cast<float>(numberOfBins);
 
-  itk::ImageRegionConstIterator<FloatVector2ImageType> iterator(gradientFilter->GetOutput(), region);
+  itk::ImageRegionConstIterator<TGradientImage> iterator(gradientImage, region);
 
   while(!iterator.IsAtEnd())
     {
-    GradientFilterType::OutputImageType::PixelType v = iterator.Get();
+    typename TGradientImage::PixelType v = iterator.Get();
 
     float angle = atan2(v[1], v[0]); // The synatx is atan2(y,x)
     unsigned int bin = static_cast<unsigned int>( (angle - minValue) / binSize );
