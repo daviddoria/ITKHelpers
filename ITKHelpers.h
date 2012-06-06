@@ -19,7 +19,9 @@
 #ifndef ITKHelpers_H
 #define ITKHelpers_H
 
-// Custom
+#include "ITKHelpersTypes.h"
+
+// Submodules
 class Mask;
 #include "Helpers/TypeTraits.h"
 
@@ -34,191 +36,16 @@ class Mask;
 #include "itkSize.h"
 #include "itkVectorImage.h"
 
-#include "ITKHelpersTypes.h"
-
 namespace ITKHelpers
 {
   using namespace ITKHelpersTypes;
 ////////////////////////////////////////////////////////////////////////
-///////// Function templates (defined in HelpersOutput.hxx) /////////
+///////// Function templates (defined in ITKHelpers.hpp) /////////
 ////////////////////////////////////////////////////////////////////////
 
-/** Compute the central derivative of 'image' in 'direction' and store it in 'output'. */
-template <class TImage>
-void CentralDifferenceDerivative(const TImage* const image, const unsigned int direction, TImage* const output);
-
-/**  Write the first 3 channels of an image to a file as unsigned chars. */
-template<typename TImage>
-void WriteRGBImage(const TImage* const input, const std::string& filename);
-
-/** Write an image to a file named 'prefix'_'iteration'.mha*/
-template <typename TImage>
-void WriteSequentialImage(const TImage* const image, const std::string& filePrefix, const unsigned int iteration);
-
-/** Write 'image' to 'fileName' if 'condition' is true. */
-template <typename TImage>
-void WriteImageConditional(const TImage* const image, const std::string& fileName, const bool condition);
-
-/** Scale a scalar image to the range (0-255) and then write it to a file as an unsigned char image. */
-template <class TImage>
-void WriteScaledScalarImage(const TImage* const image, const std::string& filename);
-
-/** Write 'image' to 'fileName'.*/
-template<typename TImage>
-void WriteImage(const TImage* const image, const std::string& fileName);
-
-/** Write a 'region' of an 'image' to 'filename'.*/
-template<typename TImage>
-void WriteRegion(const TImage* const image, const itk::ImageRegion<2>& region, const std::string& filename);
-
-/** Write a vector 'v' to the screen.*/
-template <typename T>
-void OutputVector(const std::vector<T>& v);
-
-/** Combine two VectorImages into a VectorImage where the number of channels is the sum of the two input images. */
-template <typename TPixel>
-void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1, const typename itk::VectorImage<TPixel, 2>* const image2,
-                 typename itk::VectorImage<TPixel, 2>* const output);
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////// Non-template function declarations (defined in Helpers.cpp) ///////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////
-
-/** Mark each pixel at the specified 'indices' as a non-zero pixel in 'image' */
-void IndicesToBinaryImage(const std::vector<itk::Index<2> >& indices, UnsignedCharScalarImageType* const image);
-
-/** Get the number of components per pixel in an image file. */
-unsigned int GetNumberOfComponentsPerPixelInFile(const std::string& filename);
-
-/** Get a short string of an itk::Index */
-std::string GetIndexString(const itk::Index<2>& index);
-
-/** Get a short string of an itk::Size */
-std::string GetSizeString(const itk::Size<2>& size);
-
-/** Get a region from the corner (0,0) with size 'size'. */
-itk::ImageRegion<2> CornerRegion(const itk::Size<2>& size);
-
-/** If an image is one of our few predefined types, print it's type the the screen. */
-void OutputImageType(const itk::ImageBase<2>* const input);
-
-/** Average each component of a list of vectors then construct and return a new vector composed of these averaged components. */
-FloatVector2Type AverageVectors(const std::vector<FloatVector2Type>& vectors);
-
-/** This function creates an Offset<2> by setting the 'dimension' index of the Offset<2>
- * to the value of the Offset<1>, and filling the other position with a 0. */
-itk::Offset<2> OffsetFrom1DOffset(const itk::Offset<1>& offset1D, const unsigned int dimension);
-
 /** Convert an RGB image to the CIELAB colorspace. 'rgbImage' cannot be const because the adaptor doesn't allow it. */
-void RGBImageToCIELabImage(RGBImageType* const rgbImage, FloatVectorImageType* const cielabImage);
-
-/** Convert an RGB image to a 3-channel VectorImage. */
-void RGBImageToVectorImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* const image,
-                           itk::VectorImage<float, 2>* const outputImage);
-
-/** Convert the first 3 channels of an ITK image to the CIELAB colorspace. */
-void ITKImageToCIELabImage(const FloatVectorImageType* const rgbImage, FloatVectorImageType* const cielabImage);
-
-/** Compute the angle between two vectors. */
-float AngleBetween(const FloatVector2Type& v1, const FloatVector2Type& v2);
-
-/** Get the 'quadrant'th quadrant (quarter) region of the 'region'. */
-itk::ImageRegion<2> GetQuadrant(const itk::ImageRegion<2>& region, const unsigned int quadrant);
-
-/** Convert the first 3 channels of a float vector image to an unsigned char/color/rgb image. */
-template <typename TPixel>
-void VectorImageToRGBImage(const itk::VectorImage<TPixel, 2>* const image, RGBImageType* const rgbImage);
-
-/** Get the center pixel of a region. The region is assumed to have odd dimensions. */
-itk::Index<2> GetRegionCenter(const itk::ImageRegion<2>& region);
-
-/** Get the size of a region by it's radius. E.g. radius 5 -> 11x11 patch. */
-itk::Size<2> SizeFromRadius(const unsigned int radius);
-
-/** "Follow" a vector from one pixel to find the next pixel it would "hit". */
-itk::Index<2> GetNextPixelAlongVector(const itk::Index<2>& pixel, const FloatVector2Type& vector);
-
-/** Get the direction in integer pixel coordinates of the 'vector' */
-itk::Offset<2> GetOffsetAlongVector(const FloatVector2Type& vector);
-
-/** Make an ImageRegion centered on 'pixel' with radius 'radius'. */
-itk::ImageRegion<2> GetRegionInRadiusAroundPixel(const itk::Index<2>& pixel, const unsigned int radius);
-
-/** Get the offsets of the 8 neighborhood of a pixel. */
-std::vector<itk::Offset<2> > Get8NeighborOffsets();
-
-/** Get the indices of the neighbors of a pixel that are inside of a region. */
-std::vector<itk::Index<2> > Get8NeighborsInRegion(const itk::ImageRegion<2>& region, const itk::Index<2>& pixel);
-
-/** The return value MUST be a smart pointer. */
-itk::ImageBase<2>::Pointer CreateImageWithSameType(const itk::ImageBase<2>* input);
-
-// itk::VariableLengthVector<float> Average(const std::vector<itk::VariableLengthVector<float> >& v);
-
-/** Convert a list of offsets from 'index' to a list of absolute indices. */
-std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >& offsets,
-                                             const itk::Index<2>& index);
-
-/** Interpret a list of offsets as a list of absolute indices. */
-std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >& offsets);
-
-/** Interpret a list of indices as a list of offsets. */
-std::vector<itk::Offset<2> > IndicesToOffsets(const std::vector<itk::Index<2> >& indices,
-                                              const itk::Index<2>& index);
-
-/** Get the locations of the pixels on the boundary of a region. */
-std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region);
-
-/** Compute the min value of each channel of 'image' in 'region'. */
-std::vector<float> MinValues(const itk::VectorImage<float, 2>* const image, const itk::ImageRegion<2>& region);
-
-/** Compute the max value of each channel of 'image' in 'region'. */
-std::vector<float> MaxValues(const itk::VectorImage<float, 2>* const image, const itk::ImageRegion<2>& region);
-
-/** Compute the min value of each channel of the image. */
-std::vector<float> MinValues(const itk::VectorImage<float, 2>* const image);
-
-/** Compute the max value of each channel of the image. */
-std::vector<float> MaxValues(const itk::VectorImage<float, 2>* const image);
-
-/** Given a list of pixels, form them into an image, dilate the image, and get the list of pixels in the dilated image. */
-std::vector<itk::Index<2> > DilatePixelList(const std::vector<itk::Index<2> >& pixelList,
-                                            const itk::ImageRegion<2>& region, const unsigned int radius);
-
-/** Get the region of an image where a patch with radius 'patchRadius' centered on every pixel will be entirely inside 'wholeRegion'. */
-itk::ImageRegion<2> GetInternalRegion(const itk::ImageRegion<2>& wholeRegion, const unsigned int patchRadius);
-
-/** Get all patches in 'imageRegion' with radius 'patchRadius' that contains a specified 'pixel'. */
-std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<2>& pixel,
-                                                               const unsigned int patchRadius,
-                                                               const itk::ImageRegion<2>& imageRegion);
-
-/** Get all patches with radius 'patchRadius'. */
-std::vector<itk::ImageRegion<2> > GetAllPatches(const itk::ImageRegion<2>& region, const unsigned int patchRadius);
-
-/** Get the regions of patches surrounding every pixel in 'indices'. */
-std::vector<itk::ImageRegion<2> > GetPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices, const unsigned int patchRadius);
-
-/** Get the regions of patches surrounding every pixel in 'indices' if they are entirely inside 'imageRegion'. */
-std::vector<itk::ImageRegion<2> > GetValidPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices,
-                                                                   const itk::ImageRegion<2>& imageRegion,
-                                                                   const unsigned int patchRadius);
-
-/** Find which point in 'vec' is closest to 'value'. */
-unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec, const itk::CovariantVector<float, 3>& value);
-
-/** Find which location in 'pixels' is closest to 'queryPixel'. */
-unsigned int ClosestIndexId(const std::vector<itk::Index<2> >& pixels, const itk::Index<2>& queryPixel);
-
-/** Subtract 1 if necessary from each or either component to make both components even. */
-itk::Size<2> MakeSizeEven(const itk::Size<2>& inputSize);
-
-/** Find the distance between two indices. */
-float IndexDistance(const itk::Index<2>& p0, const itk::Index<2>& p1);
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-////////////////// Template function declarations (defined in ITKHelpers.hxx) ///////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////
+template<typename TOutputImage>
+void RGBImageToCIELabImage(RGBImageType* const rgbImage, TOutputImage* const cielabImage);
 
 
 /** Determine if any of the 8 neighbors pixels has the specified value. */
@@ -242,13 +69,16 @@ void DeepCopy(const itk::Image<TInputPixel, 2>* const input, itk::Image<TOutputP
 template<typename TInputPixel, typename TOutputPixel>
 void DeepCopy(const itk::VectorImage<TInputPixel, 2>* const input, itk::VectorImage<TOutputPixel, 2>* const output);
 
+/** Deep copy a 'region' of 'input' to the same 'region' in 'output'. */
 template<typename TInputImage, typename TOutputImage>
 void DeepCopyInRegion(const TInputImage* const input, const itk::ImageRegion<2>& region, TOutputImage* const output);
 
+/** Copy the region around 'sourcePosition' with radius 'radius' to the region around 'targetPosition' with radius 'radius'. */
 template <class TImage>
 void CopyRegion(const TImage* const sourceImage, TImage* const targetImage, const itk::Index<2>& sourcePosition,
                 const itk::Index<2>& targetPosition, const unsigned int radius);
 
+/** Copy 'sourceRegion' in 'sourceImage' to 'targetRegion' in 'targetImage'. */
 template <class TImage>
 void CopyRegion(const TImage* const sourceImage, TImage* const targetImage, const itk::ImageRegion<2>& sourceRegion,
                const itk::ImageRegion<2>& targetRegion);
@@ -258,45 +88,62 @@ template <class TImage>
 void CopyRegion(const TImage* const sourceImage, const itk::ImageRegion<2>& sourceRegion,
                 TImage* const targetImage, const itk::ImageRegion<2>& targetRegion);
 
+/** Copy 'sourceRegion' to 'targetRegion' in 'image'. */
 template <class TImage>
 void CopySelfRegion(TImage* const image, const itk::ImageRegion<2>& sourceRegion,
                     const itk::ImageRegion<2>& targetRegion);
 
+/** Replace pixels in 'image' with value 'queryValue' with 'replacementValue'. */
 template<typename TImage>
 void ReplaceValue(TImage* image, const typename TImage::PixelType& queryValue,
                   const typename TImage::PixelType& replacementValue);
 
-template <class TImage>
-void CopyRegionIntoImage(const TImage* const patch, TImage* const image, const itk::Index<2>& position);
-
 /** Find the min value of 'image' in 'region' of a scalar image. */
 template <class TImage>
-float MinValue(const TImage* const image, const itk::ImageRegion<2>& region);
+typename TImage::PixelType MinValue(const TImage* const image, const itk::ImageRegion<2>& region);
 
 /** Find the max value of 'image' in 'region' of a scalar image. */
 template <class TImage>
-float MaxValue(const TImage* const image, const itk::ImageRegion<2>& region);
+typename TImage::PixelType MaxValue(const TImage* const image, const itk::ImageRegion<2>& region);
 
 /** Find the min value of 'image' of a scalar image. */
 template <class TImage>
-float MinValue(const TImage* const image);
+typename TImage::PixelType MinValue(const TImage* const image);
 
 /** Find the max value of 'image' of a scalar image. */
 template <class TImage>
-float MaxValue(const TImage* const image);
+typename TImage::PixelType MaxValue(const TImage* const image);
 
-template <class T>
-std::vector<T> MaxValuesVectorImage(const itk::VectorImage<T, 2>* const image);
+/** Get the maximum values of every channel of a vector image. */
+template <class TPixel>
+std::vector<TPixel> MaxValues(const itk::VectorImage<TPixel, 2>* const image);
 
+/** Compute the max value of each channel of 'image' in 'region'. */
+template <class TPixel>
+std::vector<TPixel> MaxValues(const itk::VectorImage<TPixel, 2>* const image, const itk::ImageRegion<2>& region);
+
+/** Compute the min value of each channel of 'image' in 'region'. */
+template <class TPixel>
+std::vector<TPixel> MinValues(const itk::VectorImage<TPixel, 2>* const image, const itk::ImageRegion<2>& region);
+
+/** Compute the min value of each channel of the image. */
+template <class TPixel>
+std::vector<TPixel> MinValues(const itk::VectorImage<TPixel, 2>* const image);
+
+/** Find the location of the pixel with the maximum value. */
 template <class TImage>
 itk::Index<2> MaxValueLocation(const TImage* const image);
 
+/** Find the location of the pixel with the minimum value. */
 template <class TImage>
 itk::Index<2> MinValueLocation(const TImage* const image);
 
+/** Convert a color image to a grayscale image. */
 template <typename TInputImage, typename TOutputImage>
 void ColorToGrayscale(const TInputImage* const colorImage, TOutputImage* const grayscaleImage);
 
+/** Set the pixels inside 'region' in 'image' to 'blankValue', and those on the border of the 'region'
+ *  to 'outlineValue'. */
 template<typename TImage>
 void BlankAndOutlineRegion(TImage* const image, const itk::ImageRegion<2>& region,
                            const typename TImage::PixelType& blankValue,
@@ -327,11 +174,10 @@ std::vector<itk::Index<2> > GetNonZeroPixels(const TImage* const image, const it
 template<typename TImage>
 void InitializeImage(TImage* const image, const itk::ImageRegion<2>& region);
 
-/** This function will be used/deduced when called with
- * itk::VectorImage<float,2> image; InitializeImage(image, region)
- */
-template<typename TImage>
-void InitializeImage(const itk::VectorImage<TImage>* const input, const itk::ImageRegion<2>& region);
+/** Initialize a vector image to zero. */
+template<typename TPixel>
+void InitializeImage(const itk::VectorImage<TPixel, 2>* const input, const unsigned int numberOfComponents,
+                     const itk::ImageRegion<2>& region);
 
 /** Dilate 'image'. */
 template<typename TImage>
@@ -385,12 +231,12 @@ void ScaleChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned
 
 /** Force an image to be 3 channels. If it is already 3 channels, copy it through. If it is less than 3 channels. */
 template<typename TPixel>
-void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image,
+void ConvertTo3Channel(const typename itk::VectorImage<TPixel, 2>* const image,
                       typename itk::VectorImage<TPixel, 2>* const output);
 
 /** Replace a channel of an image. */
 template<typename TPixel>
-void ReplaceChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned int channel,
+void ReplaceChannel(const typename itk::VectorImage<TPixel, 2>* const image, const unsigned int channel,
                     const typename itk::Image<TPixel, 2>* const replacement,
                     typename itk::VectorImage<TPixel, 2>* const output);
 
@@ -403,10 +249,6 @@ void ReplaceChannel(const itk::Image<TPixel, 2>* const image, const unsigned int
 /** Read an image from a file. */
 template<typename TImage>
 void ReadImage(const std::string&, TImage* const image);
-
-/** TODO: apply any filter to an image. */
-template<typename TInputImage, typename TOutputImage, typename TFilter>
-void FilterImage(const TInputImage* const input, TOutputImage* const output);
 
 /** Normalize every pixel/vector in a vector image. */
 template<typename TImage>
@@ -449,17 +291,18 @@ typename TypeTraits<typename TImage::PixelType>::LargerType AverageOfPixelsAtInd
 /** Compute the variance of the values appearing at the specified indices. The variance of the ith component is the
  * ith component of the output pixel*/
 template<typename TImage>
-typename TypeTraits<typename TImage::PixelType>::LargerType VarianceOfPixelsAtIndices(
-  const TImage* const image, const std::vector<itk::Index<2> >& indices);
+typename TypeTraits<typename TImage::PixelType>::LargerType
+VarianceOfPixelsAtIndices(const TImage* const image, const std::vector<itk::Index<2> >& indices);
 
 /** Compute the average of all pixels in an image.*/
 template<typename TImage>
-typename TypeTraits<typename TImage::PixelType>::LargerType AverageOfImage(const TImage* const image);
+typename TypeTraits<typename TImage::PixelType>::LargerType
+AverageOfImage(const TImage* const image);
 
 /** Compute the average of all pixels in a region.*/
 template<typename TImage>
-typename TypeTraits<typename TImage::PixelType>::LargerType AverageInRegion(const TImage* const image,
-                                                                            const itk::ImageRegion<2>& region);
+typename TypeTraits<typename TImage::PixelType>::LargerType
+AverageInRegion(const TImage* const image, const itk::ImageRegion<2>& region);
 
 /** Compute the variance of all pixels in an image.*/
 template<typename TImage>
@@ -467,20 +310,8 @@ typename TypeTraits<typename TImage::PixelType>::LargerType VarianceOfImage(cons
 
 /** Compute the variance of all pixels in a region.*/
 template<typename TImage>
-typename TypeTraits<typename TImage::PixelType>::LargerType VarianceInRegion(const TImage* const image,
-                                                                             const itk::ImageRegion<2>& region);
-
-/** Compute the average of all unmasked pixels in a region.*/
-template<typename TImage>
-typename TypeTraits<typename TImage::PixelType>::LargerType AverageInRegionMasked(const TImage* const image,
-                                                                                  const Mask* const mask,
-                                                                            const itk::ImageRegion<2>& region);
-
-/** Compute the average of all unmasked pixels in a region.*/
-template<typename TImage>
-typename TypeTraits<typename TImage::PixelType>::LargerType VarianceInRegionMasked(const TImage* const image,
-                                                                                   const Mask* const mask,
-                                                                             const itk::ImageRegion<2>& region);
+typename TypeTraits<typename TImage::PixelType>::LargerType
+VarianceInRegion(const TImage* const image, const itk::ImageRegion<2>& region);
 
 /** Compute the average difference of corresponding pixels from two regions of an image.*/
 template<typename TImage, typename TDifferenceFunctor>
@@ -515,29 +346,37 @@ unsigned int length(const itk::VariableLengthVector<T>& v);
 template<typename T, unsigned int N>
 unsigned int length(const itk::CovariantVector<T, N>& v);
 
-/** Return the specified component of the vector using the same interface that we have
+/** Return a reference to the specified component of the vector using the same interface that we have
  * defined for std::vector and scalars in Helpers.*/
 template<typename T>
 T& index(itk::VariableLengthVector<T>& v, size_t i);
 
+/** Return the specified component of the vector using the same interface that we have
+ * defined for std::vector and scalars in Helpers.*/
 template<typename T>
 T index(const itk::VariableLengthVector<T>& v, size_t i);
 
-/** Return the specified component of the vector using the same interface that we have
+/** Return a reference to the specified component of the vector using the same interface that we have
  * defined for std::vector and scalars in Helpers.*/
 template<typename T, unsigned int N>
 T& index(itk::CovariantVector<T, N>& v, size_t i);
 
+/** Return the specified component of the vector using the same interface that we have
+ * defined for std::vector and scalars in Helpers.*/
 template<typename T, unsigned int N>
 T index(const itk::CovariantVector<T, N>& v, size_t i);
 
+/** Return the specified component of the object using the same interface that we have
+ * defined for std::vector and scalars in Helpers.*/
 template<typename T>
 T index(const itk::RGBPixel<T>& v, size_t i);
 
+/** Return a reference to the specified component of the object using the same interface that we have
+ * defined for std::vector and scalars in Helpers.*/
 template<typename T>
 T& index(itk::RGBPixel<T>& v, size_t i);
 
-/** Attempt to set any object to all zeros. Usually scalars or vectors */
+/** Set any object to all zeros. Usually scalars or vectors */
 template<typename T>
 void SetObjectToZero(T& object);
 
@@ -587,14 +426,12 @@ template<typename TImage>
 float Variance(const TImage* const image);
 
 /** Compute the minimum value of each channel of the image and return them in a vector whose length is
- *  the same as the number of components of the image.
- */
+ *  the same as the number of components of the image. */
 template<typename TImage>
 std::vector<typename TImage::InternalPixelType> ComputeMinOfAllChannels(const TImage* const image);
 
 /** Compute the maximum value of each channel of the image and return them in a vector whose length is
- *  the same as the number of components of the image.
- */
+ *  the same as the number of components of the image. */
 template<typename TImage>
 std::vector<typename TImage::InternalPixelType> ComputeMaxOfAllChannels(const TImage* const image);
 
@@ -629,32 +466,12 @@ void MagnitudeImage(const TInputImage* const image, TOutputImage* const output);
 template <typename TInputPixel, typename TOutputPixel>
 void MagnitudeImage(const itk::Image<TInputPixel, 2>* const image, itk::Image<TOutputPixel,2>* const output);
 
+/** Compute the magnitude image. */
 template <typename TInputPixel, unsigned int TVectorDim, typename TOutputPixel>
 void MagnitudeImage(const itk::Image<itk::CovariantVector<TInputPixel, TVectorDim>, 2>* const image,
                     itk::Image<TOutputPixel,2>* const output);
 
-/** Get all of the indices in a 'region'. */
-std::vector<itk::Index<2> > GetIndicesInRegion(const itk::ImageRegion<2>& region);
-
-/** Get a list of the indices in a 'region' downsampled in both dimensions by 'stride' . */
-std::vector<itk::Index<2> > GetDownsampledIndicesInRegion(const itk::ImageRegion<2>& region,
-                                                          const unsigned int stride);
-
-/** Get the 4-neighbor indices around 'pixel' that are inside 'region'. */
-std::vector<itk::Index<2> > Get4NeighborIndicesInsideRegion(const itk::Index<2>& pixel,
-                                                            const itk::ImageRegion<2>& region);
-
-/** Return the type of pixel that is in the file 'filename'. */
-itk::ImageIOBase::IOComponentType GetPixelTypeFromFile(const std::string& filename);
-
-/** Paraview requires 3D vectors to display glyphs, even if the vectors are really 2D.
-    These functions appends a 0 to each vectors of a 2D vector image so that it can be easily visualized with Paraview. */
-void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::ImageRegion<2>& region, const std::string& filename);
-
-/**  Calls Write2DVectorRegion on a full image. */
-void Write2DVectorImage(const FloatVector2ImageType* const image, const std::string& filename);
-
-/**  Write the first 3 channels of a FloatVectorImageType as an unsigned char (RGB) image. */
+/**  Write the first 3 channels of 'image' as an unsigned char (RGB) image. */
 template <typename TPixel>
 void WriteVectorImageAsRGB(const itk::VectorImage<TPixel,2>* const image, const std::string& fileName);
 
@@ -676,6 +493,187 @@ void ComputeGradients(const TImage* const image,
 template <typename TGradientImage>
 std::vector<float> HistogramOfGradientsPrecomputed(const TGradientImage* const image,
                                                    const itk::ImageRegion<2>& region, const unsigned int numberOfBins);
+
+/** Convert an RGB image to a 3-channel VectorImage. */
+template <typename TOutputPixel>
+void RGBImageToVectorImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* const image,
+                           itk::VectorImage<TOutputPixel, 2>* const outputImage);
+
+/** Convert the first 3 channels of an ITK image to the CIELAB colorspace. */
+template <typename TInputImage, typename TOutputImage>
+void ITKImageToCIELabImage(const TInputImage* const rgbImage, TOutputImage* const cielabImage);
+
+
+/** Compute the central derivative of 'image' in 'direction' and store it in 'output'. */
+template <class TImage>
+void CentralDifferenceDerivative(const TImage* const image, const unsigned int direction, TImage* const output);
+
+/**  Write the first 3 channels of an image to a file as unsigned chars. */
+template<typename TImage>
+void WriteRGBImage(const TImage* const input, const std::string& filename);
+
+/** Write an image to a file named 'prefix'_'iteration'.mha*/
+template <typename TImage>
+void WriteSequentialImage(const TImage* const image, const std::string& filePrefix, const unsigned int iteration);
+
+/** Write 'image' to 'fileName' if 'condition' is true. */
+template <typename TImage>
+void WriteImageConditional(const TImage* const image, const std::string& fileName, const bool condition);
+
+/** Scale a scalar image to the range (0-255) and then write it to a file as an unsigned char image. */
+template <class TImage>
+void WriteScaledScalarImage(const TImage* const image, const std::string& filename);
+
+/** Write 'image' to 'fileName'.*/
+template<typename TImage>
+void WriteImage(const TImage* const image, const std::string& fileName);
+
+/** Write a 'region' of an 'image' to 'filename'.*/
+template<typename TImage>
+void WriteRegion(const TImage* const image, const itk::ImageRegion<2>& region, const std::string& filename);
+
+/** Write a vector 'v' to the screen.*/
+template <typename T>
+void OutputVector(const std::vector<T>& v);
+
+/** Combine two VectorImages into a VectorImage where the number of channels is the sum of the two input images. */
+template <typename TPixel>
+void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1, const typename itk::VectorImage<TPixel, 2>* const image2,
+                 typename itk::VectorImage<TPixel, 2>* const output);
+
+/** Convert the first 3 channels of a float vector image to an unsigned char/color/rgb image. */
+template <typename TPixel>
+void VectorImageToRGBImage(const itk::VectorImage<TPixel, 2>* const image, RGBImageType* const rgbImage);
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////// Non-template function declarations (defined in Helpers.cpp) ///////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+/** Mark each pixel at the specified 'indices' as a non-zero pixel in 'image' */
+void IndicesToBinaryImage(const std::vector<itk::Index<2> >& indices, UnsignedCharScalarImageType* const image);
+
+/** Get the number of components per pixel in an image file. */
+unsigned int GetNumberOfComponentsPerPixelInFile(const std::string& filename);
+
+/** Get a short string of an itk::Index */
+std::string GetIndexString(const itk::Index<2>& index);
+
+/** Get a short string of an itk::Size */
+std::string GetSizeString(const itk::Size<2>& size);
+
+/** Get a region from the corner (0,0) with size 'size'. */
+itk::ImageRegion<2> CornerRegion(const itk::Size<2>& size);
+
+/** If an image is one of our few predefined types, print it's type the the screen. */
+void OutputImageType(const itk::ImageBase<2>* const input);
+
+/** Average each component of a list of vectors then construct and return a new vector composed of these averaged components. */
+FloatVector2Type AverageVectors(const std::vector<FloatVector2Type>& vectors);
+
+/** This function creates an Offset<2> by setting the 'dimension' index of the Offset<2>
+ * to the value of the Offset<1>, and filling the other position with a 0. */
+itk::Offset<2> OffsetFrom1DOffset(const itk::Offset<1>& offset1D, const unsigned int dimension);
+
+/** Compute the angle between two vectors. */
+float AngleBetween(const FloatVector2Type& v1, const FloatVector2Type& v2);
+
+/** Get the 'quadrant'th quadrant (quarter) region of the 'region'. */
+itk::ImageRegion<2> GetQuadrant(const itk::ImageRegion<2>& region, const unsigned int quadrant);
+
+/** Get the center pixel of a region. The region is assumed to have odd dimensions. */
+itk::Index<2> GetRegionCenter(const itk::ImageRegion<2>& region);
+
+/** Get the size of a region by it's radius. E.g. radius 5 -> 11x11 patch. */
+itk::Size<2> SizeFromRadius(const unsigned int radius);
+
+/** "Follow" a vector from one pixel to find the next pixel it would "hit". */
+itk::Index<2> GetNextPixelAlongVector(const itk::Index<2>& pixel, const FloatVector2Type& vector);
+
+/** Get the direction in integer pixel coordinates of the 'vector' */
+itk::Offset<2> GetOffsetAlongVector(const FloatVector2Type& vector);
+
+/** Make an ImageRegion centered on 'pixel' with radius 'radius'. */
+itk::ImageRegion<2> GetRegionInRadiusAroundPixel(const itk::Index<2>& pixel, const unsigned int radius);
+
+/** Get the offsets of the 8 neighborhood of a pixel. */
+std::vector<itk::Offset<2> > Get8NeighborOffsets();
+
+/** Get the indices of the neighbors of a pixel that are inside of a region. */
+std::vector<itk::Index<2> > Get8NeighborsInRegion(const itk::ImageRegion<2>& region, const itk::Index<2>& pixel);
+
+/** The return value MUST be a smart pointer. */
+itk::ImageBase<2>::Pointer CreateImageWithSameType(const itk::ImageBase<2>* input);
+
+/** Convert a list of offsets from 'index' to a list of absolute indices. */
+std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >& offsets,
+                                             const itk::Index<2>& index);
+
+/** Interpret a list of offsets as a list of absolute indices. */
+std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >& offsets);
+
+/** Interpret a list of indices as a list of offsets. */
+std::vector<itk::Offset<2> > IndicesToOffsets(const std::vector<itk::Index<2> >& indices,
+                                              const itk::Index<2>& index);
+
+/** Get the locations of the pixels on the boundary of a region. */
+std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region);
+
+/** Given a list of pixels, form them into an image, dilate the image, and get the list of pixels in the dilated image. */
+std::vector<itk::Index<2> > DilatePixelList(const std::vector<itk::Index<2> >& pixelList,
+                                            const itk::ImageRegion<2>& region, const unsigned int radius);
+
+/** Get the region of an image where a patch with radius 'patchRadius' centered on every pixel will be entirely inside 'wholeRegion'. */
+itk::ImageRegion<2> GetInternalRegion(const itk::ImageRegion<2>& wholeRegion, const unsigned int patchRadius);
+
+/** Get all patches in 'imageRegion' with radius 'patchRadius' that contains a specified 'pixel'. */
+std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<2>& pixel,
+                                                               const unsigned int patchRadius,
+                                                               const itk::ImageRegion<2>& imageRegion);
+
+/** Get all patches with radius 'patchRadius'. */
+std::vector<itk::ImageRegion<2> > GetAllPatches(const itk::ImageRegion<2>& region, const unsigned int patchRadius);
+
+/** Get the regions of patches surrounding every pixel in 'indices'. */
+std::vector<itk::ImageRegion<2> > GetPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices, const unsigned int patchRadius);
+
+/** Get the regions of patches surrounding every pixel in 'indices' if they are entirely inside 'imageRegion'. */
+std::vector<itk::ImageRegion<2> > GetValidPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices,
+                                                                   const itk::ImageRegion<2>& imageRegion,
+                                                                   const unsigned int patchRadius);
+
+/** Find which point in 'vec' is closest to 'value'. */
+unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec, const itk::CovariantVector<float, 3>& value);
+
+/** Find which location in 'pixels' is closest to 'queryPixel'. */
+unsigned int ClosestIndexId(const std::vector<itk::Index<2> >& pixels, const itk::Index<2>& queryPixel);
+
+/** Subtract 1 if necessary from each or either component to make both components even. */
+itk::Size<2> MakeSizeEven(const itk::Size<2>& inputSize);
+
+/** Find the distance between two indices. */
+float IndexDistance(const itk::Index<2>& p0, const itk::Index<2>& p1);
+
+/** Get all of the indices in a 'region'. */
+std::vector<itk::Index<2> > GetIndicesInRegion(const itk::ImageRegion<2>& region);
+
+/** Get a list of the indices in a 'region' downsampled in both dimensions by 'stride' . */
+std::vector<itk::Index<2> > GetDownsampledIndicesInRegion(const itk::ImageRegion<2>& region,
+                                                          const unsigned int stride);
+
+/** Get the 4-neighbor indices around 'pixel' that are inside 'region'. */
+std::vector<itk::Index<2> > Get4NeighborIndicesInsideRegion(const itk::Index<2>& pixel,
+                                                            const itk::ImageRegion<2>& region);
+
+/** Return the type of pixel that is in the file 'filename'. */
+itk::ImageIOBase::IOComponentType GetPixelTypeFromFile(const std::string& filename);
+
+/** Paraview requires 3D vectors to display glyphs, even if the vectors are really 2D.
+    These functions appends a 0 to each vectors of a 2D vector image so that it can be easily visualized with Paraview. */
+void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::ImageRegion<2>& region, const std::string& filename);
+
+/**  Calls Write2DVectorRegion on a full image. */
+void Write2DVectorImage(const FloatVector2ImageType* const image, const std::string& filename);
 
 }// end namespace
 

@@ -18,6 +18,7 @@
 
 #include "ITKHelpers.h" // make syntax parser happy
 #include "ITKStatistics.h"
+#include "ITKTypeTraits.h"
 
 // STL
 #include <iomanip> // for setfill()
@@ -34,8 +35,10 @@
 #include "itkDerivativeImageFilter.h"
 #include "itkGaussianOperator.h"
 #include "itkGradientImageFilter.h"
+#include "itkImageAdaptor.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkImageToVectorImageFilter.h"
 #include "itkJoinImageFilter.h"
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkMultiplyImageFilter.h"
@@ -46,10 +49,12 @@
 #include "itkVectorMagnitudeImageFilter.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
 
-// Custom
+// Submodules
 #include "Helpers/Helpers.h"
 #include "Helpers/Statistics.h"
-#include "ITKTypeTraits.h"
+
+// Custom
+#include "itkRGBToLabColorSpacePixelAccessor.h"
 
 namespace ITKHelpers
 {
@@ -142,28 +147,64 @@ void ReplaceValue(TImage* image, const typename TImage::PixelType& queryValue, c
     }
 }
 
-template <class T>
-std::vector<T> MaxValuesVectorImage(const itk::VectorImage<T, 2>* const image)
+template <class TPixel>
+std::vector<TPixel> MaxValues(const itk::VectorImage<TPixel, 2>* const image)
 {
-  typedef itk::VectorImage<T, 2> VectorImageType;
-  typedef itk::Image<T, 2> ScalarImageType;
+  return MaxValues(image, image->GetLargestPossibleRegion());
+}
 
-  typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarImageType > IndexSelectionType;
-  typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
-  indexSelectionFilter->SetInput(image);
+template <class TPixel>
+std::vector<TPixel> MinValues(const itk::VectorImage<TPixel, 2>* const image, const itk::ImageRegion<2>& region)
+{
+  std::vector<TPixel> mins(image->GetNumberOfComponentsPerPixel());
 
-  std::vector<T> maxValues;
   for(unsigned int channel = 0; channel < image->GetNumberOfComponentsPerPixel(); ++channel)
-    {
+  {
+    typedef itk::VectorImage<TPixel, 2> VectorImageType;
+    typedef itk::Image<TPixel, 2> ScalarImageType;
+
+    typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarImageType > IndexSelectionType;
+    typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
     indexSelectionFilter->SetIndex(channel);
+    indexSelectionFilter->SetInput(image);
     indexSelectionFilter->Update();
-    maxValues.push_back(MaxValue<ScalarImageType>(indexSelectionFilter->GetOutput()));
-    }
-  return maxValues;
+
+    mins[channel] = MinValue(indexSelectionFilter->GetOutput(), region);
+  }
+
+  return mins;
+}
+
+template <class TPixel>
+std::vector<TPixel> MaxValues(const itk::VectorImage<TPixel, 2>* const image, const itk::ImageRegion<2>& region)
+{
+  std::vector<TPixel> maxs(image->GetNumberOfComponentsPerPixel());
+
+  for(unsigned int channel = 0; channel < image->GetNumberOfComponentsPerPixel(); ++channel)
+  {
+    typedef itk::VectorImage<TPixel, 2> VectorImageType;
+    typedef itk::Image<TPixel, 2> ScalarImageType;
+
+    typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarImageType > IndexSelectionType;
+    typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
+    indexSelectionFilter->SetIndex(channel);
+    indexSelectionFilter->SetInput(image);
+    indexSelectionFilter->Update();
+
+    maxs[channel] = MaxValue(indexSelectionFilter->GetOutput(), region);
+  }
+
+  return maxs;
+}
+
+template <class TPixel>
+std::vector<TPixel> MinValues(const itk::VectorImage<TPixel, 2>* const image)
+{
+  return MinValues(image, image->GetLargestPossibleRegion());
 }
 
 template <class TImage>
-float MinValue(const TImage* const image, const itk::ImageRegion<2>& region)
+typename TImage::PixelType MinValue(const TImage* const image, const itk::ImageRegion<2>& region)
 {
   typedef itk::RegionOfInterestImageFilter<TImage, TImage> ExtractFilterType;
 
@@ -184,7 +225,7 @@ float MinValue(const TImage* const image, const itk::ImageRegion<2>& region)
 }
 
 template <class TImage>
-float MaxValue(const TImage* const image, const itk::ImageRegion<2>& region)
+typename TImage::PixelType MaxValue(const TImage* const image, const itk::ImageRegion<2>& region)
 {
   typedef itk::RegionOfInterestImageFilter<TImage, TImage> ExtractFilterType;
 
@@ -205,31 +246,15 @@ float MaxValue(const TImage* const image, const itk::ImageRegion<2>& region)
 }
 
 template <class TImage>
-float MinValue(const TImage* const image)
+typename TImage::PixelType MinValue(const TImage* const image)
 {
-  typedef typename itk::MinimumMaximumImageCalculator<TImage>
-          ImageCalculatorFilterType;
-
-  typename ImageCalculatorFilterType::Pointer imageCalculatorFilter
-          = ImageCalculatorFilterType::New ();
-  imageCalculatorFilter->SetImage(image);
-  imageCalculatorFilter->Compute();
-
-  return imageCalculatorFilter->GetMinimum();
+  return MinValue(image, image->GetLargestPossibleRegion());
 }
 
 template <class TImage>
-float MaxValue(const TImage* const image)
+typename TImage::PixelType MaxValue(const TImage* const image)
 {
-  typedef typename itk::MinimumMaximumImageCalculator<TImage>
-          ImageCalculatorFilterType;
-
-  typename ImageCalculatorFilterType::Pointer imageCalculatorFilter
-          = ImageCalculatorFilterType::New ();
-  imageCalculatorFilter->SetImage(image);
-  imageCalculatorFilter->Compute();
-
-  return imageCalculatorFilter->GetMaximum();
+  return MaxValue(image, image->GetLargestPossibleRegion());
 }
 
 template <class TImage>
@@ -504,13 +529,15 @@ void InitializeImage(TImage* image, const itk::ImageRegion<2>& region)
   image->FillBuffer(itk::NumericTraits<typename TImage::PixelType>::Zero);
 }
 
-template<typename TImage>
-void InitializeImage(const itk::VectorImage<TImage>* const image, const itk::ImageRegion<2>& region)
+template<typename TPixel>
+void InitializeImage(const itk::VectorImage<TPixel, 2>* const image, const unsigned int numberOfComponents,
+                     const itk::ImageRegion<2>& region)
 {
   image->SetRegions(region);
+  image->SetNumberOfComponentsPerPixel(numberOfComponents);
   image->Allocate();
 
-  itk::VariableLengthVector<typename TImage::InternalPixelType> v(image->GetNumberOfComponentsPerPixel());
+  itk::VariableLengthVector<TPixel> v(image->GetNumberOfComponentsPerPixel());
   image->FillBuffer(v);
 }
 
@@ -738,16 +765,6 @@ void ReadImage(const std::string& fileName, TImage* const image)
   reader->Update();
 
   ITKHelpers::DeepCopy(reader->GetOutput(), image);
-}
-
-
-template<typename TInputImage, typename TOutputImage, typename TFilter>
-void FilterImage(const TInputImage* input, TOutputImage* output)
-{
-  typename TFilter::Pointer filter = TFilter::New();
-  filter->SetInput(input);
-  filter->Update();
-  DeepCopy(filter->GetOutput(), output);
 }
 
 template<typename TImage>
@@ -1924,6 +1941,81 @@ std::vector<float> HistogramOfGradientsPrecomputed(const TGradientImage* const g
     }
 
   return histogram;
+}
+
+template <typename TOutputPixel>
+void RGBImageToVectorImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* const image,
+                           itk::VectorImage<TOutputPixel, 2>* const outputImage)
+{
+  outputImage->SetRegions(image->GetLargestPossibleRegion());
+  outputImage->SetNumberOfComponentsPerPixel(3);
+  outputImage->Allocate();
+
+  typedef itk::Image<itk::RGBPixel<unsigned char>, 2> RGBImageType;
+  typedef itk::VectorImage<TOutputPixel, 2> VectorImageType;
+
+  itk::ImageRegionConstIteratorWithIndex<RGBImageType> imageIterator(image, image->GetLargestPossibleRegion());
+
+  while(!imageIterator.IsAtEnd())
+    {
+    // Can't get a reference of a pixel from a VectorImage apparently?
+    //VectorImageType::PixelType& outputPixel = outputImage->GetPixel(imageIterator.GetIndex());
+    typename VectorImageType::PixelType outputPixel = outputImage->GetPixel(imageIterator.GetIndex());
+    outputPixel[0] = imageIterator.Get().GetRed();
+    outputPixel[1] = imageIterator.Get().GetGreen();
+    outputPixel[2] = imageIterator.Get().GetBlue();
+    outputImage->SetPixel(imageIterator.GetIndex(), outputPixel);
+
+    ++imageIterator;
+    }
+}
+
+template <typename TInputImage, typename TOutputImage>
+void ITKImageToCIELabImage(const TInputImage* const image, TOutputImage* const cielabImage)
+{
+  // Convert the first 3 channels to CIELab (this assumes the first 3 channels are RGB)
+  RGBImageType::Pointer rgbImage = RGBImageType::New();
+  VectorImageToRGBImage(image, rgbImage);
+  RGBImageToCIELabImage(rgbImage, cielabImage);
+}
+
+template<typename TOutputImage>
+void RGBImageToCIELabImage(RGBImageType* const rgbImage, TOutputImage* const cielabImage)
+{
+  // The adaptor expects to be able to modify the image (even though we don't in this case),
+  // so we cannot pass a const RGBImageType* const.
+  // Convert RGB image to Lab color space
+  itkConceptMacro( nameOfCheck, ( itk::Concept::IsFloatingPoint<typename TOutputImage::ValueType> ) );
+
+  typedef itk::Accessor::RGBToLabColorSpacePixelAccessor<unsigned char, float> RGBToLabColorSpaceAccessorType;
+  typedef itk::ImageAdaptor<RGBImageType, RGBToLabColorSpaceAccessorType> RGBToLabAdaptorType;
+  RGBToLabAdaptorType::Pointer rgbToLabAdaptor = RGBToLabAdaptorType::New();
+  rgbToLabAdaptor->SetImage(rgbImage);
+
+  // Disassembler
+  typedef itk::VectorIndexSelectionCastImageFilter<RGBToLabAdaptorType, FloatScalarImageType> VectorIndexSelectionFilterType;
+  VectorIndexSelectionFilterType::Pointer vectorIndexSelectionFilter = VectorIndexSelectionFilterType::New();
+  vectorIndexSelectionFilter->SetInput(rgbToLabAdaptor);
+
+  std::vector<FloatScalarImageType::Pointer> channels;
+
+  // Reassembler
+  typedef itk::ImageToVectorImageFilter<FloatScalarImageType> ReassemblerType;
+  ReassemblerType::Pointer reassembler = ReassemblerType::New();
+
+  for(unsigned int i = 0; i < 3; ++i)
+    {
+    channels.push_back(FloatScalarImageType::New());
+    vectorIndexSelectionFilter->SetIndex(i);
+    vectorIndexSelectionFilter->Update();
+    DeepCopy(vectorIndexSelectionFilter->GetOutput(), channels[i].GetPointer());
+    reassembler->SetNthInput(i, channels[i]);
+    }
+
+  reassembler->Update();
+
+  // Copy to the output
+  DeepCopy(reassembler->GetOutput(), cielabImage);
 }
 
 }// end namespace ITKHelpers
