@@ -43,10 +43,10 @@ namespace ITKHelpers
 ///////// Function templates (defined in ITKHelpers.hpp) /////////
 ////////////////////////////////////////////////////////////////////////
 
-/** Convert an RGB image to the CIELAB colorspace. 'rgbImage' cannot be const because the adaptor doesn't allow it. */
+/** Convert an RGB image to the CIELAB colorspace.
+ * 'rgbImage' cannot be const because the adaptor doesn't allow it. */
 template<typename TOutputImage>
 void RGBImageToCIELabImage(RGBImageType* const rgbImage, TOutputImage* const cielabImage);
-
 
 /** Determine if any of the 8 neighbors pixels has the specified value. */
 template<typename TImage>
@@ -328,53 +328,9 @@ float AverageDifferenceInRegion(const TImage* const image1, const itk::ImageRegi
 template <typename T>
 typename TypeTraits<T>::LargerComponentType SumOfComponents(const T& v);
 
+/** Sum the magnitudes of the componets of an object.*/
 template <typename T>
 typename TypeTraits<T>::LargerComponentType SumOfComponentMagnitudes(const T& v);
-
-/** Return the length of the vector through the same interface that we have defined for
- * std::vector and scalars in Helpers.*/
-template<typename T>
-unsigned int length(const itk::RGBPixel<T>& v);
-
-/** Return the length of the vector through the same interface that we have defined for
- * std::vector and scalars in Helpers.*/
-template<typename T>
-unsigned int length(const itk::VariableLengthVector<T>& v);
-
-/** Return the length of the vector through the same interface that we have defined for
- * std::vector and scalars in Helpers.*/
-template<typename T, unsigned int N>
-unsigned int length(const itk::CovariantVector<T, N>& v);
-
-/** Return a reference to the specified component of the vector using the same interface that we have
- * defined for std::vector and scalars in Helpers.*/
-template<typename T>
-T& index(itk::VariableLengthVector<T>& v, size_t i);
-
-/** Return the specified component of the vector using the same interface that we have
- * defined for std::vector and scalars in Helpers.*/
-template<typename T>
-T index(const itk::VariableLengthVector<T>& v, size_t i);
-
-/** Return a reference to the specified component of the vector using the same interface that we have
- * defined for std::vector and scalars in Helpers.*/
-template<typename T, unsigned int N>
-T& index(itk::CovariantVector<T, N>& v, size_t i);
-
-/** Return the specified component of the vector using the same interface that we have
- * defined for std::vector and scalars in Helpers.*/
-template<typename T, unsigned int N>
-T index(const itk::CovariantVector<T, N>& v, size_t i);
-
-/** Return the specified component of the object using the same interface that we have
- * defined for std::vector and scalars in Helpers.*/
-template<typename T>
-T index(const itk::RGBPixel<T>& v, size_t i);
-
-/** Return a reference to the specified component of the object using the same interface that we have
- * defined for std::vector and scalars in Helpers.*/
-template<typename T>
-T& index(itk::RGBPixel<T>& v, size_t i);
 
 /** Set any object to all zeros. Usually scalars or vectors */
 template<typename T>

@@ -19,6 +19,7 @@
 #include "ITKHelpers.h" // make syntax parser happy
 #include "ITKStatistics.h"
 #include "ITKTypeTraits.h"
+#include "ITKContainerInterface.h"
 
 // STL
 #include <iomanip> // for setfill()
@@ -941,10 +942,7 @@ typename TypeTraits<T>::LargerComponentType SumOfComponents(const T& v)
 {
   typename TypeTraits<T>::LargerComponentType sumOfComponents;
   SetObjectToZero(sumOfComponents);
-  using Helpers::length;
-  using ITKHelpers::length;
-  using Helpers::index;
-  using ITKHelpers::index;
+
   for(unsigned int i = 0; i < length(v); ++i)
     {
     sumOfComponents += index(v, i);
@@ -958,13 +956,10 @@ typename TypeTraits<T>::LargerComponentType SumOfComponentMagnitudes(const T& v)
 {
   typename TypeTraits<T>::LargerComponentType sumOfComponents;
   SetObjectToZero(sumOfComponents);
-  using Helpers::length;
-  using ITKHelpers::length;
-  using Helpers::index;
-  using ITKHelpers::index;
-  for(unsigned int i = 0; i < length(v); ++i)
+
+  for(unsigned int i = 0; i < Helpers::length(v); ++i)
     {
-    sumOfComponents += fabs(index(v, i));
+    sumOfComponents += fabs(Helpers::index(v, i));
     }
 
   return sumOfComponents;
@@ -988,8 +983,6 @@ typename TypeTraits<typename TImage::PixelType>::LargerType AverageInRegion(cons
     ++imageIterator;
     }
 
-  using Statistics::Average;
-  //using ITKHelpers::Average;
   return Average(pixels);
 }
 
@@ -1048,69 +1041,11 @@ float AverageDifferenceInRegion(const TImage* const image1, const itk::ImageRegi
 }
 
 template<typename T>
-unsigned int length(const itk::RGBPixel<T>& v)
-{
-  return 3;
-}
-
-template<typename T, unsigned int N>
-unsigned int length(const itk::CovariantVector<T, N>& v)
-{
-  return v.Dimension;
-}
-
-template<typename T>
-unsigned int length(const itk::VariableLengthVector<T>& v)
-{
-  return v.GetSize();
-}
-
-template<typename T>
-T index(const itk::RGBPixel<T>& v, size_t i)
-{
-  return v[i];
-}
-
-template<typename T>
-T& index(itk::RGBPixel<T>& v, size_t i)
-{
-  return v[i];
-}
-
-template<typename T, unsigned int N>
-T& index(itk::CovariantVector<T, N>& v, size_t i)
-{
-  return v[i];
-}
-
-template<typename T, unsigned int N>
-T index(const itk::CovariantVector<T, N>& v, size_t i)
-{
-  return v[i];
-}
-
-template<typename T>
-T& index(itk::VariableLengthVector<T>& v, size_t i)
-{
-  return v[i];
-}
-
-template<typename T>
-T index(const itk::VariableLengthVector<T>& v, size_t i)
-{
-  return v[i];
-}
-
-template<typename T>
 void SetObjectToZero(T& object)
 {
-  using Helpers::index;
-  using ITKHelpers::index;
-  using Helpers::length;
-  using ITKHelpers::length;
-  for(unsigned int i = 0; i < length(object); ++i)
+  for(unsigned int i = 0; i < Helpers::length(object); ++i)
     {
-    index(object, i) = 0;
+    Helpers::index(object, i) = 0;
     }
 }
 
@@ -1153,8 +1088,9 @@ void ANDRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, 
   while(!image1Iterator.IsAtEnd())
     {
     bool result = image1Iterator.Get() && image2Iterator.Get();
-    itk::Index<2> index = Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >(image1Iterator.GetIndex() -
-                                                                               image1->GetLargestPossibleRegion().GetIndex());
+    itk::Index<2> index =
+           Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >(image1Iterator.GetIndex() -
+                                                                image1->GetLargestPossibleRegion().GetIndex());
     output->SetPixel(index, result);
     ++image1Iterator;
     ++image2Iterator;
