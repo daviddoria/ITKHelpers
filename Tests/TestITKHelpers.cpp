@@ -1,5 +1,7 @@
 #include "ITKHelpers.h"
 
+void TestHistogramOfGradients();
+
 void TestExtractChannel();
 void TestExtractChannels();
 
@@ -19,6 +21,8 @@ void TestDeepCopyUnsignedCharVector();
 
 int main( int argc, char ** argv )
 {
+  TestHistogramOfGradients();
+
   TestExtractChannel();
   TestExtractChannels();
 
@@ -245,4 +249,27 @@ void TestExtractChannels()
   typedef itk::VectorImage<unsigned char, 2> UnsignedCharScalarImageType;
   UnsignedCharScalarImageType::Pointer unsignedCharScalarImage = UnsignedCharScalarImageType::New();
   ITKHelpers::ExtractChannels(image.GetPointer(), channels, unsignedCharScalarImage.GetPointer());
+}
+
+void TestHistogramOfGradients()
+{
+  typedef itk::Image<float, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->Allocate();
+
+  std::vector<float> histogram =
+         ITKHelpers::HistogramOfGradients(image.GetPointer(),
+                                          image->GetLargestPossibleRegion(), 10);
+
+  for(unsigned int i = 0; i < histogram.size(); ++i)
+  {
+    std::cout << histogram[i] << " ";
+  }
+  std::cout << std::endl;
 }

@@ -24,6 +24,7 @@
 #include <stdexcept>
 
 // ITK
+#include "itkAbsImageFilter.h"
 #include "itkAddImageFilter.h"
 #include "itkBilateralImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
@@ -32,6 +33,7 @@
 #include "itkComposeImageFilter.h"
 #include "itkDerivativeImageFilter.h"
 #include "itkGaussianOperator.h"
+#include "itkGradientImageFilter.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkJoinImageFilter.h"
@@ -1802,6 +1804,61 @@ void MagnitudeImage(const TInputImage* const image, TOutputImage* const output)
   magnitudeFilter->Update();
 
   ITKHelpers::DeepCopy(magnitudeFilter->GetOutput(), output);
+}
+
+template <typename TInputPixel, typename TOutputPixel>
+void MagnitudeImage(const itk::Image<TInputPixel, 2>* const image, itk::Image<TOutputPixel,2>* const output)
+{
+  typedef itk::Image<TInputPixel,2> InputImageType;
+  typedef itk::Image<TOutputPixel,2> OutputImageType;
+  typedef itk::AbsImageFilter<InputImageType, OutputImageType> AbsImageFilterType;
+  typename AbsImageFilterType::Pointer absFilter = AbsImageFilterType::New ();
+  absFilter->SetInput(image);
+  absFilter->Update();
+
+  ITKHelpers::DeepCopy(absFilter->GetOutput(), output);
+}
+
+/** Compute a histogram of gradients. */
+template <typename TImage>
+std::vector<float> HistogramOfGradients(const TImage* const image,
+                                        const itk::ImageRegion<2>& region, const unsigned int numberOfBins)
+{
+  // Convert the image to a magnitude image
+  FloatScalarImageType::Pointer magnitudeImage = FloatScalarImageType::New();
+  MagnitudeImage(image, magnitudeImage.GetPointer());
+
+  // Compute the gradient
+  typedef itk::GradientImageFilter<FloatScalarImageType, float>  GradientFilterType;
+  GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
+  gradientFilter->SetInput(image);
+  gradientFilter->Update();
+
+  // The synatx is atan2(y,x). Returns in the range [-pi,pi]
+  float minValue = -1.0f * itk::Math::pi;
+  float maxValue = itk::Math::pi;
+
+  float range = maxValue - minValue;
+
+  std::vector<float> histogram(numberOfBins);
+
+  float binSize = range / static_cast<float>(numberOfBins);
+
+  itk::ImageRegionConstIterator<FloatVector2ImageType> iterator(gradientFilter->GetOutput(), region);
+
+  while(!iterator.IsAtEnd())
+    {
+    GradientFilterType::OutputImageType::PixelType v = iterator.Get();
+
+    float angle = atan2(v[1], v[0]); // The synatx is atan2(y,x)
+    unsigned int bin = static_cast<unsigned int>( (angle - minValue) / binSize );
+
+    // Add the magnitude of the gradient vector to the bin
+    histogram[bin] += iterator.Get().GetNorm();
+    ++iterator;
+    }
+
+  return histogram;
 }
 
 }// end namespace ITKHelpers

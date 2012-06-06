@@ -612,6 +612,10 @@ void ScaleImage(const TImage* const image, const itk::Size<2>& destinationSize, 
 template <typename TInputImage, typename TOutputImage>
 void MagnitudeImage(const TInputImage* const image, TOutputImage* const output);
 
+/** If MagnitudeImage is called on a scalar image, compute the absolute value rather than the magnitude. */
+template <typename TInputPixel, typename TOutputPixel>
+void MagnitudeImage(const itk::Image<TInputPixel, 2>* const image, itk::Image<TOutputPixel,2>* const output);
+
 /** Get all of the indices in a 'region'. */
 std::vector<itk::Index<2> > GetIndicesInRegion(const itk::ImageRegion<2>& region);
 
@@ -640,6 +644,11 @@ void WriteVectorImageAsRGB(const itk::VectorImage<TPixel,2>* const image, const 
 /** Write a 'region' of an 'image' to 'filename'.*/
 template <typename TPixel>
 void WriteVectorImageRegionAsRGB(const itk::VectorImage<TPixel,2>* const image, const itk::ImageRegion<2>& region, const std::string& filename);
+
+/** Compute a histogram of gradients. */
+template <typename TImage>
+std::vector<float> HistogramOfGradients(const TImage* const image,
+                                        const itk::ImageRegion<2>& region, const unsigned int numberOfBins);
 
 }// end namespace
 
