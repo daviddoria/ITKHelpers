@@ -358,11 +358,15 @@ void ChangeValue(const TImage* const image, const typename TImage::PixelType& ol
                  const typename TImage::PixelType& newValue);
 
 /** Extract a channel of an image. The output image should be a scalar image,
-  * but does not have to have the same pixel type as the input image.
-  */
+  * but does not have to have the same pixel type as the input image. */
 template<typename TInputImage, typename TOutputImage>
 void ExtractChannel(const TInputImage* const image, const unsigned int channel,
                     TOutputImage* const output);
+
+/** A specialization to allow this function to pass through a scalar image. */
+template<typename TInputPixel, typename TOutputPixel>
+void ExtractChannel(const itk::Image<TInputPixel, 2>* const image, const unsigned int channel,
+                    itk::Image<TOutputPixel, 2>* const output);
 
 /** Extract a channels of an image. */
 template<typename TInputImage, typename TOutputImage>
@@ -389,6 +393,12 @@ template<typename TPixel>
 void ReplaceChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned int channel,
                     const typename itk::Image<TPixel, 2>* const replacement,
                     typename itk::VectorImage<TPixel, 2>* const output);
+
+/** A specialization to allow this function to pass through scalar images. */
+template<typename TPixel>
+void ReplaceChannel(const itk::Image<TPixel, 2>* const image, const unsigned int channel,
+                    const itk::Image<TPixel, 2>* const replacement,
+                    itk::Image<TPixel, 2>* const output);
 
 /** Read an image from a file. */
 template<typename TImage>

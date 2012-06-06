@@ -604,6 +604,19 @@ void ExtractChannel(const TInputImage* const image, const unsigned int channel,
   DeepCopy(indexSelectionFilter->GetOutput(), output);
 }
 
+template<typename TInputPixel, typename TOutputPixel>
+void ExtractChannel(const itk::Image<TInputPixel, 2>* const image, const unsigned int channel,
+                    itk::Image<TOutputPixel, 2>* const output)
+{
+  if(channel > 0)
+  {
+    std::stringstream ss;
+    ss << "Cannot ReplaceChannel " << channel << "on a scalar image!";
+    throw std::runtime_error(ss.str());
+  }
+  DeepCopy(image, output);
+}
+
 template<typename TInputImage, typename TOutputImage>
 void ExtractChannels(const TInputImage* const image, const std::vector<unsigned int> channels,
                     TOutputImage* const output)
@@ -694,6 +707,26 @@ void ReplaceChannel(const itk::VectorImage<TPixel, 2>* const image, const unsign
     output->SetPixel(iterator.GetIndex(), pixel);
     ++iterator;
     }
+}
+
+template<typename TPixel>
+void ReplaceChannel(const itk::Image<TPixel, 2>* const image, const unsigned int channel,
+                    const itk::Image<TPixel, 2>* const replacement,
+                    itk::Image<TPixel, 2>* const output)
+{
+  if(image->GetLargestPossibleRegion() != replacement->GetLargestPossibleRegion())
+    {
+    throw std::runtime_error("Image and replacement channel are not the same size!");
+    }
+
+  if(channel > 0)
+  {
+    std::stringstream ss;
+    ss << "Cannot ReplaceChannel " << channel << "on a scalar image!";
+    throw std::runtime_error(ss.str());
+  }
+
+  DeepCopy(replacement, output);
 }
 
 template<typename TImage>
