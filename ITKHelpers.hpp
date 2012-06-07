@@ -1004,7 +1004,7 @@ typename TypeTraits<typename TImage::PixelType>::LargerType VarianceInRegion(con
     ++imageIterator;
     }
 
-  return ITKStatistics::Variance(pixels);
+  return Statistics::Variance(pixels);
 }
 
 
