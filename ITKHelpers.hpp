@@ -983,7 +983,7 @@ typename TypeTraits<typename TImage::PixelType>::LargerType AverageInRegion(cons
     ++imageIterator;
     }
 
-  return Average(pixels);
+  return Statistics::Average(pixels);
 }
 
 template<typename TImage>
