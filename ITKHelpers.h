@@ -54,8 +54,9 @@ bool HasNeighborWithValue(const itk::Index<2>& pixel, const TImage* const image,
                           const typename TImage::PixelType& value);
 
 /** Blur all channels of an image. */
-template<typename TVectorImage>
-void AnisotropicBlurAllChannels(const TVectorImage* const image, TVectorImage* const output, const float sigma);
+template<typename TInputImage, typename TPixelType>
+void AnisotropicBlurAllChannels(const TInputImage* const image, itk::VectorImage<TPixelType,2>* const output,
+                                const float sigma);
 
 /** Set the values of the pixels on the boundary of the 'region' to 'value'. */
 template<typename TImage>

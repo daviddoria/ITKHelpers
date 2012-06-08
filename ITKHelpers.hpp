@@ -541,13 +541,14 @@ void InitializeImage(const itk::VectorImage<TPixel, 2>* const image, const unsig
   image->FillBuffer(v);
 }
 
-template<typename TVectorImage>
-void AnisotropicBlurAllChannels(const TVectorImage* image, TVectorImage* output, const float sigma)
+template<typename TInputImage, typename TPixelType>
+void AnisotropicBlurAllChannels(const TInputImage* image, itk::VectorImage<TPixelType,2>* output,
+                                const float sigma)
 {
-  typedef itk::Image<typename TVectorImage::InternalPixelType, 2> ScalarImageType;
+  typedef itk::Image<typename TInputImage::InternalPixelType, 2> ScalarImageType;
 
   // Disassembler
-  typedef itk::VectorIndexSelectionCastImageFilter<TVectorImage, ScalarImageType> IndexSelectionType;
+  typedef itk::VectorIndexSelectionCastImageFilter<TInputImage, ScalarImageType> IndexSelectionType;
   typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
   indexSelectionFilter->SetInput(image);
 
@@ -555,7 +556,7 @@ void AnisotropicBlurAllChannels(const TVectorImage* image, TVectorImage* output,
   typedef itk::ComposeImageFilter<ScalarImageType> ImageToVectorImageFilterType;
   typename ImageToVectorImageFilterType::Pointer imageToVectorImageFilter = ImageToVectorImageFilterType::New();
 
-  std::vector< typename ScalarImageType::Pointer > filteredImages;
+  std::vector<typename ScalarImageType::Pointer> filteredImages;
 
   for(unsigned int i = 0; i < image->GetNumberOfComponentsPerPixel(); ++i)
     {
@@ -563,7 +564,7 @@ void AnisotropicBlurAllChannels(const TVectorImage* image, TVectorImage* output,
     indexSelectionFilter->Update();
 
     typename ScalarImageType::Pointer imageChannel = ScalarImageType::New();
-    DeepCopy(indexSelectionFilter->GetOutput(), imageChannel);
+    DeepCopy(indexSelectionFilter->GetOutput(), imageChannel.GetPointer());
 
     typedef itk::BilateralImageFilter<ScalarImageType, ScalarImageType>  BilateralFilterType;
     typename BilateralFilterType::Pointer bilateralFilter = BilateralFilterType::New();
@@ -573,7 +574,7 @@ void AnisotropicBlurAllChannels(const TVectorImage* image, TVectorImage* output,
     bilateralFilter->Update();
 
     typename ScalarImageType::Pointer blurred = ScalarImageType::New();
-    DeepCopy(bilateralFilter->GetOutput(), blurred);
+    DeepCopy(bilateralFilter->GetOutput(), blurred.GetPointer());
 
     filteredImages.push_back(blurred);
     imageToVectorImageFilter->SetInput(i, filteredImages[i]);

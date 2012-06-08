@@ -1,5 +1,7 @@
 #include "ITKHelpers.h"
 
+void TestAnisotropicBlurAllChannels();
+
 void TestHistogramOfGradients();
 
 void TestExtractChannel();
@@ -21,6 +23,8 @@ void TestDeepCopyUnsignedCharVector();
 
 int main( int argc, char ** argv )
 {
+  TestAnisotropicBlurAllChannels();
+  
   TestHistogramOfGradients();
 
   TestExtractChannel();
@@ -42,6 +46,17 @@ int main( int argc, char ** argv )
 
   return 0;
 }
+
+void TestAnisotropicBlurAllChannels()
+{
+  typedef itk::VectorImage<float, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+  ImageType::Pointer blurred = ImageType::New();
+
+  float sigma = 2.0f;
+  ITKHelpers::AnisotropicBlurAllChannels(image, blurred, sigma);
+}
+
 
 void TestGetAllPatchesContainingPixel()
 {
