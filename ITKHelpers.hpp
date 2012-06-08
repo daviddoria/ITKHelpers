@@ -17,7 +17,6 @@
  *=========================================================================*/
 
 #include "ITKHelpers.h" // make syntax parser happy
-#include "ITKStatistics.h"
 #include "ITKTypeTraits.h"
 #include "ITKContainerInterface.h"
 
