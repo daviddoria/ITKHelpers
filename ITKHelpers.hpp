@@ -46,6 +46,7 @@
 #include "itkRegionOfInterestImageFilter.h"
 #include "itkResampleImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
+#include "itkSmoothingRecursiveGaussianImageFilter.h"
 #include "itkVectorMagnitudeImageFilter.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
 
@@ -1952,6 +1953,21 @@ void RGBImageToCIELabImage(RGBImageType* const rgbImage, TOutputImage* const cie
 
   // Copy to the output
   DeepCopy(reassembler->GetOutput(), cielabImage);
+}
+
+template<typename TImage>
+void BlurAllChannels(const TImage* const image, TImage* const output,
+                     const float sigma)
+{
+  typedef itk::SmoothingRecursiveGaussianImageFilter<
+    TImage, TImage >  BlurFilterType;
+
+  typename BlurFilterType::Pointer blurFilter = BlurFilterType::New();
+  blurFilter->SetInput(image);
+  blurFilter->SetSigma(sigma);
+  blurFilter->Update();
+
+  ITKHelpers::DeepCopy(blurFilter->GetOutput(), output);
 }
 
 }// end namespace ITKHelpers

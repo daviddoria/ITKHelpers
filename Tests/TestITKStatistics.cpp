@@ -1,5 +1,9 @@
-#include "ITKStatistics.h"
+// NOTE! ITKContainerInterface must be included BEFORE Statistics or it will not know about the
+// definitions of the functions required and produce compiler errors.
+#include "ITKContainerInterface.h"
+#include "Helpers/Statistics.h"
 
+// ITK
 #include "itkVariableLengthVector.h"
 #include "itkCovariantVector.h"
 

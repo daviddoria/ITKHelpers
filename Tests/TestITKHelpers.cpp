@@ -1,5 +1,7 @@
 #include "ITKHelpers.h"
 
+void TestBlurAllChannels();
+
 void TestAnisotropicBlurAllChannels();
 
 void TestHistogramOfGradients();
@@ -23,6 +25,8 @@ void TestDeepCopyUnsignedCharVector();
 
 int main( int argc, char ** argv )
 {
+  TestBlurAllChannels();
+  
   TestAnisotropicBlurAllChannels();
   
   TestHistogramOfGradients();
@@ -47,14 +51,49 @@ int main( int argc, char ** argv )
   return 0;
 }
 
-void TestAnisotropicBlurAllChannels()
+void TestBlurAllChannels()
 {
+
+  {
   typedef itk::VectorImage<float, 2> ImageType;
   ImageType::Pointer image = ImageType::New();
   ImageType::Pointer blurred = ImageType::New();
 
   float sigma = 2.0f;
-  ITKHelpers::AnisotropicBlurAllChannels(image, blurred, sigma);
+  ITKHelpers::BlurAllChannels(image.GetPointer(), blurred.GetPointer(), sigma);
+  }
+
+  {
+  typedef itk::VectorImage<float, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+  ImageType::Pointer blurred = ImageType::New();
+
+  float sigma = 2.0f;
+  ITKHelpers::BlurAllChannels(image.GetPointer(), blurred.GetPointer(), sigma);
+  }
+
+}
+
+void TestAnisotropicBlurAllChannels()
+{
+  {
+  typedef itk::VectorImage<float, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+  ImageType::Pointer blurred = ImageType::New();
+
+  float sigma = 2.0f;
+  ITKHelpers::AnisotropicBlurAllChannels(image.GetPointer(), blurred.GetPointer(), sigma);
+  }
+
+  // This does not work
+//   {
+//   typedef itk::Image<itk::CovariantVector<float, 3>, 2> ImageType;
+//   ImageType::Pointer image = ImageType::New();
+//   ImageType::Pointer blurred = ImageType::New();
+// 
+//   float sigma = 2.0f;
+//   ITKHelpers::AnisotropicBlurAllChannels(image.GetPointer(), blurred.GetPointer(), sigma);
+//   }
 }
 
 
