@@ -494,6 +494,10 @@ itk::Index<2> FindFirstNonZeroPixel(const TImage* const image);
 template <class TImage>
 std::vector<itk::Index<2> > GetOpenContourOrdering(const TImage* const image, const itk::Index<2>& start);
 
+/** Get closed contour ordering. */
+template <class TImage>
+std::vector<itk::Index<2> > GetClosedContourOrdering(const TImage* const image, const itk::Index<2>& start);
+
 /** Construct a breadth first (BFS) ordering on the non-zero pixels attached to a 'start' pixel. */
 template <class TImage>
 std::vector<itk::Index<2> > BreadthFirstOrderingNonZeroPixels(const TImage* const image, const itk::Index<2>& start);

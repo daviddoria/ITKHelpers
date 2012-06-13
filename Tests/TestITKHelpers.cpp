@@ -1,5 +1,7 @@
 #include "ITKHelpers.h"
 
+void TestGetClosedContourOrdering();
+
 void TestGetOpenContourOrdering();
 
 void TestDrawRectangle();
@@ -33,6 +35,8 @@ void TestBreadthFirstOrderingNonZeroPixels();
 
 int main( int argc, char ** argv )
 {
+  TestGetClosedContourOrdering();
+
   TestGetOpenContourOrdering();
 
   TestDrawRectangle();
@@ -434,8 +438,6 @@ void TestIsClosedLoop()
   }
 }
 
-
-
 void TestDrawRectangle()
 {
   typedef itk::Image<unsigned char, 2> ImageType;
@@ -484,6 +486,36 @@ void TestGetOpenContourOrdering()
   {
     //std::cout << breadthFirstOrdering[i] << " ";
     std::cout << contourOrdering[i] << std::endl;
+  }
+
+  std::cout << std::endl;
+}
+
+void TestGetClosedContourOrdering()
+{
+  typedef itk::Image<unsigned char, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->Allocate();
+  image->FillBuffer(0);
+
+  itk::Index<2> corner0 = {{10,10}};
+  itk::Index<2> corner1 = {{30,30}};
+  ITKHelpers::DrawRectangle(image.GetPointer(), 255,
+                            corner0, corner1);
+
+  itk::Index<2> start = {{10, 10}};
+
+  std::vector<itk::Index<2> > ordering = ITKHelpers::GetClosedContourOrdering(image.GetPointer(), start);
+
+  for(unsigned int i = 0; i < ordering.size(); ++i)
+  {
+    std::cout << ordering[i] << std::endl;
   }
 
   std::cout << std::endl;

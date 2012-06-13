@@ -24,6 +24,7 @@
 #include <iomanip> // for setfill()
 #include <stdexcept>
 #include <queue>
+#include <stack>
 
 // ITK
 #include "itkAbsImageFilter.h"
@@ -2052,7 +2053,7 @@ bool IsClosedLoop(const TImage* const image, const itk::Index<2>& start)
 
   if(image->GetPixel(start) == 0)
   {
-    throw std::runtime_error("Cannot find a breadth first orderin on non-zero pixels starting at a zero pixel!");
+    throw std::runtime_error("Cannot find a breadth first ordering on non-zero pixels starting at a zero pixel!");
   }
 
   // Initialize the queue
@@ -2088,9 +2089,33 @@ bool IsClosedLoop(const TImage* const image, const itk::Index<2>& start)
       }
     }
 
+    /* We cannot just test if any new points were added to the queue.
+     * Consider moving alphabetically on this:
+     * 0 0 0 A
+     * 0 0 B 0
+     * 0 D C 0
+     * E 0 0 0
+     * At A: B is added to the queue. At B: C and D are added to the queue.
+     * At C: nothing is added to the queue! But D is still in the queue, so this is
+     * not an end point!
+     */
     if(newPointCounter == 0)
     {
-      endPoints.push_back(currentPixel);
+      bool queueContainsNeighbor = false;
+      std::vector<itk::Index<2> > neighbors = Get8Neighbors(currentPixel);
+      for(unsigned int neighborId = 0; neighborId < neighbors.size(); ++neighborId)
+      {
+        if(Helpers::DoesQueueContain(pixelQueue, neighbors[neighborId]))
+        {
+          queueContainsNeighbor = true;
+          break;
+        }
+      }
+
+      if(!queueContainsNeighbor)
+      {
+        endPoints.push_back(currentPixel);
+      }
     }
 
   }
@@ -2191,6 +2216,77 @@ void DrawRectangle(TImage* const image, const typename TImage::PixelType& value,
 }
 
 template <class TImage>
+std::vector<itk::Index<2> > GetClosedContourOrdering(const TImage* const image, const itk::Index<2>& start)
+{
+  // This function performs a depth first search until it finds the starting pixel
+  if(!IsClosedLoop(image, start))
+  {
+    throw std::runtime_error("GetClosedContourOrdering: Can't compute a closed contour ordering if the contour is not closed!");
+  }
+
+  // In this image, mark pixels as non-zero when they are used (i.e. added to the stack)
+  UnsignedCharScalarImageType::Pointer usedImage = UnsignedCharScalarImageType::New();
+  usedImage->SetRegions(image->GetLargestPossibleRegion());
+  usedImage->Allocate();
+  usedImage->FillBuffer(0);
+  unsigned char usedValue = 255;
+
+  if(image->GetPixel(start) == 0)
+  {
+    throw std::runtime_error("Cannot find a closed contour ordering on non-zero pixels starting at a zero pixel!");
+  }
+
+  // Initialize the stack
+  std::stack<itk::Index<2> > pixelStack;
+  pixelStack.push(start);
+
+  std::vector<itk::Index<2> > ordering;
+
+  while (!pixelStack.empty())
+  {
+    itk::Index<2> currentPixel = pixelStack.top();
+
+    if(usedImage->GetPixel(currentPixel) == usedValue)
+    {
+      pixelStack.pop();
+      continue;
+    }
+
+    ordering.push_back(currentPixel);
+
+    usedImage->SetPixel(currentPixel, usedValue);
+    pixelStack.pop();
+
+    // Get the non-zero neighbors
+    std::vector<itk::Index<2> > nonZeroNeighbors = Get8NeighborsInRegionNotEqualValue(currentPixel, image,
+                                                                                      image->GetLargestPossibleRegion(), 0);
+
+    if(pixelStack.size() > 5) // arbitrary to say "we are not still at the beginning
+    {
+      for(unsigned int i = 0; i < nonZeroNeighbors.size(); ++i)
+      {
+        if(nonZeroNeighbors[i] == start)
+        {
+          return ordering;
+        }
+      }
+    }
+    unsigned int newPointCounter = 0;
+    for(unsigned int i = 0; i < nonZeroNeighbors.size(); ++i)
+    {
+      if(usedImage->GetPixel(nonZeroNeighbors[i]) == 0)
+      {
+        pixelStack.push(nonZeroNeighbors[i]);
+        newPointCounter++;
+      }
+    }
+
+  } // end main queue loop
+
+  return ordering;
+}
+
+template <class TImage>
 std::vector<itk::Index<2> > GetOpenContourOrdering(const TImage* const image, const itk::Index<2>& start)
 {
   if(IsClosedLoop(image, start))
@@ -2198,7 +2294,7 @@ std::vector<itk::Index<2> > GetOpenContourOrdering(const TImage* const image, co
     throw std::runtime_error("Can't compute an ordering on a closed loop!");
   }
 
-    // In this image, mark pixels as non-zero when they are used (i.e. added to the queue)
+  // In this image, mark pixels as non-zero when they are used (i.e. added to the queue)
   UnsignedCharScalarImageType::Pointer usedImage = UnsignedCharScalarImageType::New();
   usedImage->SetRegions(image->GetLargestPossibleRegion());
   usedImage->Allocate();

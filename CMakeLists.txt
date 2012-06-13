@@ -19,7 +19,7 @@ INCLUDE(${ITK_USE_FILE})
 add_library(ITKHelpers ITKHelpers.cpp)
 target_link_libraries(ITKHelpers Helpers ${ITK_LIBRARIES})
 
-SET(ITKHelpers_BuildTests ON CACHE BOOL "ITKHelpers_BuildTests" FORCE)
+SET(ITKHelpers_BuildTests OFF CACHE BOOL "ITKHelpers_BuildTests")
 if(ITKHelpers_BuildTests)
   add_subdirectory(Tests)
 endif()
