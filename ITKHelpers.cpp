@@ -261,6 +261,19 @@ itk::ImageBase<2>::Pointer CreateImageWithSameType(const itk::ImageBase<2>* cons
   return objectCopy;
 }
 
+std::vector<itk::Index<2> > Get8Neighbors(const itk::Index<2>& pixel)
+{
+  std::vector<itk::Index<2> > neighborsInRegion;
+
+  std::vector<itk::Offset<2> > neighborOffsets = Get8NeighborOffsets();
+  for(unsigned int i = 0; i < neighborOffsets.size(); ++i)
+    {
+    itk::Index<2> index = pixel + neighborOffsets[i];
+    neighborsInRegion.push_back(index);
+    }
+  return neighborsInRegion;
+}
+
 std::vector<itk::Index<2> > Get8NeighborsInRegion(const itk::ImageRegion<2>& region, const itk::Index<2>& pixel)
 {
   std::vector<itk::Index<2> > neighborsInRegion;
@@ -730,6 +743,20 @@ itk::ImageIOBase::IOComponentType GetPixelTypeFromFile(const std::string& filena
 //             << std::endl;
 
   return pixelType;
+}
+
+bool IsNeighbor(const itk::Index<2>& index1, const itk::Index<2>& index2)
+{
+  std::vector<itk::Index<2> > neighbors = Get8Neighbors(index1);
+
+  for(unsigned int i = 0; i < neighbors.size(); ++i)
+  {
+    if(neighbors[i] == index2)
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 } // end namespace

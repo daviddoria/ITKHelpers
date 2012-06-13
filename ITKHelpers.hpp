@@ -23,6 +23,7 @@
 // STL
 #include <iomanip> // for setfill()
 #include <stdexcept>
+#include <queue>
 
 // ITK
 #include "itkAbsImageFilter.h"
@@ -869,12 +870,46 @@ AverageNeighborValue(const TImage* const image, const itk::Index<2>& pixel)
   return pixelSum / static_cast<float>(neighbors.size());
 }
 
+template<typename TImage>
+std::vector<itk::Index<2> > Get8NeighborsInRegionNotEqualValue(const itk::Index<2>& pixel, const TImage* const image,
+                                                               const itk::ImageRegion<2>& region,
+                                                               const typename TImage::PixelType& value)
+{
+  std::vector<itk::Index<2> > neighbors = Get8NeighborsInRegion(region, pixel);
+  std::vector<itk::Index<2> > neighborsWithValue;
+  for(unsigned int i = 0; i < neighbors.size(); ++i)
+    {
+    if(image->GetPixel(neighbors[i]) != value)
+      {
+      neighborsWithValue.push_back(neighbors[i]);
+      }
+    }
+  return neighborsWithValue;
+}
+
+template<typename TImage>
+std::vector<itk::Index<2> > Get8NeighborsInRegionWithValue(const itk::Index<2>& pixel, const TImage* const image,
+                                                           const itk::ImageRegion<2>& region,
+                                                           const typename TImage::PixelType& value)
+{
+  std::vector<itk::Index<2> > neighbors = Get8NeighborsInRegion(region, pixel);
+  std::vector<itk::Index<2> > neighborsWithValue;
+  for(unsigned int i = 0; i < neighbors.size(); ++i)
+    {
+    if(image->GetPixel(neighbors[i]) == value)
+      {
+      neighborsWithValue.push_back(neighbors[i]);
+      }
+    }
+  return neighborsWithValue;
+}
+
 /** Get a list of the valid neighbors of a pixel.*/
 template<typename TImage>
 std::vector<itk::Index<2> > Get8NeighborsWithValue(const itk::Index<2>& pixel, const TImage* const image,
-                                                  const typename TImage::PixelType& value)
+                                                   const typename TImage::PixelType& value)
 {
-  std::vector<itk::Index<2> > neighbors = Get8NeighborsInRegion(GetRegionInRadiusAroundPixel(pixel, 1), pixel);
+  std::vector<itk::Index<2> > neighbors = Get8Neighbors(pixel);
   std::vector<itk::Index<2> > neighborsWithValue;
   for(unsigned int i = 0; i < neighbors.size(); ++i)
     {
@@ -1974,6 +2009,247 @@ void BlurAllChannels(const TImage* const image, TImage* const output,
   blurFilter->Update();
 
   ITKHelpers::DeepCopy(blurFilter->GetOutput(), output);
+}
+
+template <class TImage>
+itk::Index<2> FindFirstNonZeroPixel(const TImage* const image)
+{
+  itk::ImageRegionConstIterator<TImage> imageIterator(image, image->GetLargestPossibleRegion());
+
+  while(!imageIterator.IsAtEnd())
+  {
+    if(imageIterator.Get())
+    {
+      return imageIterator.GetIndex();
+    }
+    ++imageIterator;
+  }
+
+  throw std::runtime_error("No non-zero pixels found!");
+}
+
+// template <class TImage>
+// bool IsClosedLoop(const TImage* const image, const itk::Index<2>& start)
+// {
+//   std::vector<itk::Index<2> > traversalOrder = BreadthFirstOrderingNonZeroPixels(image, start);
+//   if(IsNeighbor(traversalOrder[0], traversalOrder[traversalOrder.size() - 1]))
+//   {
+//     return true;
+//   }
+//
+//   return false;
+// }
+
+template <class TImage>
+bool IsClosedLoop(const TImage* const image, const itk::Index<2>& start)
+{
+  // In this image, mark pixels as non-zero when they are used (i.e. added to the queue)
+  UnsignedCharScalarImageType::Pointer usedImage = UnsignedCharScalarImageType::New();
+  usedImage->SetRegions(image->GetLargestPossibleRegion());
+  usedImage->Allocate();
+  usedImage->FillBuffer(0);
+  unsigned char usedValue = 255;
+
+  if(image->GetPixel(start) == 0)
+  {
+    throw std::runtime_error("Cannot find a breadth first orderin on non-zero pixels starting at a zero pixel!");
+  }
+
+  // Initialize the queue
+  std::queue<itk::Index<2> > pixelQueue;
+  pixelQueue.push(start);
+
+  std::vector<itk::Index<2> > endPoints;
+
+  while (!pixelQueue.empty())
+  {
+    itk::Index<2> currentPixel = pixelQueue.front();
+
+    if(usedImage->GetPixel(currentPixel) == usedValue)
+    {
+      pixelQueue.pop();
+      continue;
+    }
+
+    usedImage->SetPixel(currentPixel, usedValue);
+    pixelQueue.pop();
+
+    // Get the non-zero neighbors
+    std::vector<itk::Index<2> > nonZeroNeighbors = Get8NeighborsInRegionNotEqualValue(currentPixel, image,
+                                                                                      image->GetLargestPossibleRegion(), 0);
+
+    unsigned int newPointCounter = 0;
+    for(unsigned int i = 0; i < nonZeroNeighbors.size(); ++i)
+    {
+      if(usedImage->GetPixel(nonZeroNeighbors[i]) == 0)
+      {
+        pixelQueue.push(nonZeroNeighbors[i]);
+        newPointCounter++;
+      }
+    }
+
+    if(newPointCounter == 0)
+    {
+      endPoints.push_back(currentPixel);
+    }
+
+  }
+
+  if(endPoints.size() == 1)
+  {
+    return true;
+  }
+
+  if(endPoints.size() != 2)
+  {
+    return false;
+  }
+
+  if(IsNeighbor(endPoints[0], endPoints[1]))
+  {
+    return true;
+  }
+
+  return false;
+}
+
+template <class TImage>
+std::vector<itk::Index<2> > BreadthFirstOrderingNonZeroPixels(const TImage* const image, const itk::Index<2>& start)
+{
+  // In this image, mark pixels as non-zero when they are used (i.e. added to the queue)
+  UnsignedCharScalarImageType::Pointer usedImage = UnsignedCharScalarImageType::New();
+  usedImage->SetRegions(image->GetLargestPossibleRegion());
+  usedImage->Allocate();
+  usedImage->FillBuffer(0);
+  unsigned char usedValue = 255;
+
+  if(image->GetPixel(start) == 0)
+  {
+    throw std::runtime_error("Cannot find a breadth first orderin on non-zero pixels starting at a zero pixel!");
+  }
+
+  // Initialize the queue
+  std::queue<itk::Index<2> > pixelQueue;
+  pixelQueue.push(start);
+
+  std::vector<itk::Index<2> > traversalOrder;
+
+  while (!pixelQueue.empty())
+  {
+    itk::Index<2> currentPixel = pixelQueue.front();
+
+    if(usedImage->GetPixel(currentPixel) == usedValue)
+    {
+      pixelQueue.pop();
+      continue;
+    }
+
+    traversalOrder.push_back(currentPixel);
+    usedImage->SetPixel(currentPixel, usedValue);
+    pixelQueue.pop();
+
+    // Get the non-zero neighbors
+    std::vector<itk::Index<2> > nonZeroNeighbors = Get8NeighborsInRegionNotEqualValue(currentPixel, image,
+                                                                                      image->GetLargestPossibleRegion(), 0);
+
+    for(unsigned int i = 0; i < nonZeroNeighbors.size(); ++i)
+    {
+      if(usedImage->GetPixel(nonZeroNeighbors[i]) == 0)
+      {
+        pixelQueue.push(nonZeroNeighbors[i]);
+      }
+    }
+
+  }
+
+  return traversalOrder;
+}
+
+template <typename TImage>
+void DrawRectangle(TImage* const image, const typename TImage::PixelType& value,
+                   const itk::Index<2>& corner0, const itk::Index<2>& corner1)
+{
+  // Draw vertical lines
+  for(int i = corner0[1]; i <= corner1[1]; ++i)
+  {
+    itk::Index<2> pixel0 = {{corner0[0], i}};
+    image->SetPixel(pixel0, value);
+
+    itk::Index<2> pixel1 = {{corner1[0], i}};
+    image->SetPixel(pixel1, value);
+  }
+
+  // Draw horizontal lines
+  for(int i = corner0[0]; i <= corner1[0]; ++i)
+  {
+    itk::Index<2> pixel0 = {{i, corner0[1]}};
+    image->SetPixel(pixel0, value);
+
+    itk::Index<2> pixel1 = {{i, corner1[1]}};
+    image->SetPixel(pixel1, value);
+  }
+}
+
+template <class TImage>
+std::vector<itk::Index<2> > GetOpenContourOrdering(const TImage* const image, const itk::Index<2>& start)
+{
+  if(IsClosedLoop(image, start))
+  {
+    throw std::runtime_error("Can't compute an ordering on a closed loop!");
+  }
+
+    // In this image, mark pixels as non-zero when they are used (i.e. added to the queue)
+  UnsignedCharScalarImageType::Pointer usedImage = UnsignedCharScalarImageType::New();
+  usedImage->SetRegions(image->GetLargestPossibleRegion());
+  usedImage->Allocate();
+  usedImage->FillBuffer(0);
+  unsigned char usedValue = 255;
+
+  if(image->GetPixel(start) == 0)
+  {
+    throw std::runtime_error("Cannot find a breadth first orderin on non-zero pixels starting at a zero pixel!");
+  }
+
+  // Initialize the queue
+  std::queue<itk::Index<2> > pixelQueue;
+  pixelQueue.push(start);
+
+  while (!pixelQueue.empty())
+  {
+    itk::Index<2> currentPixel = pixelQueue.front();
+
+    if(usedImage->GetPixel(currentPixel) == usedValue)
+    {
+      pixelQueue.pop();
+      continue;
+    }
+
+    usedImage->SetPixel(currentPixel, usedValue);
+    pixelQueue.pop();
+
+    // Get the non-zero neighbors
+    std::vector<itk::Index<2> > nonZeroNeighbors = Get8NeighborsInRegionNotEqualValue(currentPixel, image,
+                                                                                      image->GetLargestPossibleRegion(), 0);
+
+    unsigned int newPointCounter = 0;
+    for(unsigned int i = 0; i < nonZeroNeighbors.size(); ++i)
+    {
+      if(usedImage->GetPixel(nonZeroNeighbors[i]) == 0)
+      {
+        pixelQueue.push(nonZeroNeighbors[i]);
+        newPointCounter++;
+      }
+    }
+
+    // Found an end point
+    if(newPointCounter == 0)
+    {
+      return BreadthFirstOrderingNonZeroPixels(image, currentPixel);
+    }
+
+  } // end main queue loop
+
+  throw std::runtime_error("Did not find any end points! This should never happen.");
 }
 
 }// end namespace ITKHelpers

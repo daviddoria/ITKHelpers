@@ -278,6 +278,18 @@ template<typename TImage>
 std::vector<itk::Index<2> > Get8NeighborsWithValue(const itk::Index<2>& pixel, const TImage* const image,
                                                    const typename TImage::PixelType& value);
 
+/** Get the locations of the 8-neighors of 'pixel' with value 'value', only if they are inside 'region'. */
+template<typename TImage>
+std::vector<itk::Index<2> > Get8NeighborsInRegionWithValue(const itk::Index<2>& pixel, const TImage* const image,
+                                                           const itk::ImageRegion<2>& region,
+                                                           const typename TImage::PixelType& value);
+
+/** Get the locations of the 8-neighors of 'pixel' that do NOT equal 'value', only if they are inside 'region'. */
+template<typename TImage>
+std::vector<itk::Index<2> > Get8NeighborsInRegionNotEqualValue(const itk::Index<2>& pixel, const TImage* const image,
+                                                               const itk::ImageRegion<2>& region,
+                                                               const typename TImage::PixelType& value);
+
 /** Get the locations of pixels with value 'value' in 'region'. */
 template<typename TImage>
 std::vector<itk::Index<2> > GetPixelsWithValue(const TImage* const image, const itk::ImageRegion<2>& region,
@@ -469,10 +481,25 @@ void RGBImageToVectorImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* co
 template <typename TInputImage, typename TOutputImage>
 void ITKImageToCIELabImage(const TInputImage* const rgbImage, TOutputImage* const cielabImage);
 
-
 /** Compute the central derivative of 'image' in 'direction' and store it in 'output'. */
 template <class TImage>
 void CentralDifferenceDerivative(const TImage* const image, const unsigned int direction, TImage* const output);
+
+/** Find the first non-zero pixel in raster scan order. */
+template <class TImage>
+itk::Index<2> FindFirstNonZeroPixel(const TImage* const image);
+
+/** Get open contour ordering. */
+template <class TImage>
+std::vector<itk::Index<2> > GetOpenContourOrdering(const TImage* const image, const itk::Index<2>& start);
+
+/** Construct a breadth first (BFS) ordering on the non-zero pixels attached to a 'start' pixel. */
+template <class TImage>
+std::vector<itk::Index<2> > BreadthFirstOrderingNonZeroPixels(const TImage* const image, const itk::Index<2>& start);
+
+/** Check if the non-zero pixels attached to a 'start' pixel form a closed loop. */
+template <class TImage>
+bool IsClosedLoop(const TImage* const image, const itk::Index<2>& start);
 
 /**  Write the first 3 channels of an image to a file as unsigned chars. */
 template<typename TImage>
@@ -512,6 +539,10 @@ void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1,
 template <typename TPixel>
 void VectorImageToRGBImage(const itk::VectorImage<TPixel, 2>* const image, RGBImageType* const rgbImage);
 
+/** Draw a rectangle in an image. */
+template <typename TImage>
+void DrawRectangle(TImage* const image, const typename TImage::PixelType& value,
+                   const itk::Index<2>& corner0, const itk::Index<2>& corner1);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Non-template function declarations (defined in Helpers.cpp) ///////////////////
@@ -566,7 +597,10 @@ itk::ImageRegion<2> GetRegionInRadiusAroundPixel(const itk::Index<2>& pixel, con
 /** Get the offsets of the 8 neighborhood of a pixel. */
 std::vector<itk::Offset<2> > Get8NeighborOffsets();
 
-/** Get the indices of the neighbors of a pixel that are inside of a region. */
+/** Get the indices of the neighbors of a 'pixel'. */
+std::vector<itk::Index<2> > Get8Neighbors(const itk::Index<2>& pixel);
+
+/** Get the indices of the neighbors of a 'pixel' that are inside of a 'region'. */
 std::vector<itk::Index<2> > Get8NeighborsInRegion(const itk::ImageRegion<2>& region, const itk::Index<2>& pixel);
 
 /** The return value MUST be a smart pointer. */
@@ -642,6 +676,9 @@ void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::Im
 
 /**  Calls Write2DVectorRegion on a full image. */
 void Write2DVectorImage(const FloatVector2ImageType* const image, const std::string& filename);
+
+/**  Determine if two pixels touch. */
+bool IsNeighbor(const itk::Index<2>& index1, const itk::Index<2>& index2);
 
 }// end namespace
 
