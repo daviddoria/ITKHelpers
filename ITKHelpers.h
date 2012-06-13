@@ -375,6 +375,7 @@ void ScaleAllChannelsTo255(TImage* const image);
 template<typename TImage>
 void ScaleTo255(TImage* const image);
 
+/** Set all of the 'pixels' to 'value'. AKA PixelList */
 template <typename TImage, typename TPixel>
 void SetPixels(TImage* const image, const std::vector<itk::Index<2> >& pixels, const TPixel& value);
 
