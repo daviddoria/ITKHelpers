@@ -587,7 +587,13 @@ void AnisotropicBlurAllChannels(const TInputImage* image, itk::VectorImage<TPixe
 }
 
 template<typename TImage>
-void DilateImage(const TImage* const image, TImage* const dilatedImage, const unsigned int radius)
+void DilateImage(const TImage* const image, const unsigned int radius)
+{
+  DilateImage(image, radius, image);
+}
+
+template<typename TImage>
+void DilateImage(const TImage* const image, const unsigned int radius, TImage* const dilatedImage)
 {
   typedef itk::BinaryBallStructuringElement<typename TImage::PixelType, 2> StructuringElementType;
   StructuringElementType structuringElement;

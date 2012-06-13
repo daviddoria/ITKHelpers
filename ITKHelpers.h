@@ -172,7 +172,7 @@ unsigned int CountPixelsWithValue(const TImage* const image, const typename TIma
 template<typename TImage>
 std::vector<itk::Index<2> > GetNonZeroPixels(const TImage* const image);
 
-/** Get the non-zero pixels in a region. */
+/** Get the non-zero pixels in a region. AKA BinaryImageToPixelList */
 template<typename TImage>
 std::vector<itk::Index<2> > GetNonZeroPixels(const TImage* const image, const itk::ImageRegion<2>& region);
 
@@ -185,9 +185,13 @@ template<typename TPixel>
 void InitializeImage(const itk::VectorImage<TPixel, 2>* const input, const unsigned int numberOfComponents,
                      const itk::ImageRegion<2>& region);
 
-/** Dilate 'image'. */
+/** Dilate 'image' in-place. */
 template<typename TImage>
-void DilateImage(const TImage* const image, TImage* const dilatedImage, const unsigned int radius);
+void DilateImage(const TImage* const image, const unsigned int radius);
+
+/** Dilate 'image' and save the result in 'output'. */
+template<typename TImage>
+void DilateImage(const TImage* const image, const unsigned int radius, TImage* const dilatedImage);
 
 /** Subtract regions. */
 template<typename TImage>
@@ -500,7 +504,8 @@ void OutputVector(const std::vector<T>& v);
 
 /** Combine two VectorImages into a VectorImage where the number of channels is the sum of the two input images. */
 template <typename TPixel>
-void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1, const typename itk::VectorImage<TPixel, 2>* const image2,
+void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1,
+                 const typename itk::VectorImage<TPixel, 2>* const image2,
                  typename itk::VectorImage<TPixel, 2>* const output);
 
 /** Convert the first 3 channels of a float vector image to an unsigned char/color/rgb image. */
@@ -581,7 +586,8 @@ std::vector<itk::Offset<2> > IndicesToOffsets(const std::vector<itk::Index<2> >&
 /** Get the locations of the pixels on the boundary of a region. */
 std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region);
 
-/** Given a list of pixels, form them into an image, dilate the image, and get the list of pixels in the dilated image. */
+/** Given a list of pixels, form them into an image, dilate the image,
+  * and get the list of pixels in the dilated image. */
 std::vector<itk::Index<2> > DilatePixelList(const std::vector<itk::Index<2> >& pixelList,
                                             const itk::ImageRegion<2>& region, const unsigned int radius);
 
