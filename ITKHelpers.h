@@ -79,7 +79,8 @@ void DeepCopy(const itk::VectorImage<TInputPixel, 2>* const input, itk::VectorIm
 template<typename TInputImage, typename TOutputImage>
 void DeepCopyInRegion(const TInputImage* const input, const itk::ImageRegion<2>& region, TOutputImage* const output);
 
-/** Copy the region around 'sourcePosition' with radius 'radius' to the region around 'targetPosition' with radius 'radius'. */
+/** Copy the region around 'sourcePosition' with radius 'radius' to the region around
+  * 'targetPosition' with radius 'radius'. */
 template <class TImage>
 void CopyRegion(const TImage* const sourceImage, TImage* const targetImage, const itk::Index<2>& sourcePosition,
                 const itk::Index<2>& targetPosition, const unsigned int radius);
@@ -386,9 +387,11 @@ void SetPixelsInRegionToValue(TImage* const image, const itk::ImageRegion<2>& re
 
 /** Extract a region and then normalize it. */
 template<typename TImage>
-void ExtractAndNormalizeRegion(const TImage* const image, const itk::ImageRegion<2>& region, TImage* const outputImage);
+void ExtractAndNormalizeRegion(const TImage* const image, const itk::ImageRegion<2>& region,
+                               TImage* const outputImage);
 
-/** For each component of each pixel, subtract the mean of the channel and divide by the standard deviation of the corresponding channel. */
+/** For each component of each pixel, subtract the mean of the channel and divide by
+  * the standard deviation of the corresponding channel. */
 template<typename TImage>
 void NormalizeImageChannels(const TImage* const image, TImage* const outputImage);
 
@@ -456,7 +459,8 @@ void WriteVectorImageAsRGB(const itk::VectorImage<TPixel,2>* const image, const 
 
 /** Write a 'region' of an 'image' to 'filename'.*/
 template <typename TPixel>
-void WriteVectorImageRegionAsRGB(const itk::VectorImage<TPixel,2>* const image, const itk::ImageRegion<2>& region, const std::string& filename);
+void WriteVectorImageRegionAsRGB(const itk::VectorImage<TPixel,2>* const image,
+                                 const itk::ImageRegion<2>& region, const std::string& filename);
 
 /** Compute a histogram of gradients. */
 template <typename TImage>
@@ -471,7 +475,8 @@ void ComputeGradients(const TImage* const image,
 /** Compute a histogram of gradients when the gradients are already known. */
 template <typename TGradientImage>
 std::vector<float> HistogramOfGradientsPrecomputed(const TGradientImage* const image,
-                                                   const itk::ImageRegion<2>& region, const unsigned int numberOfBins);
+                                                   const itk::ImageRegion<2>& region,
+                                                   const unsigned int numberOfBins);
 
 /** Convert an RGB image to a 3-channel VectorImage. */
 template <typename TOutputPixel>
@@ -571,7 +576,8 @@ itk::ImageRegion<2> CornerRegion(const itk::Size<2>& size);
 /** If an image is one of our few predefined types, print it's type the the screen. */
 void OutputImageType(const itk::ImageBase<2>* const input);
 
-/** Average each component of a list of vectors then construct and return a new vector composed of these averaged components. */
+/** Average each component of a list of vectors then construct and return a new vector
+  * composed of these averaged components. */
 FloatVector2Type AverageVectors(const std::vector<FloatVector2Type>& vectors);
 
 /** This function creates an Offset<2> by setting the 'dimension' index of the Offset<2>
@@ -630,7 +636,8 @@ std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region)
 std::vector<itk::Index<2> > DilatePixelList(const std::vector<itk::Index<2> >& pixelList,
                                             const itk::ImageRegion<2>& region, const unsigned int radius);
 
-/** Get the region of an image where a patch with radius 'patchRadius' centered on every pixel will be entirely inside 'wholeRegion'. */
+/** Get the region of an image where a patch with radius 'patchRadius' centered on
+  * every pixel will be entirely inside 'wholeRegion'. */
 itk::ImageRegion<2> GetInternalRegion(const itk::ImageRegion<2>& wholeRegion, const unsigned int patchRadius);
 
 /** Get all patches in 'imageRegion' with radius 'patchRadius' that contains a specified 'pixel'. */
@@ -642,7 +649,8 @@ std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<
 std::vector<itk::ImageRegion<2> > GetAllPatches(const itk::ImageRegion<2>& region, const unsigned int patchRadius);
 
 /** Get the regions of patches surrounding every pixel in 'indices'. */
-std::vector<itk::ImageRegion<2> > GetPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices, const unsigned int patchRadius);
+std::vector<itk::ImageRegion<2> > GetPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices,
+                                                              const unsigned int patchRadius);
 
 /** Get the regions of patches surrounding every pixel in 'indices' if they are entirely inside 'imageRegion'. */
 std::vector<itk::ImageRegion<2> > GetValidPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices,
@@ -650,7 +658,8 @@ std::vector<itk::ImageRegion<2> > GetValidPatchesCenteredAtIndices(const std::ve
                                                                    const unsigned int patchRadius);
 
 /** Find which point in 'vec' is closest to 'value'. */
-unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec, const itk::CovariantVector<float, 3>& value);
+unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec,
+                          const itk::CovariantVector<float, 3>& value);
 
 /** Find which location in 'pixels' is closest to 'queryPixel'. */
 unsigned int ClosestIndexId(const std::vector<itk::Index<2> >& pixels, const itk::Index<2>& queryPixel);
@@ -676,8 +685,10 @@ std::vector<itk::Index<2> > Get4NeighborIndicesInsideRegion(const itk::Index<2>&
 itk::ImageIOBase::IOComponentType GetPixelTypeFromFile(const std::string& filename);
 
 /** Paraview requires 3D vectors to display glyphs, even if the vectors are really 2D.
-    These functions appends a 0 to each vectors of a 2D vector image so that it can be easily visualized with Paraview. */
-void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::ImageRegion<2>& region, const std::string& filename);
+    These functions appends a 0 to each vectors of a 2D vector image so that it can be
+    easily visualized with Paraview. */
+void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::ImageRegion<2>& region,
+                         const std::string& filename);
 
 /**  Calls Write2DVectorRegion on a full image. */
 void Write2DVectorImage(const FloatVector2ImageType* const image, const std::string& filename);
