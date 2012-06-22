@@ -658,6 +658,11 @@ void WriteVectorImageAsRGB(const itk::VectorImage<TPixel,2>* const image, const 
 template <typename TPixel>
 void WriteVectorImageRegionAsRGB(const itk::VectorImage<TPixel,2>* const image, const itk::ImageRegion<2>& region, const std::string& filename);
 
+/** Interpolate points between p0 and p1 by weighting the endpoint values by their
+  * distance to the current pixel.*/
+template<typename TImage>
+void InteroplateLineBetweenPoints(TImage* const image, const itk::Index<2>& p0, const itk::Index<2>& p1);
+
 }// end namespace
 
 #include "ITKHelpers.hpp"

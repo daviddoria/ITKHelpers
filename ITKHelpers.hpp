@@ -1804,4 +1804,24 @@ void MagnitudeImage(const TInputImage* const image, TOutputImage* const output)
   ITKHelpers::DeepCopy(magnitudeFilter->GetOutput(), output);
 }
 
+template<typename TImage>
+void InteroplateLineBetweenPoints(TImage* const image, const itk::Index<2>& p0, const itk::Index<2>& p1)
+{
+  itk::BresenhamLine<2> line;
+
+  std::vector< itk::Index<2> > pixels = line.BuildLine(p0, p1);
+
+  typename TImage::PixelType value0 = image->GetPixel(p0);
+  typename TImage::PixelType value1 = image->GetPixel(p1);
+
+  float difference = value1 - value0;
+  float step = difference / static_cast<float>(pixels.size());
+
+  for(unsigned int i = 0; i < pixels.size(); i++)
+    {
+    //std::cout << "pixel " << i << " " << pixels[i] << std::endl;
+    image->SetPixel(pixels[i], value0 + i * step);
+    }
+}
+
 }// end namespace ITKHelpers
