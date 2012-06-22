@@ -688,7 +688,7 @@ bool IsNeighbor(const itk::Index<2>& index1, const itk::Index<2>& index2);
 /** Interpolate points between p0 and p1 by weighting the endpoint values by their
   * distance to the current pixel.*/
 template<typename TImage>
-void InteroplateLineBetweenPoints(TImage* const image, const itk::Index<2>& p0, const itk::Index<2>& p1);
+void InterpolateLineBetweenPoints(TImage* const image, const itk::Index<2>& p0, const itk::Index<2>& p1);
 
 }// end namespace
 

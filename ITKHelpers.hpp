@@ -1835,9 +1835,8 @@ void MagnitudeImage_Generic(const TInputImage* const image, TOutputImage* const 
   ITKHelpers::DeepCopy(magnitudeFilter->GetOutput(), output);
 }
 
-<<<<<<< HEAD
 template<typename TImage>
-void InteroplateLineBetweenPoints(TImage* const image, const itk::Index<2>& p0, const itk::Index<2>& p1)
+void InterpolateLineBetweenPoints(TImage* const image, const itk::Index<2>& p0, const itk::Index<2>& p1)
 {
   itk::BresenhamLine<2> line;
 
@@ -1854,7 +1853,8 @@ void InteroplateLineBetweenPoints(TImage* const image, const itk::Index<2>& p0, 
     //std::cout << "pixel " << i << " " << pixels[i] << std::endl;
     image->SetPixel(pixels[i], value0 + i * step);
     }
-=======
+}
+
 template <typename TInputImage, typename TOutputImage>
 void MagnitudeImage(const TInputImage* const image, TOutputImage* const output)
 {
@@ -2366,7 +2366,7 @@ std::vector<itk::Index<2> > GetOpenContourOrdering(const TImage* const image, co
   } // end main queue loop
 
   throw std::runtime_error("Did not find any end points! This should never happen.");
->>>>>>> 52967cc8d8d80873d188c8e74e8dff9a1ffb6f6e
+
 }
 
 }// end namespace ITKHelpers
