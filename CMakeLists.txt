@@ -16,6 +16,10 @@ endif(UNIX)
 FIND_PACKAGE(ITK REQUIRED)
 INCLUDE(${ITK_USE_FILE})
 
+# VTK (this is required if ITK is built with ITKVtkGlue (I think this should be considered a bug...))
+FIND_PACKAGE(VTK REQUIRED)
+INCLUDE(${VTK_USE_FILE})
+
 add_library(ITKHelpers ITKHelpers.cpp)
 target_link_libraries(ITKHelpers Helpers ${ITK_LIBRARIES})
 

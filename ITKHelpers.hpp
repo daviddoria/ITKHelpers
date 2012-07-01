@@ -1002,9 +1002,9 @@ typename TypeTraits<T>::LargerComponentType SumOfComponents(const T& v)
   typename TypeTraits<T>::LargerComponentType sumOfComponents;
   SetObjectToZero(sumOfComponents);
 
-  for(unsigned int i = 0; i < length(v); ++i)
+  for(unsigned int i = 0; i < Helpers::length(v); ++i)
     {
-    sumOfComponents += index(v, i);
+    sumOfComponents += Helpers::index(v, i);
     }
 
   return sumOfComponents;
@@ -1052,8 +1052,8 @@ typename TypeTraits<typename TImage::PixelType>::LargerType VarianceOfImage(cons
 }
 
 template<typename TImage>
-typename TypeTraits<typename TImage::PixelType>::LargerType VarianceInRegion(const TImage* const image,
-                                                                             const itk::ImageRegion<2>& region)
+typename TypeTraits<typename TImage::PixelType>::LargerType
+VarianceInRegion(const TImage* const image, const itk::ImageRegion<2>& region)
 {
   typename itk::ImageRegionConstIterator<TImage> imageIterator(image, region);
   std::vector<typename TImage::PixelType> pixels;
