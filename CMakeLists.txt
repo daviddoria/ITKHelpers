@@ -13,12 +13,10 @@ if(UNIX)
 endif(UNIX)
 
 # ITK
-FIND_PACKAGE(ITK REQUIRED)
+FIND_PACKAGE(ITK REQUIRED ITKCommon ITKIOImageBase
+ITKImageIntensity ITKImageFeature ITKMathematicalMorphology ITKBinaryMathematicalMorphology
+ITKDeprecated)
 INCLUDE(${ITK_USE_FILE})
-
-# VTK (this is required if ITK is built with ITKVtkGlue (I think this should be considered a bug...))
-FIND_PACKAGE(VTK REQUIRED)
-INCLUDE(${VTK_USE_FILE})
 
 add_library(ITKHelpers ITKHelpers.cpp)
 target_link_libraries(ITKHelpers Helpers ${ITK_LIBRARIES})
