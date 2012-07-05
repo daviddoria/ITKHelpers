@@ -40,7 +40,7 @@
 #include "itkImageAdaptor.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-#include "itkImageToVectorImageFilter.h"
+#include "itkComposeImageFilter.h"
 #include "itkJoinImageFilter.h"
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkMultiplyImageFilter.h"
@@ -568,8 +568,9 @@ void AnisotropicBlurAllChannels(const TInputImage* image, itk::VectorImage<TPixe
   indexSelectionFilter->SetInput(image);
 
   // Reassembler
-  typedef itk::ComposeImageFilter<ScalarImageType> ImageToVectorImageFilterType;
-  typename ImageToVectorImageFilterType::Pointer imageToVectorImageFilter = ImageToVectorImageFilterType::New();
+  typedef itk::ComposeImageFilter<ScalarImageType> ComposeImageFilterImageFilterType;
+  typename ComposeImageFilterImageFilterType::Pointer composeImageFilter =
+           ComposeImageFilterImageFilterType::New();
 
   std::vector<typename ScalarImageType::Pointer> filteredImages;
 
@@ -592,12 +593,12 @@ void AnisotropicBlurAllChannels(const TInputImage* image, itk::VectorImage<TPixe
     DeepCopy(bilateralFilter->GetOutput(), blurred.GetPointer());
 
     filteredImages.push_back(blurred);
-    imageToVectorImageFilter->SetInput(i, filteredImages[i]);
+    composeImageFilter->SetInput(i, filteredImages[i]);
     }
 
-  imageToVectorImageFilter->Update();
+  composeImageFilter->Update();
 
-  DeepCopy(imageToVectorImageFilter->GetOutput(), output);
+  DeepCopy(composeImageFilter->GetOutput(), output);
 }
 
 template<typename TImage>
