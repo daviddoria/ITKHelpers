@@ -2033,7 +2033,7 @@ void RGBImageToCIELabImage(RGBImageType* const rgbImage, TOutputImage* const cie
   std::vector<FloatScalarImageType::Pointer> channels;
 
   // Reassembler
-  typedef itk::ImageToVectorImageFilter<FloatScalarImageType> ReassemblerType;
+  typedef itk::ComposeImageFilter<FloatScalarImageType> ReassemblerType;
   ReassemblerType::Pointer reassembler = ReassemblerType::New();
 
   for(unsigned int i = 0; i < 3; ++i)
