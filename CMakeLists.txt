@@ -13,7 +13,9 @@ endif()
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++0x")
 
 # ITK
-FIND_PACKAGE(ITK REQUIRED)
+FIND_PACKAGE(ITK REQUIRED ITKCommon ITKIOImageBase ITKImageIntensity
+ITKImageFeature ITKMathematicalMorphology ITKBinaryMathematicalMorphology
+ITKDeprecated)
 INCLUDE(${ITK_USE_FILE})
 
 add_library(ITKHelpers ITKHelpers.cpp)
