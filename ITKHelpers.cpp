@@ -20,17 +20,12 @@
 
 // ITK
 #include "itkComposeImageFilter.h"
-#include "itkImageAdaptor.h"
-#include "itkImageToVectorImageFilter.h"
 #include "itkRGBToLuminanceImageFilter.h"
 #include "itkVectorMagnitudeImageFilter.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
 
 // Helpers submodule
 #include "Helpers/Helpers.h"
-
-// Custom
-#include "itkRGBToLabColorSpacePixelAccessor.h"
 
 namespace ITKHelpers
 {
@@ -104,13 +99,6 @@ itk::ImageRegion<2> GetQuadrant(const itk::ImageRegion<2>& region, const unsigne
 
   itk::ImageRegion<2> quadrant(corner, size);
   return quadrant;
-}
-
-itk::Index<2> ZeroIndex()
-{
-  itk::Index<2> index;
-  index.Fill(0);
-  return index;
 }
 
 unsigned int GetNumberOfComponentsPerPixelInFile(const std::string& filename)
@@ -201,49 +189,6 @@ itk::Size<2> SizeFromRadius(const unsigned int radius)
   return size;
 }
 
-void ITKImageToCIELabImage(const FloatVectorImageType* const image, FloatVectorImageType* const cielabImage)
-{
-  // Convert the first 3 channels to CIELab (this assumes the first 3 channels are RGB)
-  RGBImageType::Pointer rgbImage = RGBImageType::New();
-  VectorImageToRGBImage(image, rgbImage);
-  RGBImageToCIELabImage(rgbImage, cielabImage);
-}
-
-void RGBImageToCIELabImage(RGBImageType* const rgbImage, FloatVectorImageType* const cielabImage)
-{
-  // The adaptor expects to be able to modify the image (even though we don't in this case),
-  // so we cannot pass a const RGBImageType* const.
-  // Convert RGB image to Lab color space
-  typedef itk::Accessor::RGBToLabColorSpacePixelAccessor<unsigned char, float> RGBToLabColorSpaceAccessorType;
-  typedef itk::ImageAdaptor<RGBImageType, RGBToLabColorSpaceAccessorType> RGBToLabAdaptorType;
-  RGBToLabAdaptorType::Pointer rgbToLabAdaptor = RGBToLabAdaptorType::New();
-  rgbToLabAdaptor->SetImage(rgbImage);
-
-  // Disassembler
-  typedef itk::VectorIndexSelectionCastImageFilter<RGBToLabAdaptorType, FloatScalarImageType> VectorIndexSelectionFilterType;
-  VectorIndexSelectionFilterType::Pointer vectorIndexSelectionFilter = VectorIndexSelectionFilterType::New();
-  vectorIndexSelectionFilter->SetInput(rgbToLabAdaptor);
-
-  std::vector<FloatScalarImageType::Pointer> channels;
-
-  // Reassembler
-  typedef itk::ImageToVectorImageFilter<FloatScalarImageType> ReassemblerType;
-  ReassemblerType::Pointer reassembler = ReassemblerType::New();
-
-  for(unsigned int i = 0; i < 3; ++i)
-    {
-    channels.push_back(FloatScalarImageType::New());
-    vectorIndexSelectionFilter->SetIndex(i);
-    vectorIndexSelectionFilter->Update();
-    DeepCopy(vectorIndexSelectionFilter->GetOutput(), channels[i].GetPointer());
-    reassembler->SetNthInput(i, channels[i]);
-    }
-
-  reassembler->Update();
-
-  // Copy to the output
-  DeepCopy(reassembler->GetOutput(), cielabImage);
-}
 
 itk::ImageRegion<2> GetRegionInRadiusAroundPixel(const itk::Index<2>& pixel, const unsigned int radius)
 {
@@ -286,16 +231,6 @@ itk::Offset<2> OffsetFrom1DOffset(const itk::Offset<1>& offset1D, const unsigned
   return offset;
 }
 
-itk::ImageRegion<2> CropToRegion(const itk::ImageRegion<2>& inputRegion, const itk::ImageRegion<2>& targetRegion)
-{
-  // Returns the overlap of the inputRegion with the targetRegion.
-
-  itk::ImageRegion<2> region = targetRegion;
-  region.Crop(inputRegion);
-
-  return region;
-}
-
 void OutputImageType(const itk::ImageBase<2>* const input)
 {
   if(dynamic_cast<const FloatScalarImageType*>(input))
@@ -324,6 +259,19 @@ itk::ImageBase<2>::Pointer CreateImageWithSameType(const itk::ImageBase<2>* cons
   itk::ImageBase<2>::Pointer objectCopy = dynamic_cast<itk::ImageBase<2>*>(objectCopyLight.GetPointer());
 
   return objectCopy;
+}
+
+std::vector<itk::Index<2> > Get8Neighbors(const itk::Index<2>& pixel)
+{
+  std::vector<itk::Index<2> > neighborsInRegion;
+
+  std::vector<itk::Offset<2> > neighborOffsets = Get8NeighborOffsets();
+  for(unsigned int i = 0; i < neighborOffsets.size(); ++i)
+    {
+    itk::Index<2> index = pixel + neighborOffsets[i];
+    neighborsInRegion.push_back(index);
+    }
+  return neighborsInRegion;
 }
 
 std::vector<itk::Index<2> > Get8NeighborsInRegion(const itk::ImageRegion<2>& region, const itk::Index<2>& pixel)
@@ -451,148 +399,10 @@ std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region)
 
 itk::ImageRegion<2> CornerRegion(const itk::Size<2>& size)
 {
-  itk::ImageRegion<2> region(ZeroIndex(), size);
+  itk::Index<2> corner = {{0,0}};
+  itk::ImageRegion<2> region(corner, size);
   return region;
 }
-
-void StackImages(const itk::VectorImage<float, 2>* const image1, const itk::VectorImage<float, 2>* const image2,
-                 itk::VectorImage<float, 2>* const output)
-{
-  typedef itk::VectorImage<float, 2> VectorImageType;
-  typedef itk::Image<float, 2> ScalarImageType;
-
-  if(image1->GetLargestPossibleRegion() != image2->GetLargestPossibleRegion())
-    {
-    std::stringstream ss;
-    ss << "StackImages: Images must be the same size!" << std::endl
-       << "Image1 is " << image1->GetLargestPossibleRegion() << std::endl
-       << "Image2 is " << image2->GetLargestPossibleRegion() << std::endl;
-    throw std::runtime_error(ss.str());
-    }
-
-  std::cout << "StackImages: Image1 has " << image1->GetNumberOfComponentsPerPixel() << " components." << std::endl;
-  std::cout << "StackImages: Image2 has " << image2->GetNumberOfComponentsPerPixel() << " components." << std::endl;
-
-  // Create output image
-  itk::ImageRegion<2> region = image1->GetLargestPossibleRegion();
-
-  unsigned int newPixelLength = image1->GetNumberOfComponentsPerPixel() +
-                                image2->GetNumberOfComponentsPerPixel();
-
-  std::cout << "Output image has " << newPixelLength << " components." << std::endl;
-
-  output->SetNumberOfComponentsPerPixel(newPixelLength);
-  output->SetRegions(region);
-  output->Allocate();
-
-  for(unsigned int i = 0; i < image1->GetNumberOfComponentsPerPixel(); i++)
-    {
-    ScalarImageType::Pointer channel = ScalarImageType::New();
-    channel->SetRegions(region);
-    channel->Allocate();
-
-    ExtractChannel(image1, i, channel.GetPointer());
-    SetChannel(output, i, channel.GetPointer());
-    }
-
-  for(unsigned int i = 0; i < image2->GetNumberOfComponentsPerPixel(); i++)
-    {
-    ScalarImageType::Pointer channel = ScalarImageType::New();
-    channel->SetRegions(region);
-    channel->Allocate();
-
-    ExtractChannel(image2, i, channel.GetPointer());
-    SetChannel(output, image1->GetNumberOfComponentsPerPixel() + i, channel.GetPointer());
-    }
-
-}
-
-std::vector<float> MinValues(const itk::VectorImage<float, 2>* const image, const itk::ImageRegion<2>& region)
-{
-  std::vector<float> mins(image->GetNumberOfComponentsPerPixel());
-
-  for(unsigned int channel = 0; channel < image->GetNumberOfComponentsPerPixel(); ++channel)
-  {
-    typedef itk::VectorImage<float, 2> VectorImageType;
-    typedef itk::Image<float, 2> ScalarImageType;
-
-    typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarImageType > IndexSelectionType;
-    IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
-    indexSelectionFilter->SetIndex(channel);
-    indexSelectionFilter->SetInput(image);
-    indexSelectionFilter->Update();
-
-    mins[channel] = MinValue(indexSelectionFilter->GetOutput(), region);
-  }
-
-  return mins;
-}
-
-
-std::vector<float> MaxValues(const itk::VectorImage<float, 2>* const image, const itk::ImageRegion<2>& region)
-{
-  std::vector<float> maxs(image->GetNumberOfComponentsPerPixel());
-
-  for(unsigned int channel = 0; channel < image->GetNumberOfComponentsPerPixel(); ++channel)
-  {
-    typedef itk::VectorImage<float, 2> VectorImageType;
-    typedef itk::Image<float, 2> ScalarImageType;
-
-    typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarImageType > IndexSelectionType;
-    IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
-    indexSelectionFilter->SetIndex(channel);
-    indexSelectionFilter->SetInput(image);
-    indexSelectionFilter->Update();
-
-    maxs[channel] = MaxValue(indexSelectionFilter->GetOutput(), region);
-  }
-
-  return maxs;
-}
-
-std::vector<float> MinValues(const itk::VectorImage<float, 2>* const image)
-{
-  std::vector<float> mins(image->GetNumberOfComponentsPerPixel());
-
-  for(unsigned int channel = 0; channel < image->GetNumberOfComponentsPerPixel(); ++channel)
-  {
-    typedef itk::VectorImage<float, 2> VectorImageType;
-    typedef itk::Image<float, 2> ScalarImageType;
-
-    typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarImageType > IndexSelectionType;
-    IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
-    indexSelectionFilter->SetIndex(channel);
-    indexSelectionFilter->SetInput(image);
-    indexSelectionFilter->Update();
-
-    mins[channel] = MinValue(indexSelectionFilter->GetOutput());
-  }
-
-  return mins;
-}
-
-
-std::vector<float> MaxValues(const itk::VectorImage<float, 2>* const image)
-{
-  std::vector<float> maxs(image->GetNumberOfComponentsPerPixel());
-
-  for(unsigned int channel = 0; channel < image->GetNumberOfComponentsPerPixel(); ++channel)
-  {
-    typedef itk::VectorImage<float, 2> VectorImageType;
-    typedef itk::Image<float, 2> ScalarImageType;
-
-    typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarImageType > IndexSelectionType;
-    IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
-    indexSelectionFilter->SetIndex(channel);
-    indexSelectionFilter->SetInput(image);
-    indexSelectionFilter->Update();
-
-    maxs[channel] = MaxValue(indexSelectionFilter->GetOutput());
-  }
-
-  return maxs;
-}
-
 
 void Write2DVectorImage(const FloatVector2ImageType* const image, const std::string& filename)
 {
@@ -709,14 +519,6 @@ void IndicesToBinaryImage(const std::vector<itk::Index<2> >& indices, UnsignedCh
     }
 }
 
-itk::Size<2> Get1x1Radius()
-{
-  itk::Size<2> radius;
-  radius.Fill(1);
-  return radius;
-}
-
-
 std::vector<itk::Index<2> > Get4NeighborIndicesInsideRegion(const itk::Index<2>& pixel,
                                                             const itk::ImageRegion<2>& region)
 {
@@ -756,77 +558,6 @@ std::vector<itk::Index<2> > Get4NeighborIndicesInsideRegion(const itk::Index<2>&
   }
 
   return indices;
-}
-
-
-void RGBImageToVectorImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* const image,
-                           itk::VectorImage<float, 2>* const outputImage)
-{
-  outputImage->SetRegions(image->GetLargestPossibleRegion());
-  outputImage->SetNumberOfComponentsPerPixel(3);
-  outputImage->Allocate();
-
-  typedef itk::Image<itk::RGBPixel<unsigned char>, 2> RGBImageType;
-  typedef itk::VectorImage<float, 2> VectorImageType;
-
-  itk::ImageRegionConstIteratorWithIndex<RGBImageType> imageIterator(image, image->GetLargestPossibleRegion());
-
-  while(!imageIterator.IsAtEnd())
-    {
-    // Can't get a reference of a pixel from a VectorImage apparently?
-    //VectorImageType::PixelType& outputPixel = outputImage->GetPixel(imageIterator.GetIndex());
-    VectorImageType::PixelType outputPixel = outputImage->GetPixel(imageIterator.GetIndex());
-    outputPixel[0] = imageIterator.Get().GetRed();
-    outputPixel[1] = imageIterator.Get().GetGreen();
-    outputPixel[2] = imageIterator.Get().GetBlue();
-    outputImage->SetPixel(imageIterator.GetIndex(), outputPixel);
-
-    ++imageIterator;
-    }
-}
-
-
-std::pair<itk::Index<2>, itk::Index<2> > IntersectLineWithHole(std::vector<itk::Index<2> > line, UnsignedCharScalarImageType::Pointer mask, bool &hasInteriorLine)
-{
-  // We consider the hole to be non-zero pixels of the mask. We want to find where the line enters the mask, and where it leaves the mask.
-  // This function assumes that the line starts outside the mask. Nothing is assumed about where the line ends (if it ends inside the mask, then there is no interior line).
-  // 'line' is an ordered vector of indices.
-  // We assume the hole is convex. Nothing will break if it is not, but the line that is computed goes "through" the mask, but may
-  // actually not be entirely contained within the hole if the hole is not convex.
-
-  std::pair<itk::Index<2>, itk::Index<2> > interiorLine; // (start pixel, end pixel)
-
-  unsigned int startPoints = 0;
-  unsigned int endPoints = 0;
-
-  // Loop over the pixels in the line. If one of them is outside the mask and its neighbor is inside the mask, this is an intersection.
-  for(unsigned int i = 0; i < line.size() - 1; i++) // loop to one before the end because we use the current and current+1 in the loop
-    {
-    if(mask->GetPixel(line[i]) == 0 && mask->GetPixel(line[i+1]) != 0) // Found entry point
-      {
-      interiorLine.first = line[i]; // We want to save the outside/valid/non-hole point. This is the first point (i) in the 'exit' case.
-      startPoints++;
-      }
-
-    if(mask->GetPixel(line[i]) != 0 && mask->GetPixel(line[i+1]) == 0) // Found exit point
-      {
-      interiorLine.second = line[i+1]; // We want to save the outside/valid/non-hole point. This is the second point (i+1) in the 'exit' case.
-      endPoints++;
-      }
-    }
-
-  // If there is exactly one entry and exactly 1 exit point, the interior line is well defined
-  if(startPoints == 1 && endPoints == 1)
-    {
-    hasInteriorLine = true;
-    }
-  else
-    {
-    hasInteriorLine = false;
-    }
-
-  // This is only valid if hasInteriorLine is true
-  return interiorLine;
 }
 
 itk::ImageRegion<2> GetInternalRegion(const itk::ImageRegion<2>& wholeRegion, const unsigned int patchRadius)
@@ -1012,6 +743,20 @@ itk::ImageIOBase::IOComponentType GetPixelTypeFromFile(const std::string& filena
 //             << std::endl;
 
   return pixelType;
+}
+
+bool IsNeighbor(const itk::Index<2>& index1, const itk::Index<2>& index2)
+{
+  std::vector<itk::Index<2> > neighbors = Get8Neighbors(index1);
+
+  for(unsigned int i = 0; i < neighbors.size(); ++i)
+  {
+    if(neighbors[i] == index2)
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 } // end namespace
