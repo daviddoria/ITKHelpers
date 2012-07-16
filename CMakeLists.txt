@@ -7,6 +7,8 @@ if(NOT TARGET Helpers)
   add_subdirectory(Helpers)
 endif()
 
+set(ITKHelpers_includes ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
+
 # Required because of the c++0x used in Helpers
 if(UNIX)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
