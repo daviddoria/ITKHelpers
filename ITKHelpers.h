@@ -1,6 +1,6 @@
 /*=========================================================================
  *
- *  Copyright David Doria 2011 daviddoria@gmail.com
+ *  Copyright David Doria 2012 daviddoria@gmail.com
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -554,6 +554,18 @@ template <typename TImage>
 void DrawRectangle(TImage* const image, const typename TImage::PixelType& value,
                    const itk::Index<2>& corner0, const itk::Index<2>& corner1);
 
+/** Interpolate points between p0 and p1 by weighting the endpoint values by their
+  * distance to the current pixel.*/
+template<typename TImage>
+void InterpolateLineBetweenPoints(TImage* const image, const itk::Index<2>& p0, const itk::Index<2>& p1);
+
+/** Generate a random image. */
+template<typename TPixel>
+void RandomImage(itk::Image<TPixel, 2>* const image);
+
+template<typename TPixel>
+void RandomImage(itk::VectorImage<TPixel, 2>* const image);
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Non-template function declarations (defined in Helpers.cpp) ///////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -695,11 +707,6 @@ void Write2DVectorImage(const FloatVector2ImageType* const image, const std::str
 
 /**  Determine if two pixels touch. */
 bool IsNeighbor(const itk::Index<2>& index1, const itk::Index<2>& index2);
-
-/** Interpolate points between p0 and p1 by weighting the endpoint values by their
-  * distance to the current pixel.*/
-template<typename TImage>
-void InterpolateLineBetweenPoints(TImage* const image, const itk::Index<2>& p0, const itk::Index<2>& p1);
 
 }// end namespace
 

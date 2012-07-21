@@ -2055,6 +2055,12 @@ template<typename TImage>
 void BlurAllChannels(const TImage* const image, TImage* const output,
                      const float sigma)
 {
+  if(sigma <= 0)
+  {
+    std::stringstream ss;
+    ss << "BlurAllChannels: Sigma must be positive! It is " << sigma;
+    throw std::runtime_error(ss.str());
+  }
   typedef itk::SmoothingRecursiveGaussianImageFilter<
     TImage, TImage >  BlurFilterType;
 
@@ -2402,6 +2408,40 @@ std::vector<itk::Index<2> > GetOpenContourOrdering(const TImage* const image, co
 
   throw std::runtime_error("Did not find any end points! This should never happen.");
 
+}
+
+template<typename TPixel>
+void RandomImage(itk::Image<TPixel, 2>* const image)
+{
+  typedef itk::Image<TPixel, 2> ImageType;
+
+  itk::ImageRegionIterator<ImageType> imageIterator(image, image->GetLargestPossibleRegion());
+
+  while(!imageIterator.IsAtEnd())
+    {
+    imageIterator.Set(rand() % 255);
+
+    ++imageIterator;
+    }
+}
+
+template<typename TPixel>
+void RandomImage(itk::VectorImage<TPixel, 2>* const image)
+{
+  typedef itk::VectorImage<TPixel, 2> ImageType;
+
+  itk::ImageRegionIterator<ImageType> imageIterator(image, image->GetLargestPossibleRegion());
+
+  while(!imageIterator.IsAtEnd())
+    {
+    typename ImageType::PixelType pixel(image->GetNumberOfComponentsPerPixel());
+    for(unsigned int component = 0; component < pixel.GetSize(); ++component)
+      {
+      pixel[component] = rand() % 255;
+      }
+    imageIterator.Set(pixel);
+    ++imageIterator;
+    }
 }
 
 }// end namespace ITKHelpers
