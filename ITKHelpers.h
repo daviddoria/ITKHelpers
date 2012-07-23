@@ -614,6 +614,10 @@ std::vector<itk::Index<2> > Get8Neighbors(const itk::Index<2>& pixel);
 /** Get the indices of the neighbors of a 'pixel' that are inside of a 'region'. */
 std::vector<itk::Index<2> > Get8NeighborsInRegion(const itk::ImageRegion<2>& region, const itk::Index<2>& pixel);
 
+/** Get the neighboring of a 'pixel' (of size 'queryRegionSize') that are inside of a 'searchRegion'. */
+std::vector<itk::ImageRegion<2> > Get8NeighborRegionsInRegion(const itk::ImageRegion<2>& searchRegion, const itk::Index<2>& pixel,
+                                                        const itk::Size<2>& queryRegionSize);
+
 /** The return value MUST be a smart pointer. */
 itk::ImageBase<2>::Pointer CreateImageWithSameType(const itk::ImageBase<2>* input);
 
