@@ -261,6 +261,19 @@ itk::ImageBase<2>::Pointer CreateImageWithSameType(const itk::ImageBase<2>* cons
   return objectCopy;
 }
 
+std::vector<itk::Index<2> > Get8Neighbors(const itk::Index<2>& pixel)
+{
+  std::vector<itk::Index<2> > neighborsInRegion;
+
+  std::vector<itk::Offset<2> > neighborOffsets = Get8NeighborOffsets();
+  for(unsigned int i = 0; i < neighborOffsets.size(); ++i)
+    {
+    itk::Index<2> index = pixel + neighborOffsets[i];
+    neighborsInRegion.push_back(index);
+    }
+  return neighborsInRegion;
+}
+
 std::vector<itk::Index<2> > Get8NeighborsInRegion(const itk::ImageRegion<2>& region, const itk::Index<2>& pixel)
 {
   std::vector<itk::Index<2> > neighborsInRegion;

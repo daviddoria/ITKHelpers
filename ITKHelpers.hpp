@@ -23,6 +23,8 @@
 // STL
 #include <iomanip> // for setfill()
 #include <stdexcept>
+#include <queue>
+#include <stack>
 
 // ITK
 #include "itkAbsImageFilter.h"
@@ -38,7 +40,7 @@
 #include "itkImageAdaptor.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-#include "itkImageToVectorImageFilter.h"
+#include "itkComposeImageFilter.h"
 #include "itkJoinImageFilter.h"
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkMultiplyImageFilter.h"
@@ -99,7 +101,8 @@ void DeepCopy(const itk::VectorImage<TInputPixel, 2>* const input, itk::VectorIm
   if(input->GetNumberOfComponentsPerPixel() != output->GetNumberOfComponentsPerPixel())
     {
     output->SetNumberOfComponentsPerPixel(input->GetNumberOfComponentsPerPixel());
-    //std::cout << "Set output NumberOfComponentsPerPixel to " << input->GetNumberOfComponentsPerPixel() << std::endl;
+    //std::cout << "Set output NumberOfComponentsPerPixel to "
+    //          << input->GetNumberOfComponentsPerPixel() << std::endl;
     changed = true;
     }
 
@@ -133,7 +136,8 @@ void DeepCopyInRegion(const TInputImage* input, const itk::ImageRegion<2>& regio
 }
 
 template<typename TImage>
-void ReplaceValue(TImage* image, const typename TImage::PixelType& queryValue, const typename TImage::PixelType& replacementValue)
+void ReplaceValue(TImage* image, const typename TImage::PixelType& queryValue,
+                  const typename TImage::PixelType& replacementValue)
 {
   // This function replaces all pixels in 'image' equal to 'queryValue' with 'replacementValue'
   itk::ImageRegionIterator<TImage> imageIterator(image, image->GetLargestPossibleRegion());
@@ -312,7 +316,8 @@ void CopyPatchIntoImage(const TImage* patch, TImage* const image, const itk::Ind
 }
 
 template <class TImage>
-void CopySelfRegion(TImage* const image, const itk::ImageRegion<2>& sourceRegion, const itk::ImageRegion<2>& targetRegion)
+void CopySelfRegion(TImage* const image, const itk::ImageRegion<2>& sourceRegion,
+                    const itk::ImageRegion<2>& targetRegion)
 {
   CopyRegion(image, image, sourceRegion, targetRegion);
 }
@@ -367,8 +372,10 @@ void ColorToGrayscale(const TInputImage* const colorImage, TOutputImage* const g
   grayscaleImage->SetRegions(colorImage->GetLargestPossibleRegion());
   grayscaleImage->Allocate();
 
-  typename itk::ImageRegionConstIterator<TInputImage> colorImageIterator(colorImage, colorImage->GetLargestPossibleRegion());
-  typename itk::ImageRegionIterator<TOutputImage> grayscaleImageIterator(grayscaleImage, grayscaleImage->GetLargestPossibleRegion());
+  typename itk::ImageRegionConstIterator<TInputImage>
+        colorImageIterator(colorImage, colorImage->GetLargestPossibleRegion());
+  typename itk::ImageRegionIterator<TOutputImage>
+        grayscaleImageIterator(grayscaleImage, grayscaleImage->GetLargestPossibleRegion());
 
   typename TInputImage::PixelType largestPixel;
   largestPixel.Fill(255);
@@ -452,13 +459,15 @@ template<typename TImage>
 void WriteRegionAsImage(const TImage* image, const itk::ImageRegion<2>& region, const std::string& filename)
 {
   // This function varies from WriteRegion() in that the Origin of the output image is (0,0).
-  // Because of this, the region cannot be overlayed on the original image, but can be easily compared to other regions.
+  // Because of this, the region cannot be overlayed on the original image,
+  // but can be easily compared to other regions.
   //std::cout << "WriteRegion() " << filename << std::endl;
   //std::cout << "region " << region << std::endl;
 
   typedef itk::RegionOfInterestImageFilter<TImage, TImage> RegionOfInterestImageFilterType;
 
-  typename RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
+  typename RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter =
+           RegionOfInterestImageFilterType::New();
   regionOfInterestImageFilter->SetRegionOfInterest(region);
   regionOfInterestImageFilter->SetInput(image);
   regionOfInterestImageFilter->Update();
@@ -467,7 +476,8 @@ void WriteRegionAsImage(const TImage* image, const itk::ImageRegion<2>& region, 
   origin.Fill(0);
   regionOfInterestImageFilter->GetOutput()->SetOrigin(origin);
 
-  //std::cout << "regionOfInterestImageFilter " << regionOfInterestImageFilter->GetOutput()->GetLargestPossibleRegion() << std::endl;
+  //std::cout << "regionOfInterestImageFilter "
+  //          << regionOfInterestImageFilter->GetOutput()->GetLargestPossibleRegion() << std::endl;
 
   typename itk::ImageFileWriter<TImage>::Pointer writer = itk::ImageFileWriter<TImage>::New();
   writer->SetFileName(filename);
@@ -485,12 +495,14 @@ void WriteRegionUnsignedChar(const TImage* image, const itk::ImageRegion<2>& reg
   //std::cout << "WriteRegionUnsignedChar() " << filename << std::endl;
   typedef itk::RegionOfInterestImageFilter<TImage, TImage> RegionOfInterestImageFilterType;
 
-  typename RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
+  typename RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter =
+           RegionOfInterestImageFilterType::New();
   regionOfInterestImageFilter->SetRegionOfInterest(region);
   regionOfInterestImageFilter->SetInput(image);
   regionOfInterestImageFilter->Update();
 
-  //std::cout << "regionOfInterestImageFilter " << regionOfInterestImageFilter->GetOutput()->GetLargestPossibleRegion() << std::endl;
+  //std::cout << "regionOfInterestImageFilter "
+  //          << regionOfInterestImageFilter->GetOutput()->GetLargestPossibleRegion() << std::endl;
 
   RGBImageType::Pointer rgbImage = RGBImageType::New();
   VectorImageToRGBImage(regionOfInterestImageFilter->GetOutput(), rgbImage);
@@ -504,7 +516,9 @@ void WriteRegionUnsignedChar(const TImage* image, const itk::ImageRegion<2>& reg
 }
 
 template<typename TImage>
-void BlankAndOutlineRegion(TImage* image, const itk::ImageRegion<2>& region, const typename TImage::PixelType& blankValue, const typename TImage::PixelType& outlineValue)
+void BlankAndOutlineRegion(TImage* image, const itk::ImageRegion<2>& region,
+                           const typename TImage::PixelType& blankValue,
+                           const typename TImage::PixelType& outlineValue)
 {
   SetRegionToConstant<TImage>(image, region, blankValue);
   OutlineRegion<TImage>(image, region, outlineValue);
@@ -554,8 +568,9 @@ void AnisotropicBlurAllChannels(const TInputImage* image, itk::VectorImage<TPixe
   indexSelectionFilter->SetInput(image);
 
   // Reassembler
-  typedef itk::ComposeImageFilter<ScalarImageType> ImageToVectorImageFilterType;
-  typename ImageToVectorImageFilterType::Pointer imageToVectorImageFilter = ImageToVectorImageFilterType::New();
+  typedef itk::ComposeImageFilter<ScalarImageType> ComposeImageFilterImageFilterType;
+  typename ComposeImageFilterImageFilterType::Pointer composeImageFilter =
+           ComposeImageFilterImageFilterType::New();
 
   std::vector<typename ScalarImageType::Pointer> filteredImages;
 
@@ -578,16 +593,22 @@ void AnisotropicBlurAllChannels(const TInputImage* image, itk::VectorImage<TPixe
     DeepCopy(bilateralFilter->GetOutput(), blurred.GetPointer());
 
     filteredImages.push_back(blurred);
-    imageToVectorImageFilter->SetInput(i, filteredImages[i]);
+    composeImageFilter->SetInput(i, filteredImages[i]);
     }
 
-  imageToVectorImageFilter->Update();
+  composeImageFilter->Update();
 
-  DeepCopy(imageToVectorImageFilter->GetOutput(), output);
+  DeepCopy(composeImageFilter->GetOutput(), output);
 }
 
 template<typename TImage>
-void DilateImage(const TImage* const image, TImage* const dilatedImage, const unsigned int radius)
+void DilateImage(const TImage* const image, const unsigned int radius)
+{
+  DilateImage(image, radius, image);
+}
+
+template<typename TImage>
+void DilateImage(const TImage* const image, const unsigned int radius, TImage* const dilatedImage)
 {
   typedef itk::BinaryBallStructuringElement<typename TImage::PixelType, 2> StructuringElementType;
   StructuringElementType structuringElement;
@@ -786,7 +807,8 @@ void NormalizeVectorImage(TImage* const image)
 }
 
 template <typename TPixel>
-void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1, const typename itk::VectorImage<TPixel, 2>* const image2,
+void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1,
+                 const typename itk::VectorImage<TPixel, 2>* const image2,
                  typename itk::VectorImage<TPixel, 2>* const output)
 {
   typedef typename itk::VectorImage<TPixel, 2> VectorImageType;
@@ -863,12 +885,47 @@ AverageNeighborValue(const TImage* const image, const itk::Index<2>& pixel)
   return pixelSum / static_cast<float>(neighbors.size());
 }
 
+template<typename TImage>
+std::vector<itk::Index<2> > Get8NeighborsInRegionNotEqualValue(const itk::Index<2>& pixel,
+                                                               const TImage* const image,
+                                                               const itk::ImageRegion<2>& region,
+                                                               const typename TImage::PixelType& value)
+{
+  std::vector<itk::Index<2> > neighbors = Get8NeighborsInRegion(region, pixel);
+  std::vector<itk::Index<2> > neighborsWithValue;
+  for(unsigned int i = 0; i < neighbors.size(); ++i)
+    {
+    if(image->GetPixel(neighbors[i]) != value)
+      {
+      neighborsWithValue.push_back(neighbors[i]);
+      }
+    }
+  return neighborsWithValue;
+}
+
+template<typename TImage>
+std::vector<itk::Index<2> > Get8NeighborsInRegionWithValue(const itk::Index<2>& pixel, const TImage* const image,
+                                                           const itk::ImageRegion<2>& region,
+                                                           const typename TImage::PixelType& value)
+{
+  std::vector<itk::Index<2> > neighbors = Get8NeighborsInRegion(region, pixel);
+  std::vector<itk::Index<2> > neighborsWithValue;
+  for(unsigned int i = 0; i < neighbors.size(); ++i)
+    {
+    if(image->GetPixel(neighbors[i]) == value)
+      {
+      neighborsWithValue.push_back(neighbors[i]);
+      }
+    }
+  return neighborsWithValue;
+}
+
 /** Get a list of the valid neighbors of a pixel.*/
 template<typename TImage>
 std::vector<itk::Index<2> > Get8NeighborsWithValue(const itk::Index<2>& pixel, const TImage* const image,
-                                                  const typename TImage::PixelType& value)
+                                                   const typename TImage::PixelType& value)
 {
-  std::vector<itk::Index<2> > neighbors = Get8NeighborsInRegion(GetRegionInRadiusAroundPixel(pixel, 1), pixel);
+  std::vector<itk::Index<2> > neighbors = Get8Neighbors(pixel);
   std::vector<itk::Index<2> > neighborsWithValue;
   for(unsigned int i = 0; i < neighbors.size(); ++i)
     {
@@ -913,7 +970,8 @@ unsigned int CountPixelsWithValue(const TImage* const image, const typename TIma
 }
 
 template<typename TImage>
-typename TypeTraits<typename TImage::PixelType>::LargerType AverageOfPixelsAtIndices(const TImage* const image, const std::vector<itk::Index<2> >& indices)
+typename TypeTraits<typename TImage::PixelType>::LargerType
+AverageOfPixelsAtIndices(const TImage* const image, const std::vector<itk::Index<2> >& indices)
 {
   std::vector<typename TImage::PixelType> pixels;
   for(unsigned int i = 0; i < indices.size(); ++i)
@@ -926,7 +984,8 @@ typename TypeTraits<typename TImage::PixelType>::LargerType AverageOfPixelsAtInd
 }
 
 template<typename TImage>
-typename TypeTraits<typename TImage::PixelType>::LargerType VarianceOfPixelsAtIndices(const TImage* const image, const std::vector<itk::Index<2> >& indices)
+typename TypeTraits<typename TImage::PixelType>::LargerType
+VarianceOfPixelsAtIndices(const TImage* const image, const std::vector<itk::Index<2> >& indices)
 {
   std::vector<typename TImage::PixelType> pixels;
   for(unsigned int i = 0; i < indices.size(); ++i)
@@ -944,9 +1003,9 @@ typename TypeTraits<T>::LargerComponentType SumOfComponents(const T& v)
   typename TypeTraits<T>::LargerComponentType sumOfComponents;
   SetObjectToZero(sumOfComponents);
 
-  for(unsigned int i = 0; i < length(v); ++i)
+  for(unsigned int i = 0; i < Helpers::length(v); ++i)
     {
-    sumOfComponents += index(v, i);
+    sumOfComponents += Helpers::index(v, i);
     }
 
   return sumOfComponents;
@@ -994,8 +1053,8 @@ typename TypeTraits<typename TImage::PixelType>::LargerType VarianceOfImage(cons
 }
 
 template<typename TImage>
-typename TypeTraits<typename TImage::PixelType>::LargerType VarianceInRegion(const TImage* const image,
-                                                                             const itk::ImageRegion<2>& region)
+typename TypeTraits<typename TImage::PixelType>::LargerType
+VarianceInRegion(const TImage* const image, const itk::ImageRegion<2>& region)
 {
   typename itk::ImageRegionConstIterator<TImage> imageIterator(image, region);
   std::vector<typename TImage::PixelType> pixels;
@@ -1051,7 +1110,8 @@ void SetObjectToZero(T& object)
 }
 
 template<typename TImage>
-void SubtractRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, const TImage* const image2, const itk::ImageRegion<2>& region2, TImage* const output)
+void SubtractRegions(const TImage* const image1, const itk::ImageRegion<2>& region1,
+                     const TImage* const image2, const itk::ImageRegion<2>& region2, TImage* const output)
 {
   assert(region1.GetSize() == region2.GetSize());
 
@@ -1065,8 +1125,8 @@ void SubtractRegions(const TImage* const image1, const itk::ImageRegion<2>& regi
   while(!image1Iterator.IsAtEnd())
     {
     float difference = image1Iterator.Get() - image2Iterator.Get();
-    itk::Index<2> index = Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >(image1Iterator.GetIndex() -
-                                                                               image1->GetLargestPossibleRegion().GetIndex());
+    itk::Index<2> index = Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >
+                          (image1Iterator.GetIndex() - image1->GetLargestPossibleRegion().GetIndex());
     output.SetPixel(index, difference);
     ++image1Iterator;
     ++image2Iterator;
@@ -1114,7 +1174,8 @@ void XORRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, 
   while(!image1Iterator.IsAtEnd())
     {
     bool result = image1Iterator.Get() ^ image2Iterator.Get(); // ^ is XOR (exclusive OR)
-    itk::Index<2> index = Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >(image1Iterator.GetIndex() - region1.GetIndex());
+    itk::Index<2> index = Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >
+                          (image1Iterator.GetIndex() - region1.GetIndex());
     output->SetPixel(index, result);
     ++image1Iterator;
     ++image2Iterator;
@@ -1149,7 +1210,8 @@ void PrintRegion(const TImage* const image, const itk::ImageRegion<2>& region)
   unsigned int counter = 0;
   while(!imageIterator.IsAtEnd())
     {
-    std::cout << static_cast<typename TypeTraits<typename TImage::PixelType>::LargerType >(imageIterator.Get()) << " ";
+    std::cout << static_cast<typename TypeTraits<typename TImage::PixelType>::LargerType >
+                 (imageIterator.Get()) << " ";
     counter++;
     if(counter == region.GetSize()[0])
       {
@@ -1161,7 +1223,8 @@ void PrintRegion(const TImage* const image, const itk::ImageRegion<2>& region)
 }
 
 template<typename TImage>
-std::vector<typename TImage::PixelType> GetPixelValues(const TImage* const image, const std::vector<itk::Index<2> >& indices)
+std::vector<typename TImage::PixelType> GetPixelValues(const TImage* const image,
+                                                       const std::vector<itk::Index<2> >& indices)
 {
   std::vector<typename TImage::PixelType> values;
   for(std::vector<itk::Index<2> >::const_iterator iter = indices.begin(); iter != indices.end(); ++iter)
@@ -1328,7 +1391,7 @@ void WriteScaledScalarImage(const TImage* const image, const std::string& filena
 //     std::cerr << "Cannot write scaled scalar image with vector image input!" << std::endl;
 //     return;
 //     }
-  typedef itk::RescaleIntensityImageFilter<TImage, UnsignedCharScalarImageType> RescaleFilterType; // expected ';' before rescaleFilter
+  typedef itk::RescaleIntensityImageFilter<TImage, UnsignedCharScalarImageType> RescaleFilterType;
 
   typename RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
   rescaleFilter->SetInput(image);
@@ -1392,7 +1455,8 @@ void WriteRGBImage(const TImage* const input, const std::string& filename)
 // }
 //
 // template<typename TImage>
-// void WriteMaskedPatch(const Mask* mask, const ImagePatch<TImage>& patch, const std::string& filename, const typename TImage::PixelType& holeColor)
+// void WriteMaskedPatch(const Mask* mask, const ImagePatch<TImage>& patch, const std::string& filename,
+//                       const typename TImage::PixelType& holeColor)
 // {
 //   WriteMaskedRegion<TImage>(patch.Image, mask, patch.Region, filename);
 // }
@@ -1405,12 +1469,14 @@ void WriteRegion(const TImage* const image, const itk::ImageRegion<2>& region, c
   //std::cout << "region " << region << std::endl;
   typedef itk::RegionOfInterestImageFilter<TImage, TImage> RegionOfInterestImageFilterType;
 
-  typename RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
+  typename RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter =
+           RegionOfInterestImageFilterType::New();
   regionOfInterestImageFilter->SetRegionOfInterest(region);
   regionOfInterestImageFilter->SetInput(image);
   regionOfInterestImageFilter->Update();
 
-  //std::cout << "regionOfInterestImageFilter " << regionOfInterestImageFilter->GetOutput()->GetLargestPossibleRegion() << std::endl;
+  //std::cout << "regionOfInterestImageFilter "
+  //          << regionOfInterestImageFilter->GetOutput()->GetLargestPossibleRegion() << std::endl;
 
   typename itk::ImageFileWriter<TImage>::Pointer writer = itk::ImageFileWriter<TImage>::New();
   writer->SetFileName(filename);
@@ -1420,7 +1486,8 @@ void WriteRegion(const TImage* const image, const itk::ImageRegion<2>& region, c
 
 // Why is RegionOfInterestImageFilter used (above) instead of ExtractFilterType ?
 // template <typename TImage>
-// void PatchBasedInpainting<TImage>::DebugWritePatch(const itk::ImageRegion<2>& inputRegion, const std::string& filename)
+// void PatchBasedInpainting<TImage>::DebugWritePatch(const itk::ImageRegion<2>& inputRegion,
+//                                                    const std::string& filename)
 // {
 //   if(!this->DebugImages)
 //     {
@@ -1483,7 +1550,8 @@ void SetPixelsInRegionToValue(TImage* const image, const itk::ImageRegion<2>& re
 }
 
 template<typename TImage>
-void ExtractAndNormalizeRegion(const TImage* const image, const itk::ImageRegion<2>& region, TImage* const outputImage)
+void ExtractAndNormalizeRegion(const TImage* const image, const itk::ImageRegion<2>& region,
+                               TImage* const outputImage)
 {
   ExtractRegion(image, region, outputImage);
 
@@ -1654,7 +1722,8 @@ void WriteVectorImageAsRGB(const itk::VectorImage<TPixel,2>* const image, const 
 }
 
 template <typename TPixel>
-void WriteVectorImageRegionAsRGB(const itk::VectorImage<TPixel,2>* const image, const itk::ImageRegion<2>& region, const std::string& filename)
+void WriteVectorImageRegionAsRGB(const itk::VectorImage<TPixel,2>* const image,
+                                 const itk::ImageRegion<2>& region, const std::string& filename)
 {
   typedef itk::VectorImage<TPixel,2> VectorImageType;
 
@@ -1662,7 +1731,8 @@ void WriteVectorImageRegionAsRGB(const itk::VectorImage<TPixel,2>* const image, 
   //std::cout << "region " << region << std::endl;
   typedef itk::RegionOfInterestImageFilter<VectorImageType, VectorImageType> RegionOfInterestImageFilterType;
 
-  typename RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
+  typename RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter =
+           RegionOfInterestImageFilterType::New();
   regionOfInterestImageFilter->SetRegionOfInterest(region);
   regionOfInterestImageFilter->SetInput(image);
   regionOfInterestImageFilter->Update();
@@ -1726,8 +1796,10 @@ void Downsample(const TImage* const image, const float factor, TImage* const out
   outputSize[1] /= factor;
 
   typename TImage::SpacingType outputSpacing;
-  outputSpacing[0] = image->GetSpacing()[0] * (static_cast<double>(inputSize[0]) / static_cast<double>(outputSize[0]));
-  outputSpacing[1] = image->GetSpacing()[1] * (static_cast<double>(inputSize[1]) / static_cast<double>(outputSize[1]));
+  outputSpacing[0] = image->GetSpacing()[0] * (static_cast<double>(inputSize[0]) /
+                                               static_cast<double>(outputSize[0]));
+  outputSpacing[1] = image->GetSpacing()[1] * (static_cast<double>(inputSize[1]) /
+                                               static_cast<double>(outputSize[1]));
 
   typedef itk::IdentityTransform<double, 2> TransformType;
   typedef itk::ResampleImageFilter<TImage, TImage> ResampleImageFilterType;
@@ -1753,8 +1825,10 @@ void ScaleImage(const TImage* const image, const itk::Size<2>& destinationSize, 
   typename TImage::SizeType inputSize = image->GetLargestPossibleRegion().GetSize();
 
   typename TImage::SpacingType outputSpacing;
-  outputSpacing[0] = image->GetSpacing()[0] * (static_cast<double>(inputSize[0]) / static_cast<double>(destinationSize[0]));
-  outputSpacing[1] = image->GetSpacing()[1] * (static_cast<double>(inputSize[1]) / static_cast<double>(destinationSize[1]));
+  outputSpacing[0] = image->GetSpacing()[0] * (static_cast<double>(inputSize[0]) /
+                                               static_cast<double>(destinationSize[0]));
+  outputSpacing[1] = image->GetSpacing()[1] * (static_cast<double>(inputSize[1]) /
+                                               static_cast<double>(destinationSize[1]));
 
   typedef itk::IdentityTransform<double, 2> TransformType;
   typedef itk::ResampleImageFilter<TImage, TImage> ResampleImageFilterType;
@@ -1791,6 +1865,26 @@ void MagnitudeImage_Generic(const TInputImage* const image, TOutputImage* const 
   magnitudeFilter->Update();
 
   ITKHelpers::DeepCopy(magnitudeFilter->GetOutput(), output);
+}
+
+template<typename TImage>
+void InterpolateLineBetweenPoints(TImage* const image, const itk::Index<2>& p0, const itk::Index<2>& p1)
+{
+  itk::BresenhamLine<2> line;
+
+  std::vector< itk::Index<2> > pixels = line.BuildLine(p0, p1);
+
+  typename TImage::PixelType value0 = image->GetPixel(p0);
+  typename TImage::PixelType value1 = image->GetPixel(p1);
+
+  float difference = value1 - value0;
+  float step = difference / static_cast<float>(pixels.size());
+
+  for(unsigned int i = 0; i < pixels.size(); i++)
+    {
+    //std::cout << "pixel " << i << " " << pixels[i] << std::endl;
+    image->SetPixel(pixels[i], value0 + i * step);
+    }
 }
 
 template <typename TInputImage, typename TOutputImage>
@@ -1851,7 +1945,8 @@ std::vector<float> HistogramOfGradients(const TImage* const image,
 
 template <typename TGradientImage>
 std::vector<float> HistogramOfGradientsPrecomputed(const TGradientImage* const gradientImage,
-                                                   const itk::ImageRegion<2>& region, const unsigned int numberOfBins)
+                                                   const itk::ImageRegion<2>& region,
+                                                   const unsigned int numberOfBins)
 {
   // The synatx is atan2(y,x). Returns in the range [-pi,pi]
   float minValue = -1.0f * itk::Math::pi;
@@ -1930,14 +2025,15 @@ void RGBImageToCIELabImage(RGBImageType* const rgbImage, TOutputImage* const cie
   rgbToLabAdaptor->SetImage(rgbImage);
 
   // Disassembler
-  typedef itk::VectorIndexSelectionCastImageFilter<RGBToLabAdaptorType, FloatScalarImageType> VectorIndexSelectionFilterType;
+  typedef itk::VectorIndexSelectionCastImageFilter<RGBToLabAdaptorType, FloatScalarImageType>
+               VectorIndexSelectionFilterType;
   VectorIndexSelectionFilterType::Pointer vectorIndexSelectionFilter = VectorIndexSelectionFilterType::New();
   vectorIndexSelectionFilter->SetInput(rgbToLabAdaptor);
 
   std::vector<FloatScalarImageType::Pointer> channels;
 
   // Reassembler
-  typedef itk::ImageToVectorImageFilter<FloatScalarImageType> ReassemblerType;
+  typedef itk::ComposeImageFilter<FloatScalarImageType> ReassemblerType;
   ReassemblerType::Pointer reassembler = ReassemblerType::New();
 
   for(unsigned int i = 0; i < 3; ++i)
@@ -1959,6 +2055,12 @@ template<typename TImage>
 void BlurAllChannels(const TImage* const image, TImage* const output,
                      const float sigma)
 {
+  if(sigma <= 0)
+  {
+    std::stringstream ss;
+    ss << "BlurAllChannels: Sigma must be positive! It is " << sigma;
+    throw std::runtime_error(ss.str());
+  }
   typedef itk::SmoothingRecursiveGaussianImageFilter<
     TImage, TImage >  BlurFilterType;
 
@@ -1968,6 +2070,378 @@ void BlurAllChannels(const TImage* const image, TImage* const output,
   blurFilter->Update();
 
   ITKHelpers::DeepCopy(blurFilter->GetOutput(), output);
+}
+
+template <class TImage>
+itk::Index<2> FindFirstNonZeroPixel(const TImage* const image)
+{
+  itk::ImageRegionConstIterator<TImage> imageIterator(image, image->GetLargestPossibleRegion());
+
+  while(!imageIterator.IsAtEnd())
+  {
+    if(imageIterator.Get())
+    {
+      return imageIterator.GetIndex();
+    }
+    ++imageIterator;
+  }
+
+  throw std::runtime_error("No non-zero pixels found!");
+}
+
+// template <class TImage>
+// bool IsClosedLoop(const TImage* const image, const itk::Index<2>& start)
+// {
+//   std::vector<itk::Index<2> > traversalOrder = BreadthFirstOrderingNonZeroPixels(image, start);
+//   if(IsNeighbor(traversalOrder[0], traversalOrder[traversalOrder.size() - 1]))
+//   {
+//     return true;
+//   }
+//
+//   return false;
+// }
+
+template <class TImage>
+bool IsClosedLoop(const TImage* const image, const itk::Index<2>& start)
+{
+  // In this image, mark pixels as non-zero when they are used (i.e. added to the queue)
+  UnsignedCharScalarImageType::Pointer usedImage = UnsignedCharScalarImageType::New();
+  usedImage->SetRegions(image->GetLargestPossibleRegion());
+  usedImage->Allocate();
+  usedImage->FillBuffer(0);
+  unsigned char usedValue = 255;
+
+  if(image->GetPixel(start) == 0)
+  {
+    throw std::runtime_error("Cannot find a breadth first ordering on non-zero pixels starting at a zero pixel!");
+  }
+
+  // Initialize the queue
+  std::queue<itk::Index<2> > pixelQueue;
+  pixelQueue.push(start);
+
+  std::vector<itk::Index<2> > endPoints;
+
+  while (!pixelQueue.empty())
+  {
+    itk::Index<2> currentPixel = pixelQueue.front();
+
+    if(usedImage->GetPixel(currentPixel) == usedValue)
+    {
+      pixelQueue.pop();
+      continue;
+    }
+
+    usedImage->SetPixel(currentPixel, usedValue);
+    pixelQueue.pop();
+
+    // Get the non-zero neighbors
+    std::vector<itk::Index<2> > nonZeroNeighbors =
+         Get8NeighborsInRegionNotEqualValue(currentPixel, image, image->GetLargestPossibleRegion(), 0);
+
+    unsigned int newPointCounter = 0;
+    for(unsigned int i = 0; i < nonZeroNeighbors.size(); ++i)
+    {
+      if(usedImage->GetPixel(nonZeroNeighbors[i]) == 0)
+      {
+        pixelQueue.push(nonZeroNeighbors[i]);
+        newPointCounter++;
+      }
+    }
+
+    /* We cannot just test if any new points were added to the queue.
+     * Consider moving alphabetically on this:
+     * 0 0 0 A
+     * 0 0 B 0
+     * 0 D C 0
+     * E 0 0 0
+     * At A: B is added to the queue. At B: C and D are added to the queue.
+     * At C: nothing is added to the queue! But D is still in the queue, so this is
+     * not an end point!
+     */
+    if(newPointCounter == 0)
+    {
+      bool queueContainsNeighbor = false;
+      std::vector<itk::Index<2> > neighbors = Get8Neighbors(currentPixel);
+      for(unsigned int neighborId = 0; neighborId < neighbors.size(); ++neighborId)
+      {
+        if(Helpers::DoesQueueContain(pixelQueue, neighbors[neighborId]))
+        {
+          queueContainsNeighbor = true;
+          break;
+        }
+      }
+
+      if(!queueContainsNeighbor)
+      {
+        endPoints.push_back(currentPixel);
+      }
+    }
+
+  }
+
+  if(endPoints.size() == 1)
+  {
+    return true;
+  }
+
+  if(endPoints.size() != 2)
+  {
+    return false;
+  }
+
+  if(IsNeighbor(endPoints[0], endPoints[1]))
+  {
+    return true;
+  }
+
+  return false;
+}
+
+template <class TImage>
+std::vector<itk::Index<2> > BreadthFirstOrderingNonZeroPixels(const TImage* const image, const itk::Index<2>& start)
+{
+  // In this image, mark pixels as non-zero when they are used (i.e. added to the queue)
+  UnsignedCharScalarImageType::Pointer usedImage = UnsignedCharScalarImageType::New();
+  usedImage->SetRegions(image->GetLargestPossibleRegion());
+  usedImage->Allocate();
+  usedImage->FillBuffer(0);
+  unsigned char usedValue = 255;
+
+  if(image->GetPixel(start) == 0)
+  {
+    throw std::runtime_error("Cannot find a breadth first orderin on non-zero pixels starting at a zero pixel!");
+  }
+
+  // Initialize the queue
+  std::queue<itk::Index<2> > pixelQueue;
+  pixelQueue.push(start);
+
+  std::vector<itk::Index<2> > traversalOrder;
+
+  while (!pixelQueue.empty())
+  {
+    itk::Index<2> currentPixel = pixelQueue.front();
+
+    if(usedImage->GetPixel(currentPixel) == usedValue)
+    {
+      pixelQueue.pop();
+      continue;
+    }
+
+    traversalOrder.push_back(currentPixel);
+    usedImage->SetPixel(currentPixel, usedValue);
+    pixelQueue.pop();
+
+    // Get the non-zero neighbors
+    std::vector<itk::Index<2> > nonZeroNeighbors =
+           Get8NeighborsInRegionNotEqualValue(currentPixel, image, image->GetLargestPossibleRegion(), 0);
+
+    for(unsigned int i = 0; i < nonZeroNeighbors.size(); ++i)
+    {
+      if(usedImage->GetPixel(nonZeroNeighbors[i]) == 0)
+      {
+        pixelQueue.push(nonZeroNeighbors[i]);
+      }
+    }
+
+  }
+
+  return traversalOrder;
+}
+
+template <typename TImage>
+void DrawRectangle(TImage* const image, const typename TImage::PixelType& value,
+                   const itk::Index<2>& corner0, const itk::Index<2>& corner1)
+{
+  // Draw vertical lines
+  for(int i = corner0[1]; i <= corner1[1]; ++i)
+  {
+    itk::Index<2> pixel0 = {{corner0[0], i}};
+    image->SetPixel(pixel0, value);
+
+    itk::Index<2> pixel1 = {{corner1[0], i}};
+    image->SetPixel(pixel1, value);
+  }
+
+  // Draw horizontal lines
+  for(int i = corner0[0]; i <= corner1[0]; ++i)
+  {
+    itk::Index<2> pixel0 = {{i, corner0[1]}};
+    image->SetPixel(pixel0, value);
+
+    itk::Index<2> pixel1 = {{i, corner1[1]}};
+    image->SetPixel(pixel1, value);
+  }
+}
+
+template <class TImage>
+std::vector<itk::Index<2> > GetClosedContourOrdering(const TImage* const image, const itk::Index<2>& start)
+{
+  // This function performs a depth first search until it finds the starting pixel
+  if(!IsClosedLoop(image, start))
+  {
+    throw std::runtime_error("GetClosedContourOrdering: Can't compute a closed contour ordering\
+                              if the contour is not closed!");
+  }
+
+  // In this image, mark pixels as non-zero when they are used (i.e. added to the stack)
+  UnsignedCharScalarImageType::Pointer usedImage = UnsignedCharScalarImageType::New();
+  usedImage->SetRegions(image->GetLargestPossibleRegion());
+  usedImage->Allocate();
+  usedImage->FillBuffer(0);
+  unsigned char usedValue = 255;
+
+  if(image->GetPixel(start) == 0)
+  {
+    throw std::runtime_error("Cannot find a closed contour ordering on non-zero pixels starting at a zero pixel!");
+  }
+
+  // Initialize the stack
+  std::stack<itk::Index<2> > pixelStack;
+  pixelStack.push(start);
+
+  std::vector<itk::Index<2> > ordering;
+
+  while (!pixelStack.empty())
+  {
+    itk::Index<2> currentPixel = pixelStack.top();
+
+    if(usedImage->GetPixel(currentPixel) == usedValue)
+    {
+      pixelStack.pop();
+      continue;
+    }
+
+    ordering.push_back(currentPixel);
+
+    usedImage->SetPixel(currentPixel, usedValue);
+    pixelStack.pop();
+
+    // Get the non-zero neighbors
+    std::vector<itk::Index<2> > nonZeroNeighbors =
+         Get8NeighborsInRegionNotEqualValue(currentPixel, image, image->GetLargestPossibleRegion(), 0);
+
+    if(pixelStack.size() > 5) // arbitrary to say "we are not still at the beginning
+    {
+      for(unsigned int i = 0; i < nonZeroNeighbors.size(); ++i)
+      {
+        if(nonZeroNeighbors[i] == start)
+        {
+          return ordering;
+        }
+      }
+    }
+    unsigned int newPointCounter = 0;
+    for(unsigned int i = 0; i < nonZeroNeighbors.size(); ++i)
+    {
+      if(usedImage->GetPixel(nonZeroNeighbors[i]) == 0)
+      {
+        pixelStack.push(nonZeroNeighbors[i]);
+        newPointCounter++;
+      }
+    }
+
+  } // end main queue loop
+
+  return ordering;
+}
+
+template <class TImage>
+std::vector<itk::Index<2> > GetOpenContourOrdering(const TImage* const image, const itk::Index<2>& start)
+{
+  if(IsClosedLoop(image, start))
+  {
+    throw std::runtime_error("Can't compute an ordering on a closed loop!");
+  }
+
+  // In this image, mark pixels as non-zero when they are used (i.e. added to the queue)
+  UnsignedCharScalarImageType::Pointer usedImage = UnsignedCharScalarImageType::New();
+  usedImage->SetRegions(image->GetLargestPossibleRegion());
+  usedImage->Allocate();
+  usedImage->FillBuffer(0);
+  unsigned char usedValue = 255;
+
+  if(image->GetPixel(start) == 0)
+  {
+    throw std::runtime_error("Cannot find a breadth first orderin on non-zero pixels starting at a zero pixel!");
+  }
+
+  // Initialize the queue
+  std::queue<itk::Index<2> > pixelQueue;
+  pixelQueue.push(start);
+
+  while (!pixelQueue.empty())
+  {
+    itk::Index<2> currentPixel = pixelQueue.front();
+
+    if(usedImage->GetPixel(currentPixel) == usedValue)
+    {
+      pixelQueue.pop();
+      continue;
+    }
+
+    usedImage->SetPixel(currentPixel, usedValue);
+    pixelQueue.pop();
+
+    // Get the non-zero neighbors
+    std::vector<itk::Index<2> > nonZeroNeighbors =
+            Get8NeighborsInRegionNotEqualValue(currentPixel, image, image->GetLargestPossibleRegion(), 0);
+
+    unsigned int newPointCounter = 0;
+    for(unsigned int i = 0; i < nonZeroNeighbors.size(); ++i)
+    {
+      if(usedImage->GetPixel(nonZeroNeighbors[i]) == 0)
+      {
+        pixelQueue.push(nonZeroNeighbors[i]);
+        newPointCounter++;
+      }
+    }
+
+    // Found an end point
+    if(newPointCounter == 0)
+    {
+      return BreadthFirstOrderingNonZeroPixels(image, currentPixel);
+    }
+
+  } // end main queue loop
+
+  throw std::runtime_error("Did not find any end points! This should never happen.");
+
+}
+
+template<typename TPixel>
+void RandomImage(itk::Image<TPixel, 2>* const image)
+{
+  typedef itk::Image<TPixel, 2> ImageType;
+
+  itk::ImageRegionIterator<ImageType> imageIterator(image, image->GetLargestPossibleRegion());
+
+  while(!imageIterator.IsAtEnd())
+    {
+    imageIterator.Set(rand() % 255);
+
+    ++imageIterator;
+    }
+}
+
+template<typename TPixel>
+void RandomImage(itk::VectorImage<TPixel, 2>* const image)
+{
+  typedef itk::VectorImage<TPixel, 2> ImageType;
+
+  itk::ImageRegionIterator<ImageType> imageIterator(image, image->GetLargestPossibleRegion());
+
+  while(!imageIterator.IsAtEnd())
+    {
+    typename ImageType::PixelType pixel(image->GetNumberOfComponentsPerPixel());
+    for(unsigned int component = 0; component < pixel.GetSize(); ++component)
+      {
+      pixel[component] = rand() % 255;
+      }
+    imageIterator.Set(pixel);
+    ++imageIterator;
+    }
 }
 
 }// end namespace ITKHelpers

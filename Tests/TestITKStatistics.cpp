@@ -1,6 +1,8 @@
-// NOTE! ITKContainerInterface must be included BEFORE Statistics or it will not know about the
+// NOTE! ITKContainerInterface and ITKTypeTraits must be included BEFORE Statistics
+// or it will not know about the
 // definitions of the functions required and produce compiler errors.
 #include "ITKContainerInterface.h"
+#include "ITKTypeTraits.h"
 #include "Helpers/Statistics.h"
 
 // ITK

@@ -1,75 +1,156 @@
 #include "ITKHelpers.h"
 
-void TestBlurAllChannels();
+static void TestGetClosedContourOrdering();
 
-void TestAnisotropicBlurAllChannels();
+static void TestGetOpenContourOrdering();
 
-void TestHistogramOfGradients();
+static void TestDrawRectangle();
 
-void TestExtractChannel();
-void TestExtractChannels();
+static void TestIsClosedLoop();
 
-void TestSumOfComponentMagnitudes();
+static void TestRandomImage();
 
-void TestGetAllPatchesContainingPixel();
+static void TestBlurAllChannelsScalar();
 
-void TestClosestPoint();
+static void TestBlurAllChannelsVector();
 
-void TestDownsample();
-void TestUpsample();
+static void TestAnisotropicBlurAllChannels();
 
-void TestDeepCopyFloatScalar();
-void TestDeepCopyUnsignedCharScalar();
-void TestDeepCopyFloatVector();
-void TestDeepCopyUnsignedCharVector();
+static void TestHistogramOfGradients();
+
+static void TestExtractChannel();
+static void TestExtractChannels();
+
+static void TestSumOfComponentMagnitudes();
+
+static void TestGetAllPatchesContainingPixel();
+
+static void TestClosestPoint();
+
+static void TestDownsample();
+static void TestUpsample();
+
+static void TestDeepCopyFloatScalar();
+static void TestDeepCopyUnsignedCharScalar();
+static void TestDeepCopyFloatVector();
+static void TestDeepCopyUnsignedCharVector();
+
+static void TestBreadthFirstOrderingNonZeroPixels();
 
 int main( int argc, char ** argv )
 {
-  TestBlurAllChannels();
-  
-  TestAnisotropicBlurAllChannels();
-  
-  TestHistogramOfGradients();
+//   TestRandomImage();
+// 
+//   TestGetClosedContourOrdering();
+// 
+//   TestGetOpenContourOrdering();
+// 
+//   TestDrawRectangle();
+// 
+//   TestIsClosedLoop();
+// 
+//   TestBreadthFirstOrderingNonZeroPixels();
 
-  TestExtractChannel();
-  TestExtractChannels();
-
-  TestSumOfComponentMagnitudes();
-
-  TestClosestPoint();
-
-  TestGetAllPatchesContainingPixel();
-
-  TestDownsample();
-  TestUpsample();
-
-  TestDeepCopyFloatScalar();
-  TestDeepCopyUnsignedCharScalar();
-  TestDeepCopyFloatVector();
-  TestDeepCopyUnsignedCharVector();
+  //TestBlurAllChannelsVector();
+  TestBlurAllChannelsScalar();
+//   TestAnisotropicBlurAllChannels();
+// 
+//   TestHistogramOfGradients();
+// 
+//   TestExtractChannel();
+//   TestExtractChannels();
+// 
+//   TestSumOfComponentMagnitudes();
+// 
+//   TestClosestPoint();
+// 
+//   TestGetAllPatchesContainingPixel();
+// 
+//   TestDownsample();
+//   TestUpsample();
+// 
+//   TestDeepCopyFloatScalar();
+//   TestDeepCopyUnsignedCharScalar();
+//   TestDeepCopyFloatVector();
+//   TestDeepCopyUnsignedCharVector();
 
   return 0;
 }
 
-void TestBlurAllChannels()
-{
 
-  {
-  typedef itk::VectorImage<float, 2> ImageType;
+void TestBlurAllChannelsScalar()
+{
+  // Create an image
+  typedef itk::Image<unsigned char, 2> ImageType;
   ImageType::Pointer image = ImageType::New();
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->Allocate();
+
+  ITKHelpers::RandomImage(image.GetPointer());
+  ITKHelpers::WriteImage(image.GetPointer(), "image.png");
+
+  // Some blur
+  {
   ImageType::Pointer blurred = ImageType::New();
 
   float sigma = 2.0f;
+  std::cout << "Blurring with sigma = " << sigma << std::endl;
   ITKHelpers::BlurAllChannels(image.GetPointer(), blurred.GetPointer(), sigma);
+
+  ITKHelpers::WriteImage(blurred.GetPointer(), "blurred_2.png");
   }
 
+  // No blur
   {
+  ImageType::Pointer blurred = ImageType::New();
+
+  //float sigma = 0.0f; // Don't do this! Resulting image is black
+  float sigma = 1.0f;
+  std::cout << "Blurring with sigma = " << sigma << std::endl;
+  ITKHelpers::BlurAllChannels(image.GetPointer(), blurred.GetPointer(), sigma);
+  ITKHelpers::WriteImage(blurred.GetPointer(), "blurred_1.png");
+  }
+
+}
+
+void TestBlurAllChannelsVector()
+{
+  // Create an image
   typedef itk::VectorImage<float, 2> ImageType;
   ImageType::Pointer image = ImageType::New();
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->SetNumberOfComponentsPerPixel(3);
+  image->Allocate();
+
+  ITKHelpers::RandomImage(image.GetPointer());
+  ITKHelpers::WriteRGBImage(image.GetPointer(), "image.png");
+
+  // Some blur
+  {
   ImageType::Pointer blurred = ImageType::New();
 
   float sigma = 2.0f;
   ITKHelpers::BlurAllChannels(image.GetPointer(), blurred.GetPointer(), sigma);
+
+  ITKHelpers::WriteRGBImage(blurred.GetPointer(), "blurred_2.png");
+  }
+
+  // No blur
+  {
+  ImageType::Pointer blurred = ImageType::New();
+
+  // float sigma = 0.0f; // Don't do this! Resulting image is black
+  float sigma = 1.0f;
+  ITKHelpers::BlurAllChannels(image.GetPointer(), blurred.GetPointer(), sigma);
+  ITKHelpers::WriteRGBImage(blurred.GetPointer(), "blurred_0.png");
   }
 
 }
@@ -90,7 +171,7 @@ void TestAnisotropicBlurAllChannels()
 //   typedef itk::Image<itk::CovariantVector<float, 3>, 2> ImageType;
 //   ImageType::Pointer image = ImageType::New();
 //   ImageType::Pointer blurred = ImageType::New();
-// 
+//
 //   float sigma = 2.0f;
 //   ITKHelpers::AnisotropicBlurAllChannels(image.GetPointer(), blurred.GetPointer(), sigma);
 //   }
@@ -326,4 +407,194 @@ void TestHistogramOfGradients()
     std::cout << histogram[i] << " ";
   }
   std::cout << std::endl;
+}
+
+void TestBreadthFirstOrderingNonZeroPixels()
+{
+  std::cout << "TestBreadthFirstOrderingNonZeroPixels()" << std::endl;
+
+  typedef itk::Image<unsigned char, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->Allocate();
+  image->FillBuffer(0);
+
+  for(unsigned int i = 20; i < 30; ++i)
+  {
+    itk::Index<2> pixel = {{i, 50}};
+    image->SetPixel(pixel, 255);
+  }
+
+  itk::Index<2> start = {{25, 50}};
+  std::vector<itk::Index<2> > breadthFirstOrdering =
+      ITKHelpers::BreadthFirstOrderingNonZeroPixels(image.GetPointer(), start);
+
+  for(unsigned int i = 0; i < breadthFirstOrdering.size(); ++i)
+  {
+    //std::cout << breadthFirstOrdering[i] << " ";
+    std::cout << breadthFirstOrdering[i] << std::endl;
+  }
+
+  std::cout << std::endl;
+}
+
+void TestIsClosedLoop()
+{
+  std::cout << "TestIsClosedLoop()" << std::endl;
+
+  // Open loop
+  {
+  typedef itk::Image<unsigned char, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->Allocate();
+  image->FillBuffer(0);
+
+  for(unsigned int i = 20; i < 30; ++i)
+  {
+    itk::Index<2> pixel = {{i, 50}};
+    image->SetPixel(pixel, 255);
+  }
+
+  itk::Index<2> start = {{25, 50}};
+
+  bool isClosedLoop = ITKHelpers::IsClosedLoop(image.GetPointer(), start);
+
+  std::cout << "Is closed loop? " << isClosedLoop << std::endl;
+  }
+
+  // Closed loop
+  {
+  typedef itk::Image<unsigned char, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->Allocate();
+  image->FillBuffer(0);
+
+  itk::Index<2> corner0 = {{10,10}};
+  itk::Index<2> corner1 = {{30,30}};
+  ITKHelpers::DrawRectangle(image.GetPointer(), 255,
+                            corner0, corner1);
+
+  itk::Index<2> start = {{10, 10}};
+
+  bool isClosedLoop = ITKHelpers::IsClosedLoop(image.GetPointer(), start);
+
+  std::cout << "Is closed loop? " << isClosedLoop << std::endl;
+  }
+}
+
+void TestDrawRectangle()
+{
+  typedef itk::Image<unsigned char, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->Allocate();
+  image->FillBuffer(0);
+
+  itk::Index<2> corner0 = {{10,10}};
+  itk::Index<2> corner1 = {{30,30}};
+  ITKHelpers::DrawRectangle(image.GetPointer(), 255,
+                            corner0, corner1);
+
+  ITKHelpers::WriteImage(image.GetPointer(), "rectangle.png");
+}
+
+void TestGetOpenContourOrdering()
+{
+  typedef itk::Image<unsigned char, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->Allocate();
+  image->FillBuffer(0);
+
+  for(unsigned int i = 20; i < 30; ++i)
+  {
+    itk::Index<2> pixel = {{i, 50}};
+    image->SetPixel(pixel, 255);
+  }
+
+  itk::Index<2> start = {{25, 50}};
+
+  std::vector<itk::Index<2> > contourOrdering = ITKHelpers::GetOpenContourOrdering(image.GetPointer(), start);
+
+  for(unsigned int i = 0; i < contourOrdering.size(); ++i)
+  {
+    //std::cout << breadthFirstOrdering[i] << " ";
+    std::cout << contourOrdering[i] << std::endl;
+  }
+
+  std::cout << std::endl;
+}
+
+void TestGetClosedContourOrdering()
+{
+  typedef itk::Image<unsigned char, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->Allocate();
+  image->FillBuffer(0);
+
+  itk::Index<2> corner0 = {{10,10}};
+  itk::Index<2> corner1 = {{30,30}};
+  ITKHelpers::DrawRectangle(image.GetPointer(), 255,
+                            corner0, corner1);
+
+  itk::Index<2> start = {{10, 10}};
+
+  std::vector<itk::Index<2> > ordering = ITKHelpers::GetClosedContourOrdering(image.GetPointer(), start);
+
+  for(unsigned int i = 0; i < ordering.size(); ++i)
+  {
+    std::cout << ordering[i] << std::endl;
+  }
+
+  std::cout << std::endl;
+}
+
+void TestRandomImage()
+{
+  typedef itk::Image<unsigned char, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->Allocate();
+  image->FillBuffer(0);
+
+  ITKHelpers::RandomImage(image.GetPointer());
+  ITKHelpers::WriteImage(image.GetPointer(), "random.png");
 }
