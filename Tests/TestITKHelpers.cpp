@@ -52,12 +52,12 @@ int main( int argc, char ** argv )
 //   TestBreadthFirstOrderingNonZeroPixels();
 
   //TestBlurAllChannelsVector();
-  TestBlurAllChannelsScalar();
+  // TestBlurAllChannelsScalar();
 //   TestBilateralFilterAllChannels();
 // 
 //   TestHistogramOfGradients();
 // 
-//   TestExtractChannel();
+   TestExtractChannel();
 //   TestExtractChannels();
 // 
 //   TestSumOfComponentMagnitudes();
@@ -340,6 +340,8 @@ void TestSumOfComponentMagnitudes()
 
 void TestExtractChannel()
 {
+  // VectorImage
+  {
   typedef itk::VectorImage<float, 2> VectorImageType;
   VectorImageType::Pointer image = VectorImageType::New();
 
@@ -358,6 +360,80 @@ void TestExtractChannel()
   typedef itk::Image<unsigned char, 2> UnsignedCharScalarImageType;
   UnsignedCharScalarImageType::Pointer unsignedCharScalarImage = UnsignedCharScalarImageType::New();
   ITKHelpers::ExtractChannel(image.GetPointer(), 0, unsignedCharScalarImage.GetPointer());
+  }
+
+  // VectorImage different output type
+  {
+  typedef itk::VectorImage<float, 2> VectorImageType;
+  VectorImageType::Pointer image = VectorImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->SetNumberOfComponentsPerPixel(2);
+  image->Allocate();
+
+  typedef itk::Image<unsigned char, 2> UnsignedCharScalarImageType;
+  UnsignedCharScalarImageType::Pointer unsignedCharScalarImage = UnsignedCharScalarImageType::New();
+  ITKHelpers::ExtractChannel(image.GetPointer(), 0, unsignedCharScalarImage.GetPointer());
+  }
+
+  // Scalar Image
+  {
+  typedef itk::Image<float, 2> VectorImageType;
+  VectorImageType::Pointer image = VectorImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->Allocate();
+
+  typedef itk::Image<float, 2> FloatScalarImageType;
+  FloatScalarImageType::Pointer floatScalarImage = FloatScalarImageType::New();
+  ITKHelpers::ExtractChannel(image.GetPointer(), 0, floatScalarImage.GetPointer());
+
+  typedef itk::Image<unsigned char, 2> UnsignedCharScalarImageType;
+  UnsignedCharScalarImageType::Pointer unsignedCharScalarImage = UnsignedCharScalarImageType::New();
+  ITKHelpers::ExtractChannel(image.GetPointer(), 0, unsignedCharScalarImage.GetPointer());
+  }
+
+  // Image<CovariantVector>
+  {
+  typedef itk::Image<itk::CovariantVector<float, 3>, 2> VectorImageType;
+  VectorImageType::Pointer image = VectorImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->Allocate();
+
+  typedef itk::Image<float, 2> FloatScalarImageType;
+  FloatScalarImageType::Pointer floatScalarImage = FloatScalarImageType::New();
+  ITKHelpers::ExtractChannel(image.GetPointer(), 0, floatScalarImage.GetPointer());
+  }
+
+  // Image<Vector>
+  {
+  typedef itk::Image<itk::Vector<float, 3>, 2> VectorImageType;
+  VectorImageType::Pointer image = VectorImageType::New();
+
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{100,100}};
+  itk::ImageRegion<2> region(corner, size);
+
+  image->SetRegions(region);
+  image->Allocate();
+
+  typedef itk::Image<float, 2> FloatScalarImageType;
+  FloatScalarImageType::Pointer floatScalarImage = FloatScalarImageType::New();
+  ITKHelpers::ExtractChannel(image.GetPointer(), 0, floatScalarImage.GetPointer());
+  }
 }
 
 void TestExtractChannels()

@@ -641,23 +641,48 @@ void ChangeValue(TImage* const image, const typename TImage::PixelType& oldValue
     }
 }
 
+namespace detail
+{
+  template<typename TInputImage, typename TOutputImage>
+  void ExtractChannel(const TInputImage* const image, const unsigned int channel,
+                      TOutputImage* const output)
+  {
+    typedef itk::VectorIndexSelectionCastImageFilter<TInputImage, TOutputImage> IndexSelectionType;
+    typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
+    indexSelectionFilter->SetIndex(channel);
+    indexSelectionFilter->SetInput(image);
+    indexSelectionFilter->Update();
+
+    DeepCopy(indexSelectionFilter->GetOutput(), output);
+  }
+}
+
 template<typename TInputImage, typename TOutputImage>
 void ExtractChannel(const TInputImage* const image, const unsigned int channel,
                     TOutputImage* const output)
 {
-  typedef itk::VectorIndexSelectionCastImageFilter<TInputImage, TOutputImage> IndexSelectionType;
-  typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
-  indexSelectionFilter->SetIndex(channel);
-  indexSelectionFilter->SetInput(image);
-  indexSelectionFilter->Update();
+  detail::ExtractChannel(image, channel, output);
+}
 
-  DeepCopy(indexSelectionFilter->GetOutput(), output);
+template<typename TInputPixelComponent, unsigned int PixelDimension, typename TOutputPixel>
+void ExtractChannel(const itk::Image<itk::CovariantVector<TInputPixelComponent, PixelDimension>, 2>* const image, const unsigned int channel,
+                    itk::Image<TOutputPixel, 2>* const output)
+{
+  detail::ExtractChannel(image, channel, output);
+}
+
+template<typename TInputPixelComponent, unsigned int PixelDimension, typename TOutputPixel>
+void ExtractChannel(const itk::Image<itk::Vector<TInputPixelComponent, PixelDimension>, 2>* const image, const unsigned int channel,
+                    itk::Image<TOutputPixel, 2>* const output)
+{
+  detail::ExtractChannel(image, channel, output);
 }
 
 template<typename TInputPixel, typename TOutputPixel>
 void ExtractChannel(const itk::Image<TInputPixel, 2>* const image, const unsigned int channel,
                     itk::Image<TOutputPixel, 2>* const output)
 {
+  // Here TInputPixel should only be a scalar - there are specializations for CovariantVector and Vector
   if(channel > 0)
   {
     std::stringstream ss;

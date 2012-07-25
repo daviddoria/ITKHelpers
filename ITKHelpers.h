@@ -225,6 +225,16 @@ template<typename TInputPixel, typename TOutputPixel>
 void ExtractChannel(const itk::Image<TInputPixel, 2>* const image, const unsigned int channel,
                     itk::Image<TOutputPixel, 2>* const output);
 
+/** An even further specialization to allow this function to process Image<CovariantVector<> >. */
+template<typename TInputPixelComponent, unsigned int PixelDimension, typename TOutputPixel>
+void ExtractChannel(const itk::Image<itk::CovariantVector<TInputPixelComponent, PixelDimension>, 2>* const image, const unsigned int channel,
+                    itk::Image<TOutputPixel, 2>* const output);
+
+/** An even further  specialization to allow this function to process Image<Vector<> >. */
+template<typename TInputPixelComponent, unsigned int PixelDimension, typename TOutputPixel>
+void ExtractChannel(const itk::Image<itk::Vector<TInputPixelComponent, PixelDimension>, 2>* const image, const unsigned int channel,
+                    itk::Image<TOutputPixel, 2>* const output);
+
 /** Extract a channels of an image. */
 template<typename TInputImage, typename TOutputImage>
 void ExtractChannels(const TInputImage* const image, const std::vector<unsigned int> channels,
@@ -711,6 +721,15 @@ void Write2DVectorImage(const FloatVector2ImageType* const image, const std::str
 
 /**  Determine if two pixels touch. */
 bool IsNeighbor(const itk::Index<2>& index1, const itk::Index<2>& index2);
+
+namespace detail
+{
+  /** Extract a channel of an image. The output image should be a scalar image,
+  * but does not have to have the same pixel type as the input image. */
+  template<typename TInputImage, typename TOutputImage>
+  void ExtractChannel(const TInputImage* const image, const unsigned int channel,
+                      TOutputImage* const output);
+}
 
 }// end namespace
 
