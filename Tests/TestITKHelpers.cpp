@@ -14,7 +14,7 @@ static void TestBlurAllChannelsScalar();
 
 static void TestBlurAllChannelsVector();
 
-static void TestAnisotropicBlurAllChannels();
+static void TestBilateralFilterAllChannels();
 
 static void TestHistogramOfGradients();
 
@@ -53,7 +53,7 @@ int main( int argc, char ** argv )
 
   //TestBlurAllChannelsVector();
   TestBlurAllChannelsScalar();
-//   TestAnisotropicBlurAllChannels();
+//   TestBilateralFilterAllChannels();
 // 
 //   TestHistogramOfGradients();
 // 
@@ -155,15 +155,16 @@ void TestBlurAllChannelsVector()
 
 }
 
-void TestAnisotropicBlurAllChannels()
+void TestBilateralFilterAllChannels()
 {
   {
   typedef itk::VectorImage<float, 2> ImageType;
   ImageType::Pointer image = ImageType::New();
   ImageType::Pointer blurred = ImageType::New();
 
-  float sigma = 2.0f;
-  ITKHelpers::AnisotropicBlurAllChannels(image.GetPointer(), blurred.GetPointer(), sigma);
+  float domainSigma = 2.0f;
+  float rangeSigma = 2.0f;
+  ITKHelpers::BilateralFilterAllChannels(image.GetPointer(), blurred.GetPointer(), domainSigma, rangeSigma);
   }
 
   // This does not work

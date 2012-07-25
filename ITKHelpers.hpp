@@ -557,8 +557,8 @@ void InitializeImage(const itk::VectorImage<TPixel, 2>* const image, const unsig
 }
 
 template<typename TInputImage, typename TPixelType>
-void AnisotropicBlurAllChannels(const TInputImage* image, itk::VectorImage<TPixelType,2>* output,
-                                const float sigma)
+void BilateralFilterAllChannels(const TInputImage* image, itk::VectorImage<TPixelType,2>* output,
+                                const float domainSigma, const float rangeSigma)
 {
   typedef itk::Image<typename TInputImage::InternalPixelType, 2> ScalarImageType;
 
@@ -585,8 +585,8 @@ void AnisotropicBlurAllChannels(const TInputImage* image, itk::VectorImage<TPixe
     typedef itk::BilateralImageFilter<ScalarImageType, ScalarImageType>  BilateralFilterType;
     typename BilateralFilterType::Pointer bilateralFilter = BilateralFilterType::New();
     bilateralFilter->SetInput(imageChannel);
-    bilateralFilter->SetDomainSigma(sigma);
-    bilateralFilter->SetRangeSigma(sigma);
+    bilateralFilter->SetDomainSigma(domainSigma);
+    bilateralFilter->SetRangeSigma(rangeSigma);
     bilateralFilter->Update();
 
     typename ScalarImageType::Pointer blurred = ScalarImageType::New();

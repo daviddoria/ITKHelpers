@@ -60,8 +60,8 @@ void BlurAllChannels(const TImage* const image, TImage* const output,
 
 /** Blur all channels of an image, preserving edges. */
 template<typename TInputImage, typename TPixelType>
-void AnisotropicBlurAllChannels(const TInputImage* const image, itk::VectorImage<TPixelType,2>* const output,
-                                const float sigma);
+void BilateralFilterAllChannels(const TInputImage* const image, itk::VectorImage<TPixelType,2>* const output,
+                                const float domainSigma, const float rangeSigma);
 
 /** Set the values of the pixels on the boundary of the 'region' to 'value'. */
 template<typename TImage>
