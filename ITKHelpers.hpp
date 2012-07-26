@@ -1260,6 +1260,23 @@ std::vector<typename TImage::PixelType> GetPixelValues(const TImage* const image
   return values;
 }
 
+template<typename TImage>
+std::vector<typename TImage::PixelType> GetPixelValuesInRegion(const TImage* const image,
+                                                               const itk::ImageRegion<2>& region)
+{
+  std::vector<typename TImage::PixelType> values;
+
+  itk::ImageRegionConstIterator<TImage> imageIterator(image, region);
+
+  while(!imageIterator.IsAtEnd())
+    {
+    values.push_back(imageIterator.Get());
+    ++imageIterator;
+    }
+
+  return values;
+}
+
 // This does not work for itk::VectorImage
 // template<typename TImage>
 // void StackImages(const TImage* const image1, const TImage* const image2, const TImage* const output)

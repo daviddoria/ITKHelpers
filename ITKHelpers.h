@@ -316,6 +316,11 @@ template<typename TImage>
 std::vector<typename TImage::PixelType> GetPixelValues(const TImage* const image,
                                                        const std::vector<itk::Index<2> >& indices);
 
+/** Linearize the values in the image region. */
+template<typename TImage>
+std::vector<typename TImage::PixelType> GetPixelValuesInRegion(const TImage* const image,
+                                                               const itk::ImageRegion<2>& region);
+
 /** Compute the average of the values appearing at the specified indices. */
 template<typename TImage>
 typename TypeTraits<typename TImage::PixelType>::LargerType AverageOfPixelsAtIndices(
