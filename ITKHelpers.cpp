@@ -759,4 +759,23 @@ bool IsNeighbor(const itk::Index<2>& index1, const itk::Index<2>& index2)
   return false;
 }
 
+std::vector<itk::ImageRegion<2> > Get8NeighborRegionsInRegion(const itk::ImageRegion<2>& searchRegion, const itk::Index<2>& pixel,
+                                                              const itk::Size<2>& queryRegionSize)
+{
+  std::vector<itk::ImageRegion<2> > validNeighborRegions;
+
+  std::vector<itk::Index<2> > neighborPixels = Get8NeighborsInRegion(searchRegion, pixel);
+
+  for(unsigned int i = 0; i < neighborPixels.size(); ++i)
+  {
+    itk::ImageRegion<2> region = GetRegionInRadiusAroundPixel(neighborPixels[i], queryRegionSize[0]/2);
+    if(searchRegion.IsInside(region))
+    {
+      validNeighborRegions.push_back(region);
+    }
+  }
+
+  return validNeighborRegions;
+}
+
 } // end namespace
