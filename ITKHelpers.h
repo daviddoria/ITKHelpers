@@ -581,6 +581,18 @@ void RandomImage(itk::Image<TPixel, 2>* const image);
 template<typename TPixel>
 void RandomImage(itk::VectorImage<TPixel, 2>* const image);
 
+/** Find which element in 'vec' is closest to 'value'. */
+template<typename TValue>
+unsigned int ClosestValueIndex(const std::vector<TValue>& vec,
+                               const TValue& value);
+
+/** Find which element in 'vec' is closest to 'value'. Specialized for
+  * itk::CovariantVector (because it has a special GetSquaredNorm() function). */
+template<typename TComponent, unsigned int NumberOfComponents>
+unsigned int ClosestValueIndex(
+   const std::vector<itk::CovariantVector<TComponent, NumberOfComponents> >& vec,
+   const itk::CovariantVector<TComponent, NumberOfComponents>& value);
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Non-template function declarations (defined in Helpers.cpp) ///////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -687,10 +699,6 @@ std::vector<itk::ImageRegion<2> > GetPatchesCenteredAtIndices(const std::vector<
 std::vector<itk::ImageRegion<2> > GetValidPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices,
                                                                    const itk::ImageRegion<2>& imageRegion,
                                                                    const unsigned int patchRadius);
-
-/** Find which point in 'vec' is closest to 'value'. */
-unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec,
-                          const itk::CovariantVector<float, 3>& value);
 
 /** Find which location in 'pixels' is closest to 'queryPixel'. */
 unsigned int ClosestIndexId(const std::vector<itk::Index<2> >& pixels, const itk::Index<2>& queryPixel);

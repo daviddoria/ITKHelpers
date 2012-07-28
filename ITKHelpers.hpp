@@ -393,7 +393,8 @@ void ColorToGrayscale(const TInputImage* const colorImage, TOutputImage* const g
 
 
 template<typename TImage>
-void SetRegionToConstant(TImage* image, const itk::ImageRegion<2>& region, const typename TImage::PixelType& value)
+void SetRegionToConstant(TImage* const image, const itk::ImageRegion<2>& region,
+                         const typename TImage::PixelType& value)
 {
   typename itk::ImageRegionIterator<TImage> imageIterator(image, region);
 
@@ -406,7 +407,7 @@ void SetRegionToConstant(TImage* image, const itk::ImageRegion<2>& region, const
 }
 
 template<typename TImage>
-void SetImageToConstant(TImage* image, const typename TImage::PixelType& constant)
+void SetImageToConstant(TImage* const image, const typename TImage::PixelType& constant)
 {
   SetRegionToConstant<TImage>(image, image->GetLargestPossibleRegion(), constant);
 }
@@ -2484,6 +2485,38 @@ void RandomImage(itk::VectorImage<TPixel, 2>* const image)
     imageIterator.Set(pixel);
     ++imageIterator;
     }
+}
+
+template <typename TValue>
+unsigned int ClosestValueIndex(const std::vector<TValue>& vec, const TValue& value)
+{
+  std::vector<float> distances(vec.size());
+  for(size_t i = 0; i < vec.size(); ++i)
+  {
+    TValue difference = vec[i] - value;
+    float distance = 0.0f;
+    for(unsigned int component = 0; component < Helpers::length(vec); ++component)
+    {
+      distance += fabs(Helpers::index(difference, component));
+    }
+    distances[i] = distance;
+  }
+
+  return Helpers::argmin(distances);
+}
+
+template<typename TComponent, unsigned int NumberOfComponents>
+unsigned int ClosestValueIndex(
+   const std::vector<itk::CovariantVector<TComponent, NumberOfComponents> >& vec,
+   const itk::CovariantVector<TComponent, NumberOfComponents>& value)
+{
+  std::vector<float> distances(vec.size());
+  for(size_t i = 0; i < vec.size(); ++i)
+  {
+    distances[i] = (vec[i] - value).GetSquaredNorm();
+  }
+
+  return Helpers::argmin(distances);
 }
 
 }// end namespace ITKHelpers
