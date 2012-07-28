@@ -11,3 +11,6 @@ target_link_libraries(TestITKContainerInterface ITKHelpers)
 
 add_executable(TestITKStatistics TestITKStatistics.cpp)
 target_link_libraries(TestITKStatistics ITKHelpers)
+
+add_executable(TestITKTypeTraits TestITKTypeTraits.cpp)
+target_link_libraries(TestITKTypeTraits ITKHelpers)
