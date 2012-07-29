@@ -1,6 +1,6 @@
 /*=========================================================================
  *
- *  Copyright David Doria 2011 daviddoria@gmail.com
+ *  Copyright David Doria 2012 daviddoria@gmail.com
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -664,20 +664,6 @@ std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<
   }
 
   return regions;
-}
-
-
-unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec, const itk::CovariantVector<float, 3>& value)
-{
-  typedef itk::CovariantVector<float, 3> PointType;
-
-  std::vector<float> distances(vec.size());
-  for(size_t i = 0; i < vec.size(); ++i)
-  {
-    distances[i] = (vec[i] - value).GetSquaredNorm();
-  }
-
-  return Helpers::argmin(distances);
 }
 
 itk::Size<2> MakeSizeEven(const itk::Size<2>& inputSize)

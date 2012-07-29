@@ -60,8 +60,8 @@ void BlurAllChannels(const TImage* const image, TImage* const output,
 
 /** Blur all channels of an image, preserving edges. */
 template<typename TInputImage, typename TPixelType>
-void AnisotropicBlurAllChannels(const TInputImage* const image, itk::VectorImage<TPixelType,2>* const output,
-                                const float sigma);
+void BilateralFilterAllChannels(const TInputImage* const image, itk::VectorImage<TPixelType,2>* const output,
+                                const float domainSigma, const float rangeSigma);
 
 /** Set the values of the pixels on the boundary of the 'region' to 'value'. */
 template<typename TImage>
@@ -228,6 +228,16 @@ template<typename TInputPixel, typename TOutputPixel>
 void ExtractChannel(const itk::Image<TInputPixel, 2>* const image, const unsigned int channel,
                     itk::Image<TOutputPixel, 2>* const output);
 
+/** An even further specialization to allow this function to process Image<CovariantVector<> >. */
+template<typename TInputPixelComponent, unsigned int PixelDimension, typename TOutputPixel>
+void ExtractChannel(const itk::Image<itk::CovariantVector<TInputPixelComponent, PixelDimension>, 2>* const image, const unsigned int channel,
+                    itk::Image<TOutputPixel, 2>* const output);
+
+/** An even further  specialization to allow this function to process Image<Vector<> >. */
+template<typename TInputPixelComponent, unsigned int PixelDimension, typename TOutputPixel>
+void ExtractChannel(const itk::Image<itk::Vector<TInputPixelComponent, PixelDimension>, 2>* const image, const unsigned int channel,
+                    itk::Image<TOutputPixel, 2>* const output);
+
 /** Extract a channels of an image. */
 template<typename TInputImage, typename TOutputImage>
 void ExtractChannels(const TInputImage* const image, const std::vector<unsigned int> channels,
@@ -308,6 +318,11 @@ std::vector<itk::Index<2> > GetPixelsWithValue(const TImage* const image,
 template<typename TImage>
 std::vector<typename TImage::PixelType> GetPixelValues(const TImage* const image,
                                                        const std::vector<itk::Index<2> >& indices);
+
+/** Linearize the values in the image region. */
+template<typename TImage>
+std::vector<typename TImage::PixelType> GetPixelValuesInRegion(const TImage* const image,
+                                                               const itk::ImageRegion<2>& region);
 
 /** Compute the average of the values appearing at the specified indices. */
 template<typename TImage>
@@ -542,7 +557,8 @@ void WriteRegion(const TImage* const image, const itk::ImageRegion<2>& region, c
 template <typename T>
 void OutputVector(const std::vector<T>& v);
 
-/** Combine two VectorImages into a VectorImage where the number of channels is the sum of the two input images. */
+/** Combine two VectorImages into a VectorImage where the number of channels is
+  * the sum of the two input images. */
 template <typename TPixel>
 void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1,
                  const typename itk::VectorImage<TPixel, 2>* const image2,
@@ -569,12 +585,31 @@ void RandomImage(itk::Image<TPixel, 2>* const image);
 template<typename TPixel>
 void RandomImage(itk::VectorImage<TPixel, 2>* const image);
 
+/** Find which element in 'vec' is closest to 'value'. */
+template<typename TValue>
+unsigned int ClosestValueIndex(const std::vector<TValue>& vec,
+                               const TValue& value);
+
+/** Find which element in 'vec' is closest to 'value'. Specialized for
+  * itk::CovariantVector (because it has a special GetSquaredNorm() function). */
+template<typename TComponent, unsigned int NumberOfComponents>
+unsigned int ClosestValueIndex(
+   const std::vector<itk::CovariantVector<TComponent, NumberOfComponents> >& vec,
+   const itk::CovariantVector<TComponent, NumberOfComponents>& value);
+
+/** Compute the bounding box of all pixels with 'value'. */
+template<typename TImage>
+itk::ImageRegion<2> ComputeBoundingBox(const TImage* const image,
+                                       const typename TImage::PixelType& value);
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Non-template function declarations (defined in Helpers.cpp) ///////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 /** Mark each pixel at the specified 'indices' as a non-zero pixel in 'image' */
-void IndicesToBinaryImage(const std::vector<itk::Index<2> >& indices, UnsignedCharScalarImageType* const image);
+void IndicesToBinaryImage(const std::vector<itk::Index<2> >& indices,
+                          UnsignedCharScalarImageType* const image);
 
 /** Get the number of components per pixel in an image file. */
 unsigned int GetNumberOfComponentsPerPixelInFile(const std::string& filename);
@@ -676,10 +711,6 @@ std::vector<itk::ImageRegion<2> > GetValidPatchesCenteredAtIndices(const std::ve
                                                                    const itk::ImageRegion<2>& imageRegion,
                                                                    const unsigned int patchRadius);
 
-/** Find which point in 'vec' is closest to 'value'. */
-unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec,
-                          const itk::CovariantVector<float, 3>& value);
-
 /** Find which location in 'pixels' is closest to 'queryPixel'. */
 unsigned int ClosestIndexId(const std::vector<itk::Index<2> >& pixels, const itk::Index<2>& queryPixel);
 
@@ -714,6 +745,15 @@ void Write2DVectorImage(const FloatVector2ImageType* const image, const std::str
 
 /**  Determine if two pixels touch. */
 bool IsNeighbor(const itk::Index<2>& index1, const itk::Index<2>& index2);
+
+namespace detail
+{
+  /** Extract a channel of an image. The output image should be a scalar image,
+  * but does not have to have the same pixel type as the input image. */
+  template<typename TInputImage, typename TOutputImage>
+  void ExtractChannel(const TInputImage* const image, const unsigned int channel,
+                      TOutputImage* const output);
+}
 
 }// end namespace
 

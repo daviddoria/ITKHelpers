@@ -16,32 +16,41 @@
  *
  *=========================================================================*/
 
-// NOTE! ITKContainerInterface and ITKTypeTraits must be included BEFORE Statistics
-// or it will not know about the
-// definitions of the functions required and produce compiler errors.
-#include "ITKContainerInterface.h"
 #include "ITKTypeTraits.h"
-#include "Helpers/Statistics.h"
 
-// ITK
-#include "itkVariableLengthVector.h"
 #include "itkCovariantVector.h"
+
+static void TestGenericCovariantVector();
+static void TestUnsignedCharCovariantVector();
 
 int main()
 {
-  {
-  itk::VariableLengthVector<float> v(5);
-  std::cout << Statistics::Average(v);
-  std::cout << Statistics::RunningAverage(v);
-  std::cout << Statistics::Variance(v);
-  }
-  
-  {
-  itk::CovariantVector<float, 3> v;
-  std::cout << Statistics::Average(v);
-  std::cout << Statistics::RunningAverage(v);
-  std::cout << Statistics::Variance(v);
-  }
-  
+  TestGenericCovariantVector();
+  TestUnsignedCharCovariantVector();
+
+
   return 0;
+}
+
+void TestGenericCovariantVector()
+{
+  itk::CovariantVector<int, 3> v;
+  v.Fill(0);
+  std::cout << v << std::endl;
+
+  TypeTraits<itk::CovariantVector<int, 3> >::ComponentType c = v[0];
+  std::cout << c << std::endl;
+}
+
+void TestUnsignedCharCovariantVector()
+{
+  itk::CovariantVector<unsigned char, 3> v;
+  v.Fill(0);
+  //std::cout << v << std::endl;
+
+  TypeTraits<itk::CovariantVector<unsigned char, 3> >::ComponentType c = 2.3f;
+  std::cout << static_cast<float>(c) << std::endl;
+
+  TypeTraits<itk::CovariantVector<unsigned char, 3> >::LargerComponentType larger = 2.3f;
+  std::cout << larger << std::endl;
 }

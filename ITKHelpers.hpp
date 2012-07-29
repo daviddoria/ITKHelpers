@@ -1,6 +1,6 @@
 /*=========================================================================
  *
- *  Copyright David Doria 2011 daviddoria@gmail.com
+ *  Copyright David Doria 2012 daviddoria@gmail.com
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -393,7 +393,8 @@ void ColorToGrayscale(const TInputImage* const colorImage, TOutputImage* const g
 
 
 template<typename TImage>
-void SetRegionToConstant(TImage* image, const itk::ImageRegion<2>& region, const typename TImage::PixelType& value)
+void SetRegionToConstant(TImage* const image, const itk::ImageRegion<2>& region,
+                         const typename TImage::PixelType& value)
 {
   typename itk::ImageRegionIterator<TImage> imageIterator(image, region);
 
@@ -406,7 +407,7 @@ void SetRegionToConstant(TImage* image, const itk::ImageRegion<2>& region, const
 }
 
 template<typename TImage>
-void SetImageToConstant(TImage* image, const typename TImage::PixelType& constant)
+void SetImageToConstant(TImage* const image, const typename TImage::PixelType& constant)
 {
   SetRegionToConstant<TImage>(image, image->GetLargestPossibleRegion(), constant);
 }
@@ -557,8 +558,8 @@ void InitializeImage(const itk::VectorImage<TPixel, 2>* const image, const unsig
 }
 
 template<typename TInputImage, typename TPixelType>
-void AnisotropicBlurAllChannels(const TInputImage* image, itk::VectorImage<TPixelType,2>* output,
-                                const float sigma)
+void BilateralFilterAllChannels(const TInputImage* image, itk::VectorImage<TPixelType,2>* output,
+                                const float domainSigma, const float rangeSigma)
 {
   typedef itk::Image<typename TInputImage::InternalPixelType, 2> ScalarImageType;
 
@@ -585,8 +586,8 @@ void AnisotropicBlurAllChannels(const TInputImage* image, itk::VectorImage<TPixe
     typedef itk::BilateralImageFilter<ScalarImageType, ScalarImageType>  BilateralFilterType;
     typename BilateralFilterType::Pointer bilateralFilter = BilateralFilterType::New();
     bilateralFilter->SetInput(imageChannel);
-    bilateralFilter->SetDomainSigma(sigma);
-    bilateralFilter->SetRangeSigma(sigma);
+    bilateralFilter->SetDomainSigma(domainSigma);
+    bilateralFilter->SetRangeSigma(rangeSigma);
     bilateralFilter->Update();
 
     typename ScalarImageType::Pointer blurred = ScalarImageType::New();
@@ -641,23 +642,48 @@ void ChangeValue(TImage* const image, const typename TImage::PixelType& oldValue
     }
 }
 
+namespace detail
+{
+  template<typename TInputImage, typename TOutputImage>
+  void ExtractChannel(const TInputImage* const image, const unsigned int channel,
+                      TOutputImage* const output)
+  {
+    typedef itk::VectorIndexSelectionCastImageFilter<TInputImage, TOutputImage> IndexSelectionType;
+    typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
+    indexSelectionFilter->SetIndex(channel);
+    indexSelectionFilter->SetInput(image);
+    indexSelectionFilter->Update();
+
+    DeepCopy(indexSelectionFilter->GetOutput(), output);
+  }
+}
+
 template<typename TInputImage, typename TOutputImage>
 void ExtractChannel(const TInputImage* const image, const unsigned int channel,
                     TOutputImage* const output)
 {
-  typedef itk::VectorIndexSelectionCastImageFilter<TInputImage, TOutputImage> IndexSelectionType;
-  typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
-  indexSelectionFilter->SetIndex(channel);
-  indexSelectionFilter->SetInput(image);
-  indexSelectionFilter->Update();
+  detail::ExtractChannel(image, channel, output);
+}
 
-  DeepCopy(indexSelectionFilter->GetOutput(), output);
+template<typename TInputPixelComponent, unsigned int PixelDimension, typename TOutputPixel>
+void ExtractChannel(const itk::Image<itk::CovariantVector<TInputPixelComponent, PixelDimension>, 2>* const image, const unsigned int channel,
+                    itk::Image<TOutputPixel, 2>* const output)
+{
+  detail::ExtractChannel(image, channel, output);
+}
+
+template<typename TInputPixelComponent, unsigned int PixelDimension, typename TOutputPixel>
+void ExtractChannel(const itk::Image<itk::Vector<TInputPixelComponent, PixelDimension>, 2>* const image, const unsigned int channel,
+                    itk::Image<TOutputPixel, 2>* const output)
+{
+  detail::ExtractChannel(image, channel, output);
 }
 
 template<typename TInputPixel, typename TOutputPixel>
 void ExtractChannel(const itk::Image<TInputPixel, 2>* const image, const unsigned int channel,
                     itk::Image<TOutputPixel, 2>* const output)
 {
+  // Here TInputPixel should only be a scalar - there are specializations for CovariantVector and Vector
   if(channel > 0)
   {
     std::stringstream ss;
@@ -1231,6 +1257,23 @@ std::vector<typename TImage::PixelType> GetPixelValues(const TImage* const image
   {
     values.push_back(image->GetPixel(*iter));
   }
+
+  return values;
+}
+
+template<typename TImage>
+std::vector<typename TImage::PixelType> GetPixelValuesInRegion(const TImage* const image,
+                                                               const itk::ImageRegion<2>& region)
+{
+  std::vector<typename TImage::PixelType> values;
+
+  itk::ImageRegionConstIterator<TImage> imageIterator(image, region);
+
+  while(!imageIterator.IsAtEnd())
+    {
+    values.push_back(imageIterator.Get());
+    ++imageIterator;
+    }
 
   return values;
 }
@@ -2442,6 +2485,84 @@ void RandomImage(itk::VectorImage<TPixel, 2>* const image)
     imageIterator.Set(pixel);
     ++imageIterator;
     }
+}
+
+template <typename TValue>
+unsigned int ClosestValueIndex(const std::vector<TValue>& vec, const TValue& value)
+{
+  std::vector<float> distances(vec.size());
+  for(size_t i = 0; i < vec.size(); ++i)
+  {
+    TValue difference = vec[i] - value;
+    float distance = 0.0f;
+    for(unsigned int component = 0; component < Helpers::length(vec); ++component)
+    {
+      distance += fabs(Helpers::index(difference, component));
+    }
+    distances[i] = distance;
+  }
+
+  return Helpers::argmin(distances);
+}
+
+template<typename TComponent, unsigned int NumberOfComponents>
+unsigned int ClosestValueIndex(
+   const std::vector<itk::CovariantVector<TComponent, NumberOfComponents> >& vec,
+   const itk::CovariantVector<TComponent, NumberOfComponents>& value)
+{
+  std::vector<float> distances(vec.size());
+  for(size_t i = 0; i < vec.size(); ++i)
+  {
+    distances[i] = (vec[i] - value).GetSquaredNorm();
+  }
+
+  return Helpers::argmin(distances);
+}
+
+template<typename TImage>
+itk::ImageRegion<2> ComputeBoundingBox(const TImage* const image,
+                                       const typename TImage::PixelType& value)
+{
+  assert(image);
+
+  itk::ImageRegionConstIteratorWithIndex<TImage> imageIterator(image,
+                                                              image->GetLargestPossibleRegion());
+
+  // Initialize backwards (the min is set to the max of the image, and the max
+  // is set to the min of the image)
+  itk::Index<2> min = {{image->GetLargestPossibleRegion().GetSize()[0],
+                        image->GetLargestPossibleRegion().GetSize()[1]}};
+  itk::Index<2> max = {{0, 0}};
+
+  while(!imageIterator.IsAtEnd())
+    {
+    itk::Index<2> currentIndex = imageIterator.GetIndex();
+    if(imageIterator.Get() == value)
+    {
+      if(currentIndex[0] < min[0])
+      {
+        min[0] = currentIndex[0];
+      }
+      if(currentIndex[1] < min[1])
+      {
+        min[1] = currentIndex[1];
+      }
+      if(currentIndex[0] > max[0])
+      {
+        max[0] = currentIndex[0];
+      }
+      if(currentIndex[1] > max[1])
+      {
+        max[1] = currentIndex[1];
+      }
+    }
+    ++imageIterator;
+    }
+
+  // The +1's are fencepost error correction
+  itk::Size<2> size = {{max[0] - min[0] + 1, max[1] - min[1] + 1}}; 
+  itk::ImageRegion<2> region(min, size);
+  return region;
 }
 
 }// end namespace ITKHelpers
