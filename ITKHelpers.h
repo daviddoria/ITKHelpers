@@ -73,16 +73,19 @@ void DeepCopy(const itk::Image<TInputPixel, 2>* const input, itk::Image<TOutputP
 
 /** Deep copy a vector image. */
 template<typename TInputPixel, typename TOutputPixel>
-void DeepCopy(const itk::VectorImage<TInputPixel, 2>* const input, itk::VectorImage<TOutputPixel, 2>* const output);
+void DeepCopy(const itk::VectorImage<TInputPixel, 2>* const input,
+              itk::VectorImage<TOutputPixel, 2>* const output);
 
 /** Deep copy a 'region' of 'input' to the same 'region' in 'output'. */
 template<typename TInputImage, typename TOutputImage>
-void DeepCopyInRegion(const TInputImage* const input, const itk::ImageRegion<2>& region, TOutputImage* const output);
+void DeepCopyInRegion(const TInputImage* const input, const itk::ImageRegion<2>& region,
+                      TOutputImage* const output);
 
 /** Copy the region around 'sourcePosition' with radius 'radius' to the region around
   * 'targetPosition' with radius 'radius'. */
 template <class TImage>
-void CopyRegion(const TImage* const sourceImage, TImage* const targetImage, const itk::Index<2>& sourcePosition,
+void CopyRegion(const TImage* const sourceImage, TImage* const targetImage,
+                const itk::Index<2>& sourcePosition,
                 const itk::Index<2>& targetPosition, const unsigned int radius);
 
 /** Copy 'sourceRegion' in 'sourceImage' to 'targetRegion' in 'targetImage'. */
