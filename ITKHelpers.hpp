@@ -2404,4 +2404,116 @@ std::vector<itk::Index<2> > GetOpenContourOrdering(const TImage* const image, co
 
 }
 
+template<typename TPixel>
+void RandomImage(itk::Image<TPixel, 2>* const image)
+{
+  typedef itk::Image<TPixel, 2> ImageType;
+
+  itk::ImageRegionIterator<ImageType> imageIterator(image, image->GetLargestPossibleRegion());
+
+  while(!imageIterator.IsAtEnd())
+    {
+    imageIterator.Set(rand() % 255);
+
+    ++imageIterator;
+    }
+}
+
+template<typename TPixel>
+void RandomImage(itk::VectorImage<TPixel, 2>* const image)
+{
+  typedef itk::VectorImage<TPixel, 2> ImageType;
+
+  itk::ImageRegionIterator<ImageType> imageIterator(image, image->GetLargestPossibleRegion());
+
+  while(!imageIterator.IsAtEnd())
+    {
+    typename ImageType::PixelType pixel(image->GetNumberOfComponentsPerPixel());
+    for(unsigned int component = 0; component < pixel.GetSize(); ++component)
+      {
+      pixel[component] = rand() % 255;
+      }
+    imageIterator.Set(pixel);
+    ++imageIterator;
+    }
+}
+
+template <typename TValue>
+unsigned int ClosestValueIndex(const std::vector<TValue>& vec, const TValue& value)
+{
+  std::vector<float> distances(vec.size());
+  for(size_t i = 0; i < vec.size(); ++i)
+  {
+    TValue difference = vec[i] - value;
+    float distance = 0.0f;
+    for(unsigned int component = 0; component < Helpers::length(vec); ++component)
+    {
+      distance += fabs(Helpers::index(difference, component));
+    }
+    distances[i] = distance;
+  }
+
+  return Helpers::argmin(distances);
+}
+
+template<typename TComponent, unsigned int NumberOfComponents>
+unsigned int ClosestValueIndex(
+   const std::vector<itk::CovariantVector<TComponent, NumberOfComponents> >& vec,
+   const itk::CovariantVector<TComponent, NumberOfComponents>& value)
+{
+  std::vector<float> distances(vec.size());
+  for(size_t i = 0; i < vec.size(); ++i)
+  {
+    distances[i] = (vec[i] - value).GetSquaredNorm();
+  }
+
+  return Helpers::argmin(distances);
+}
+
+template<typename TImage>
+itk::ImageRegion<2> ComputeBoundingBox(const TImage* const image,
+                                       const typename TImage::PixelType& value)
+{
+  assert(image);
+
+  itk::ImageRegionConstIteratorWithIndex<TImage> imageIterator(image,
+                                                              image->GetLargestPossibleRegion());
+
+  // Initialize backwards (the min is set to the max of the image, and the max
+  // is set to the min of the image)
+  itk::Index<2> min = {{image->GetLargestPossibleRegion().GetSize()[0],
+                        image->GetLargestPossibleRegion().GetSize()[1]}};
+  itk::Index<2> max = {{0, 0}};
+
+  while(!imageIterator.IsAtEnd())
+    {
+    itk::Index<2> currentIndex = imageIterator.GetIndex();
+    if(imageIterator.Get() == value)
+    {
+      if(currentIndex[0] < min[0])
+      {
+        min[0] = currentIndex[0];
+      }
+      if(currentIndex[1] < min[1])
+      {
+        min[1] = currentIndex[1];
+      }
+      if(currentIndex[0] > max[0])
+      {
+        max[0] = currentIndex[0];
+      }
+      if(currentIndex[1] > max[1])
+      {
+        max[1] = currentIndex[1];
+      }
+    }
+    ++imageIterator;
+    }
+
+  // The +1's are fencepost error correction
+  itk::Size<2> size = {{max[0] - min[0] + 1, max[1] - min[1] + 1}}; 
+  itk::ImageRegion<2> region(min, size);
+  return region;
+}
+
 }// end namespace ITKHelpers

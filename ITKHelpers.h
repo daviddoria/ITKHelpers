@@ -539,7 +539,8 @@ void WriteRegion(const TImage* const image, const itk::ImageRegion<2>& region, c
 template <typename T>
 void OutputVector(const std::vector<T>& v);
 
-/** Combine two VectorImages into a VectorImage where the number of channels is the sum of the two input images. */
+/** Combine two VectorImages into a VectorImage where the number of channels is
+  * the sum of the two input images. */
 template <typename TPixel>
 void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1,
                  const typename itk::VectorImage<TPixel, 2>* const image2,
@@ -554,12 +555,43 @@ template <typename TImage>
 void DrawRectangle(TImage* const image, const typename TImage::PixelType& value,
                    const itk::Index<2>& corner0, const itk::Index<2>& corner1);
 
+/** Interpolate points between p0 and p1 by weighting the endpoint values by their
+  * distance to the current pixel.*/
+template<typename TImage>
+void InterpolateLineBetweenPoints(TImage* const image, const itk::Index<2>& p0, const itk::Index<2>& p1);
+
+/** Generate a random image. */
+template<typename TPixel>
+void RandomImage(itk::Image<TPixel, 2>* const image);
+
+template<typename TPixel>
+void RandomImage(itk::VectorImage<TPixel, 2>* const image);
+
+/** Find which element in 'vec' is closest to 'value'. */
+template<typename TValue>
+unsigned int ClosestValueIndex(const std::vector<TValue>& vec,
+                               const TValue& value);
+
+/** Find which element in 'vec' is closest to 'value'. Specialized for
+  * itk::CovariantVector (because it has a special GetSquaredNorm() function). */
+template<typename TComponent, unsigned int NumberOfComponents>
+unsigned int ClosestValueIndex(
+   const std::vector<itk::CovariantVector<TComponent, NumberOfComponents> >& vec,
+   const itk::CovariantVector<TComponent, NumberOfComponents>& value);
+
+/** Compute the bounding box of all pixels with 'value'. */
+template<typename TImage>
+itk::ImageRegion<2> ComputeBoundingBox(const TImage* const image,
+                                       const typename TImage::PixelType& value);
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Non-template function declarations (defined in Helpers.cpp) ///////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 /** Mark each pixel at the specified 'indices' as a non-zero pixel in 'image' */
-void IndicesToBinaryImage(const std::vector<itk::Index<2> >& indices, UnsignedCharScalarImageType* const image);
+void IndicesToBinaryImage(const std::vector<itk::Index<2> >& indices,
+                          UnsignedCharScalarImageType* const image);
 
 /** Get the number of components per pixel in an image file. */
 unsigned int GetNumberOfComponentsPerPixelInFile(const std::string& filename);
