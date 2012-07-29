@@ -1,6 +1,6 @@
 /*=========================================================================
  *
- *  Copyright David Doria 2011 daviddoria@gmail.com
+ *  Copyright David Doria 2012 daviddoria@gmail.com
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -393,7 +393,8 @@ void ColorToGrayscale(const TInputImage* const colorImage, TOutputImage* const g
 
 
 template<typename TImage>
-void SetRegionToConstant(TImage* image, const itk::ImageRegion<2>& region, const typename TImage::PixelType& value)
+void SetRegionToConstant(TImage* const image, const itk::ImageRegion<2>& region,
+                         const typename TImage::PixelType& value)
 {
   typename itk::ImageRegionIterator<TImage> imageIterator(image, region);
 
@@ -406,7 +407,7 @@ void SetRegionToConstant(TImage* image, const itk::ImageRegion<2>& region, const
 }
 
 template<typename TImage>
-void SetImageToConstant(TImage* image, const typename TImage::PixelType& constant)
+void SetImageToConstant(TImage* const image, const typename TImage::PixelType& constant)
 {
   SetRegionToConstant<TImage>(image, image->GetLargestPossibleRegion(), constant);
 }
@@ -557,8 +558,8 @@ void InitializeImage(const itk::VectorImage<TPixel, 2>* const image, const unsig
 }
 
 template<typename TInputImage, typename TPixelType>
-void AnisotropicBlurAllChannels(const TInputImage* image, itk::VectorImage<TPixelType,2>* output,
-                                const float sigma)
+void BilateralFilterAllChannels(const TInputImage* image, itk::VectorImage<TPixelType,2>* output,
+                                const float domainSigma, const float rangeSigma)
 {
   typedef itk::Image<typename TInputImage::InternalPixelType, 2> ScalarImageType;
 
@@ -585,8 +586,8 @@ void AnisotropicBlurAllChannels(const TInputImage* image, itk::VectorImage<TPixe
     typedef itk::BilateralImageFilter<ScalarImageType, ScalarImageType>  BilateralFilterType;
     typename BilateralFilterType::Pointer bilateralFilter = BilateralFilterType::New();
     bilateralFilter->SetInput(imageChannel);
-    bilateralFilter->SetDomainSigma(sigma);
-    bilateralFilter->SetRangeSigma(sigma);
+    bilateralFilter->SetDomainSigma(domainSigma);
+    bilateralFilter->SetRangeSigma(rangeSigma);
     bilateralFilter->Update();
 
     typename ScalarImageType::Pointer blurred = ScalarImageType::New();
@@ -641,23 +642,48 @@ void ChangeValue(TImage* const image, const typename TImage::PixelType& oldValue
     }
 }
 
+namespace detail
+{
+  template<typename TInputImage, typename TOutputImage>
+  void ExtractChannel(const TInputImage* const image, const unsigned int channel,
+                      TOutputImage* const output)
+  {
+    typedef itk::VectorIndexSelectionCastImageFilter<TInputImage, TOutputImage> IndexSelectionType;
+    typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
+    indexSelectionFilter->SetIndex(channel);
+    indexSelectionFilter->SetInput(image);
+    indexSelectionFilter->Update();
+
+    DeepCopy(indexSelectionFilter->GetOutput(), output);
+  }
+}
+
 template<typename TInputImage, typename TOutputImage>
 void ExtractChannel(const TInputImage* const image, const unsigned int channel,
                     TOutputImage* const output)
 {
-  typedef itk::VectorIndexSelectionCastImageFilter<TInputImage, TOutputImage> IndexSelectionType;
-  typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
-  indexSelectionFilter->SetIndex(channel);
-  indexSelectionFilter->SetInput(image);
-  indexSelectionFilter->Update();
+  detail::ExtractChannel(image, channel, output);
+}
 
-  DeepCopy(indexSelectionFilter->GetOutput(), output);
+template<typename TInputPixelComponent, unsigned int PixelDimension, typename TOutputPixel>
+void ExtractChannel(const itk::Image<itk::CovariantVector<TInputPixelComponent, PixelDimension>, 2>* const image, const unsigned int channel,
+                    itk::Image<TOutputPixel, 2>* const output)
+{
+  detail::ExtractChannel(image, channel, output);
+}
+
+template<typename TInputPixelComponent, unsigned int PixelDimension, typename TOutputPixel>
+void ExtractChannel(const itk::Image<itk::Vector<TInputPixelComponent, PixelDimension>, 2>* const image, const unsigned int channel,
+                    itk::Image<TOutputPixel, 2>* const output)
+{
+  detail::ExtractChannel(image, channel, output);
 }
 
 template<typename TInputPixel, typename TOutputPixel>
 void ExtractChannel(const itk::Image<TInputPixel, 2>* const image, const unsigned int channel,
                     itk::Image<TOutputPixel, 2>* const output)
 {
+  // Here TInputPixel should only be a scalar - there are specializations for CovariantVector and Vector
   if(channel > 0)
   {
     std::stringstream ss;
@@ -1231,6 +1257,23 @@ std::vector<typename TImage::PixelType> GetPixelValues(const TImage* const image
   {
     values.push_back(image->GetPixel(*iter));
   }
+
+  return values;
+}
+
+template<typename TImage>
+std::vector<typename TImage::PixelType> GetPixelValuesInRegion(const TImage* const image,
+                                                               const itk::ImageRegion<2>& region)
+{
+  std::vector<typename TImage::PixelType> values;
+
+  itk::ImageRegionConstIterator<TImage> imageIterator(image, region);
+
+  while(!imageIterator.IsAtEnd())
+    {
+    values.push_back(imageIterator.Get());
+    ++imageIterator;
+    }
 
   return values;
 }
@@ -2055,6 +2098,12 @@ template<typename TImage>
 void BlurAllChannels(const TImage* const image, TImage* const output,
                      const float sigma)
 {
+  if(sigma <= 0)
+  {
+    std::stringstream ss;
+    ss << "BlurAllChannels: Sigma must be positive! It is " << sigma;
+    throw std::runtime_error(ss.str());
+  }
   typedef itk::SmoothingRecursiveGaussianImageFilter<
     TImage, TImage >  BlurFilterType;
 
