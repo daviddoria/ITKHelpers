@@ -73,16 +73,19 @@ void DeepCopy(const itk::Image<TInputPixel, 2>* const input, itk::Image<TOutputP
 
 /** Deep copy a vector image. */
 template<typename TInputPixel, typename TOutputPixel>
-void DeepCopy(const itk::VectorImage<TInputPixel, 2>* const input, itk::VectorImage<TOutputPixel, 2>* const output);
+void DeepCopy(const itk::VectorImage<TInputPixel, 2>* const input,
+              itk::VectorImage<TOutputPixel, 2>* const output);
 
 /** Deep copy a 'region' of 'input' to the same 'region' in 'output'. */
 template<typename TInputImage, typename TOutputImage>
-void DeepCopyInRegion(const TInputImage* const input, const itk::ImageRegion<2>& region, TOutputImage* const output);
+void DeepCopyInRegion(const TInputImage* const input, const itk::ImageRegion<2>& region,
+                      TOutputImage* const output);
 
 /** Copy the region around 'sourcePosition' with radius 'radius' to the region around
   * 'targetPosition' with radius 'radius'. */
 template <class TImage>
-void CopyRegion(const TImage* const sourceImage, TImage* const targetImage, const itk::Index<2>& sourcePosition,
+void CopyRegion(const TImage* const sourceImage, TImage* const targetImage,
+                const itk::Index<2>& sourcePosition,
                 const itk::Index<2>& targetPosition, const unsigned int radius);
 
 /** Copy 'sourceRegion' in 'sourceImage' to 'targetRegion' in 'targetImage'. */
@@ -554,7 +557,8 @@ void WriteRegion(const TImage* const image, const itk::ImageRegion<2>& region, c
 template <typename T>
 void OutputVector(const std::vector<T>& v);
 
-/** Combine two VectorImages into a VectorImage where the number of channels is the sum of the two input images. */
+/** Combine two VectorImages into a VectorImage where the number of channels is
+  * the sum of the two input images. */
 template <typename TPixel>
 void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1,
                  const typename itk::VectorImage<TPixel, 2>* const image2,
@@ -581,12 +585,31 @@ void RandomImage(itk::Image<TPixel, 2>* const image);
 template<typename TPixel>
 void RandomImage(itk::VectorImage<TPixel, 2>* const image);
 
+/** Find which element in 'vec' is closest to 'value'. */
+template<typename TValue>
+unsigned int ClosestValueIndex(const std::vector<TValue>& vec,
+                               const TValue& value);
+
+/** Find which element in 'vec' is closest to 'value'. Specialized for
+  * itk::CovariantVector (because it has a special GetSquaredNorm() function). */
+template<typename TComponent, unsigned int NumberOfComponents>
+unsigned int ClosestValueIndex(
+   const std::vector<itk::CovariantVector<TComponent, NumberOfComponents> >& vec,
+   const itk::CovariantVector<TComponent, NumberOfComponents>& value);
+
+/** Compute the bounding box of all pixels with 'value'. */
+template<typename TImage>
+itk::ImageRegion<2> ComputeBoundingBox(const TImage* const image,
+                                       const typename TImage::PixelType& value);
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Non-template function declarations (defined in Helpers.cpp) ///////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 /** Mark each pixel at the specified 'indices' as a non-zero pixel in 'image' */
-void IndicesToBinaryImage(const std::vector<itk::Index<2> >& indices, UnsignedCharScalarImageType* const image);
+void IndicesToBinaryImage(const std::vector<itk::Index<2> >& indices,
+                          UnsignedCharScalarImageType* const image);
 
 /** Get the number of components per pixel in an image file. */
 unsigned int GetNumberOfComponentsPerPixelInFile(const std::string& filename);
@@ -687,10 +710,6 @@ std::vector<itk::ImageRegion<2> > GetPatchesCenteredAtIndices(const std::vector<
 std::vector<itk::ImageRegion<2> > GetValidPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices,
                                                                    const itk::ImageRegion<2>& imageRegion,
                                                                    const unsigned int patchRadius);
-
-/** Find which point in 'vec' is closest to 'value'. */
-unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec,
-                          const itk::CovariantVector<float, 3>& value);
 
 /** Find which location in 'pixels' is closest to 'queryPixel'. */
 unsigned int ClosestIndexId(const std::vector<itk::Index<2> >& pixels, const itk::Index<2>& queryPixel);

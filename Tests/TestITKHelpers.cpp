@@ -41,19 +41,16 @@ static void TestExtractChannels();
 
 static void TestSumOfComponentMagnitudes();
 
+static void TestClosestValueIndex();
+
+void TestDeepCopyFloatScalar();
+void TestDeepCopyUnsignedCharScalar();
+void TestDeepCopyFloatVector();
+void TestDeepCopyUnsignedCharVector();
+
 static void TestGetAllPatchesContainingPixel();
 
 static void TestClosestPoint();
-
-static void TestDownsample();
-static void TestUpsample();
-
-static void TestDeepCopyFloatScalar();
-static void TestDeepCopyUnsignedCharScalar();
-static void TestDeepCopyFloatVector();
-static void TestDeepCopyUnsignedCharVector();
-
-static void TestBreadthFirstOrderingNonZeroPixels();
 
 int main( int argc, char ** argv )
 {
@@ -321,7 +318,7 @@ void TestUpsample()
             << upsampled->GetLargestPossibleRegion().GetSize() << std::endl;
 }
 
-void TestClosestPoint()
+void TestClosestValueIndex()
 {
   typedef itk::CovariantVector<float, 3> PointType;
   std::vector<PointType> vec;
@@ -341,7 +338,7 @@ void TestClosestPoint()
   PointType query;
   query.Fill(1.2);
 
-  unsigned int closestId = ITKHelpers::ClosestPoint(vec, query);
+  unsigned int closestId = ITKHelpers::ClosestValueIndex(vec, query);
 
   std::cout << "Closest point to " << query << " is " << vec[closestId] << std::endl;
 }

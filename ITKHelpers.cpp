@@ -666,20 +666,6 @@ std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<
   return regions;
 }
 
-
-unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec, const itk::CovariantVector<float, 3>& value)
-{
-  typedef itk::CovariantVector<float, 3> PointType;
-
-  std::vector<float> distances(vec.size());
-  for(size_t i = 0; i < vec.size(); ++i)
-  {
-    distances[i] = (vec[i] - value).GetSquaredNorm();
-  }
-
-  return Helpers::argmin(distances);
-}
-
 itk::Size<2> MakeSizeEven(const itk::Size<2>& inputSize)
 {
   itk::Size<2> outputSize = inputSize;
