@@ -1,6 +1,6 @@
 /*=========================================================================
  *
- *  Copyright David Doria 2011 daviddoria@gmail.com
+ *  Copyright David Doria 2012 daviddoria@gmail.com
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -666,20 +666,6 @@ std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<
   return regions;
 }
 
-
-unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec, const itk::CovariantVector<float, 3>& value)
-{
-  typedef itk::CovariantVector<float, 3> PointType;
-
-  std::vector<float> distances(vec.size());
-  for(size_t i = 0; i < vec.size(); ++i)
-  {
-    distances[i] = (vec[i] - value).GetSquaredNorm();
-  }
-
-  return Helpers::argmin(distances);
-}
-
 itk::Size<2> MakeSizeEven(const itk::Size<2>& inputSize)
 {
   itk::Size<2> outputSize = inputSize;
@@ -757,6 +743,25 @@ bool IsNeighbor(const itk::Index<2>& index1, const itk::Index<2>& index2)
     }
   }
   return false;
+}
+
+std::vector<itk::ImageRegion<2> > Get8NeighborRegionsInRegion(const itk::ImageRegion<2>& searchRegion, const itk::Index<2>& pixel,
+                                                              const itk::Size<2>& queryRegionSize)
+{
+  std::vector<itk::ImageRegion<2> > validNeighborRegions;
+
+  std::vector<itk::Index<2> > neighborPixels = Get8NeighborsInRegion(searchRegion, pixel);
+
+  for(unsigned int i = 0; i < neighborPixels.size(); ++i)
+  {
+    itk::ImageRegion<2> region = GetRegionInRadiusAroundPixel(neighborPixels[i], queryRegionSize[0]/2);
+    if(searchRegion.IsInside(region))
+    {
+      validNeighborRegions.push_back(region);
+    }
+  }
+
+  return validNeighborRegions;
 }
 
 } // end namespace
