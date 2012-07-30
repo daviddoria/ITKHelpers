@@ -12,6 +12,7 @@ endif()
 # be used in by a parent project to set the include path
 if(NOT ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
   set(ITKHelpers_includes ${Helpers_includes} ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
+  message("ITKHelpers submodule used from ${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
 
 # Required because of the c++0x used in Helpers
