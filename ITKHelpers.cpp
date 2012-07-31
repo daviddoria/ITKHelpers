@@ -764,4 +764,23 @@ std::vector<itk::ImageRegion<2> > Get8NeighborRegionsInRegion(const itk::ImageRe
   return validNeighborRegions;
 }
 
+itk::ImageRegion<2> DilateRegion(const itk::ImageRegion<2>& region, const unsigned int radius)
+{
+  itk::ImageRegion<2> dilatedRegion;
+
+  itk::Index<2> dilatedRegionCorner = region.GetIndex();
+  dilatedRegionCorner[0] -= (radius + 1);
+  dilatedRegionCorner[1] -= (radius + 1);
+  dilatedRegion.SetIndex(dilatedRegionCorner);
+
+  // 2*radius is the number of pixels that a patch can be shifted and still
+  // touch the original region. The second *2 is because this is possible on both sides.
+  itk::Size<2> dilatedRegionSize = region.GetSize();
+  dilatedRegionSize[0] += (radius*2 * 2);
+  dilatedRegionSize[1] += (radius*2 * 2);
+  dilatedRegion.SetSize(dilatedRegionSize);
+
+  return dilatedRegion;
+}
+
 } // end namespace

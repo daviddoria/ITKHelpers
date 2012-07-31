@@ -740,11 +740,14 @@ itk::ImageIOBase::IOComponentType GetPixelTypeFromFile(const std::string& filena
 void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::ImageRegion<2>& region,
                          const std::string& filename);
 
-/**  Calls Write2DVectorRegion on a full image. */
+/** Calls Write2DVectorRegion on a full image. */
 void Write2DVectorImage(const FloatVector2ImageType* const image, const std::string& filename);
 
-/**  Determine if two pixels touch. */
+/** Determine if two pixels touch. */
 bool IsNeighbor(const itk::Index<2>& index1, const itk::Index<2>& index2);
+
+/** Dilate a region by a radius. */
+itk::ImageRegion<2> DilateRegion(const itk::ImageRegion<2>& region, const unsigned int radius);
 
 namespace detail
 {
