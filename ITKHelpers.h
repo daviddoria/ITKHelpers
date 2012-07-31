@@ -212,6 +212,10 @@ template<typename TImage>
 void XORRegions(const TImage* const image1, const itk::ImageRegion<2>& region1,
                 const TImage* const image2, const itk::ImageRegion<2>& region2, itk::Image<bool, 2>* const output);
 
+/** XOR images. */
+template<typename TImage>
+void XORRegions(const TImage* const image1, const TImage* const image2, itk::Image<bool, 2>* const output);
+
 /** Change the value of all pixels with value = 'oldValue' to 'newValue. */
 template<typename TImage>
 void ChangeValue(const TImage* const image, const typename TImage::PixelType& oldValue,
@@ -533,9 +537,10 @@ bool IsClosedLoop(const TImage* const image, const itk::Index<2>& start);
 template<typename TImage>
 void WriteRGBImage(const TImage* const input, const std::string& filename);
 
-/** Write an image to a file named 'prefix'_'iteration'.mha*/
+/** Write an image to a file named 'prefix'_'iteration'.extension*/
 template <typename TImage>
-void WriteSequentialImage(const TImage* const image, const std::string& filePrefix, const unsigned int iteration);
+void WriteSequentialImage(const TImage* const image, const std::string& filePrefix, const unsigned int iteration,
+                          const unsigned int iterationLength, const std::string& extension);
 
 /** Write 'image' to 'fileName' if 'condition' is true. */
 template <typename TImage>

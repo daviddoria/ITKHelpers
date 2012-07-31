@@ -1185,6 +1185,13 @@ void ANDRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, 
 }
 
 template<typename TImage>
+void XORImages(const TImage* const image1, const TImage* const image2, itk::Image<bool, 2>* const output)
+{
+  assert(image1->GetLargestPossibleRegion() == image2->GetLargestPossibleRegion());
+  XORRegions(image1, image1->GetLargestPossibleRegion(), image2, image2->GetLargestPossibleRegion(), output);
+}
+
+template<typename TImage>
 void XORRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, const TImage* const image2,
                 const itk::ImageRegion<2>& region2, itk::Image<bool, 2>* const output)
 {
@@ -1409,9 +1416,10 @@ void ScaleAllChannelsTo255(TImage* const image)
 
 
 template <typename TImage>
-void WriteSequentialImage(const TImage* const image, const std::string& filePrefix, const unsigned int iteration)
+void WriteSequentialImage(const TImage* const image, const std::string& filePrefix, const unsigned int iteration,
+                          const unsigned int iterationLength, const std::string& extension)
 {
-  std::string fileName = Helpers::GetSequentialFileName(filePrefix, iteration, "mha");
+  std::string fileName = Helpers::GetSequentialFileName(filePrefix, iteration, extension, iterationLength);
 
   WriteImage(image, fileName);
 }
