@@ -783,4 +783,23 @@ itk::ImageRegion<2> DilateRegion(const itk::ImageRegion<2>& region, const unsign
   return dilatedRegion;
 }
 
+itk::ImageRegion<2> ErodeRegion(const itk::ImageRegion<2>& region, const unsigned int radius)
+{
+  itk::ImageRegion<2> erodedRegion;
+
+  itk::Index<2> erodedRegionCorner = region.GetIndex();
+  erodedRegionCorner[0] += (radius + 1);
+  erodedRegionCorner[1] += (radius + 1);
+  erodedRegion.SetIndex(erodedRegionCorner);
+
+  // 2*radius is the number of pixels that a patch can be shifted and still
+  // touch the original region. The second *2 is because this is possible on both sides.
+  itk::Size<2> erodedRegionSize = region.GetSize();
+  erodedRegionSize[0] -= (radius*2 * 2);
+  erodedRegionSize[1] -= (radius*2 * 2);
+  erodedRegion.SetSize(erodedRegionSize);
+
+  return erodedRegion;
+}
+
 } // end namespace

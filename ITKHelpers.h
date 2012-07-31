@@ -751,8 +751,11 @@ void Write2DVectorImage(const FloatVector2ImageType* const image, const std::str
 /** Determine if two pixels touch. */
 bool IsNeighbor(const itk::Index<2>& index1, const itk::Index<2>& index2);
 
-/** Dilate a region by a radius. */
+/** Dilate (expand) a region by a radius. */
 itk::ImageRegion<2> DilateRegion(const itk::ImageRegion<2>& region, const unsigned int radius);
+
+/** Erode (shrink) a region by a radius. */
+itk::ImageRegion<2> ErodeRegion(const itk::ImageRegion<2>& region, const unsigned int radius);
 
 namespace detail
 {
