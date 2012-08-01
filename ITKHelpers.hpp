@@ -53,8 +53,8 @@
 #include "itkVectorIndexSelectionCastImageFilter.h"
 
 // Submodules
-#include "Helpers/Helpers.h"
-#include "Helpers/Statistics.h"
+#include <Helpers/Helpers.h>
+#include <Helpers/Statistics.h>
 
 // Custom
 #include "itkRGBToLabColorSpacePixelAccessor.h"

@@ -25,7 +25,7 @@
 #include "itkVectorIndexSelectionCastImageFilter.h"
 
 // Helpers submodule
-#include "Helpers/Helpers.h"
+#include <Helpers/Helpers.h>
 
 namespace ITKHelpers
 {
@@ -800,6 +800,24 @@ itk::ImageRegion<2> ErodeRegion(const itk::ImageRegion<2>& region, const unsigne
   erodedRegion.SetSize(erodedRegionSize);
 
   return erodedRegion;
+}
+
+void HighlightAndWriteRegions(const itk::Size<2>& imageSize, const std::vector<itk::ImageRegion<2> >& regions, const std::string& filename)
+{
+  UnsignedCharScalarImageType::Pointer image = UnsignedCharScalarImageType::New();
+  itk::Index<2> corner = {{0,0}};
+  
+  itk::ImageRegion<2> region(corner, imageSize);
+  image->SetRegions(region);
+  image->Allocate();
+  image->FillBuffer(0);
+
+  for(size_t i = 0; i < regions.size(); ++i)
+  {
+    SetRegionToConstant(image.GetPointer(), regions[i], 255);
+  }
+
+  WriteImage(image.GetPointer(), filename);
 }
 
 } // end namespace

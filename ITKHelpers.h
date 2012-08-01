@@ -23,7 +23,7 @@
 
 // Submodules
 class Mask;
-#include "Helpers/TypeTraits.h"
+#include <Helpers/TypeTraits.h>
 
 // STL
 #include <string>
@@ -756,6 +756,9 @@ itk::ImageRegion<2> DilateRegion(const itk::ImageRegion<2>& region, const unsign
 
 /** Erode (shrink) a region by a radius. */
 itk::ImageRegion<2> ErodeRegion(const itk::ImageRegion<2>& region, const unsigned int radius);
+
+/** Write an image where the pixels in 'regions' have been colored. */
+void HighlightAndWriteRegions(const itk::Size<2>& imageSize, const std::vector<itk::ImageRegion<2> >& regions, const std::string& filename);
 
 namespace detail
 {
