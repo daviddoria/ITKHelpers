@@ -1816,6 +1816,26 @@ void VectorImageToRGBImage(const TImage* const image, RGBImageType* const rgbIma
     }
 }
 
+template <typename TComponent, unsigned int Dimension>
+std::string VectorToString(const itk::CovariantVector<TComponent, Dimension>& vec)
+{
+  std::stringstream ss;
+  ss << "(";
+  for(unsigned int i = 0; i < vec.GetNumberOfComponents(); ++i)
+  {
+    ss << static_cast<float>(vec[i]);
+    if(i == vec.GetNumberOfComponents() - 1)
+    {
+      ss << ")";
+    }
+    else
+    {
+      ss << ", ";
+    }
+  }
+  return ss.str();
+}
+
 template <typename TVector>
 std::string VectorToString(const TVector& vec)
 {

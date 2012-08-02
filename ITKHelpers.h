@@ -452,6 +452,10 @@ std::vector<typename TImage::InternalPixelType> ComputeMaxOfAllChannels(const TI
 template <typename TVector>
 std::string VectorToString(const TVector& vec);
 
+/** Create a string representation of an itk::CovariantVector. */
+template <typename TComponent, unsigned int Dimension>
+std::string VectorToString(const itk::CovariantVector<TComponent, Dimension>& vec);
+
 /** Downsample 'image' by 'factor'. */
 template <typename TImage>
 void Downsample(const TImage* const image, const float factor, TImage* const output);
