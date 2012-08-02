@@ -58,6 +58,7 @@
 
 // Custom
 #include "itkRGBToLabColorSpacePixelAccessor.h"
+#include "itkRGBToHSVColorSpacePixelAccessor.h"
 
 namespace ITKHelpers
 {
@@ -1793,20 +1794,18 @@ void WriteVectorImageRegionAsRGB(const itk::VectorImage<TPixel,2>* const image,
   WriteImage(rgbImage.GetPointer(), filename);
 }
 
-template <typename TPixel>
-void VectorImageToRGBImage(const itk::VectorImage<TPixel,2>* const image, RGBImageType* const rgbImage)
+template <typename TImage>
+void VectorImageToRGBImage(const TImage* const image, RGBImageType* const rgbImage)
 {
-  typedef itk::VectorImage<TPixel,2> VectorImageType;
-
   // Only the first 3 components are used (assumed to be RGB)
   rgbImage->SetRegions(image->GetLargestPossibleRegion());
   rgbImage->Allocate();
 
-  itk::ImageRegionConstIteratorWithIndex<VectorImageType> inputIterator(image, image->GetLargestPossibleRegion());
+  itk::ImageRegionConstIteratorWithIndex<TImage> inputIterator(image, image->GetLargestPossibleRegion());
 
   while(!inputIterator.IsAtEnd())
     {
-    typename VectorImageType::PixelType inputPixel = inputIterator.Get();
+    typename TImage::PixelType inputPixel = inputIterator.Get();
     RGBImageType::PixelType outputPixel;
     outputPixel.SetRed(inputPixel[0]);
     outputPixel.SetGreen(inputPixel[1]);
@@ -2052,6 +2051,57 @@ void RGBImageToVectorImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* co
     ++imageIterator;
     }
 }
+
+
+template <typename TInputImage, typename TOutputImage>
+void ITKImageToHSVImage(const TInputImage* const image, TOutputImage* const hsvImage)
+{
+  // Convert the first 3 channels to CIELab (this assumes the first 3 channels are RGB)
+  RGBImageType::Pointer rgbImage = RGBImageType::New();
+  VectorImageToRGBImage(image, rgbImage.GetPointer());
+  RGBImageToHSVImage(rgbImage, hsvImage);
+}
+
+template<typename TOutputImage>
+void RGBImageToHSVImage(RGBImageType* const rgbImage, TOutputImage* const hsvImage)
+{
+  // The adaptor expects to be able to modify the image (even though we don't in this case),
+  // so we cannot pass a const RGBImageType* const.
+
+  //itkConceptMacro( nameOfCheck, ( itk::Concept::IsFloatingPoint<typename TOutputImage::ValueType> ) );
+
+  typedef itk::Accessor::RGBToHSVColorSpacePixelAccessor<unsigned char, float> AccessorType;
+  typedef itk::ImageAdaptor<RGBImageType, AccessorType> RGBToHSVAdaptorType;
+  RGBToHSVAdaptorType::Pointer rgbToHSVAdaptor = RGBToHSVAdaptorType::New();
+  rgbToHSVAdaptor->SetImage(rgbImage);
+
+  // Disassembler
+  typedef itk::VectorIndexSelectionCastImageFilter<RGBToHSVAdaptorType, FloatScalarImageType>
+               VectorIndexSelectionFilterType;
+  VectorIndexSelectionFilterType::Pointer vectorIndexSelectionFilter = VectorIndexSelectionFilterType::New();
+  vectorIndexSelectionFilter->SetInput(rgbToHSVAdaptor);
+
+  std::vector<FloatScalarImageType::Pointer> channels;
+
+  // Reassembler
+  typedef itk::ComposeImageFilter<FloatScalarImageType> ReassemblerType;
+  ReassemblerType::Pointer reassembler = ReassemblerType::New();
+
+  for(unsigned int i = 0; i < 3; ++i)
+    {
+    channels.push_back(FloatScalarImageType::New());
+    vectorIndexSelectionFilter->SetIndex(i);
+    vectorIndexSelectionFilter->Update();
+    DeepCopy(vectorIndexSelectionFilter->GetOutput(), channels[i].GetPointer());
+    reassembler->SetInput(i, channels[i]);
+    }
+
+  reassembler->Update();
+
+  // Copy to the output
+  DeepCopy(reassembler->GetOutput(), hsvImage);
+}
+
 
 template <typename TInputImage, typename TOutputImage>
 void ITKImageToCIELabImage(const TInputImage* const image, TOutputImage* const cielabImage)

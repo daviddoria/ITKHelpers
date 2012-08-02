@@ -46,6 +46,15 @@ namespace ITKHelpers
 /** Convert an RGB image to the CIELAB colorspace.
  * 'rgbImage' cannot be const because the adaptor doesn't allow it. */
 template<typename TOutputImage>
+void RGBImageToHSVImage(RGBImageType* const rgbImage, TOutputImage* const hsvImage);
+
+/** Convert an image to the HSV colorspace. */
+template <typename TInputImage, typename TOutputImage>
+void ITKImageToHSVImage(const TInputImage* const image, TOutputImage* const hsvImage);
+
+/** Convert an RGB image to the CIELAB colorspace.
+ * 'rgbImage' cannot be const because the adaptor doesn't allow it. */
+template<typename TOutputImage>
 void RGBImageToCIELabImage(RGBImageType* const rgbImage, TOutputImage* const cielabImage);
 
 /** Determine if any of the 8 neighbors pixels has the specified value. */
@@ -570,8 +579,8 @@ void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1,
                  typename itk::VectorImage<TPixel, 2>* const output);
 
 /** Convert the first 3 channels of a float vector image to an unsigned char/color/rgb image. */
-template <typename TPixel>
-void VectorImageToRGBImage(const itk::VectorImage<TPixel, 2>* const image, RGBImageType* const rgbImage);
+template <typename TImage>
+void VectorImageToRGBImage(const TImage* const image, RGBImageType* const rgbImage);
 
 /** Draw a rectangle in an image. */
 template <typename TImage>
