@@ -49,6 +49,7 @@
 #include "itkResampleImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkSmoothingRecursiveGaussianImageFilter.h"
+#include "itkVectorCastImageFilter.h"
 #include "itkVectorMagnitudeImageFilter.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
 
@@ -2644,6 +2645,18 @@ itk::ImageRegion<2> ComputeBoundingBox(const TImage* const image,
   itk::Size<2> size = {{max[0] - min[0] + 1, max[1] - min[1] + 1}}; 
   itk::ImageRegion<2> region(min, size);
   return region;
+}
+
+template<typename TInputImage,typename TOutputImage>
+void CastImage(const TInputImage* const inputImage, TOutputImage* const outputImage)
+{
+  //typedef itk::CastImageFilter<TInputImage, TOutputImage> CastFilterType;
+  typedef itk::VectorCastImageFilter<TInputImage, TOutputImage> CastFilterType;
+  typename CastFilterType::Pointer castFilter = CastFilterType::New();
+  castFilter->SetInput(inputImage);
+  castFilter->Update();
+
+  DeepCopy(castFilter->GetOutput(), outputImage);
 }
 
 }// end namespace ITKHelpers
