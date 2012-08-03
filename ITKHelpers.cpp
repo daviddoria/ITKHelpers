@@ -1,6 +1,6 @@
 /*=========================================================================
  *
- *  Copyright David Doria 2011 daviddoria@gmail.com
+ *  Copyright David Doria 2012 daviddoria@gmail.com
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
 #include "itkVectorIndexSelectionCastImageFilter.h"
 
 // Helpers submodule
-#include "Helpers/Helpers.h"
+#include <Helpers/Helpers.h>
 
 namespace ITKHelpers
 {
@@ -666,20 +666,6 @@ std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<
   return regions;
 }
 
-
-unsigned int ClosestPoint(const std::vector<itk::CovariantVector<float, 3> >& vec, const itk::CovariantVector<float, 3>& value)
-{
-  typedef itk::CovariantVector<float, 3> PointType;
-
-  std::vector<float> distances(vec.size());
-  for(size_t i = 0; i < vec.size(); ++i)
-  {
-    distances[i] = (vec[i] - value).GetSquaredNorm();
-  }
-
-  return Helpers::argmin(distances);
-}
-
 itk::Size<2> MakeSizeEven(const itk::Size<2>& inputSize)
 {
   itk::Size<2> outputSize = inputSize;
@@ -757,6 +743,81 @@ bool IsNeighbor(const itk::Index<2>& index1, const itk::Index<2>& index2)
     }
   }
   return false;
+}
+
+std::vector<itk::ImageRegion<2> > Get8NeighborRegionsInRegion(const itk::ImageRegion<2>& searchRegion, const itk::Index<2>& pixel,
+                                                              const itk::Size<2>& queryRegionSize)
+{
+  std::vector<itk::ImageRegion<2> > validNeighborRegions;
+
+  std::vector<itk::Index<2> > neighborPixels = Get8NeighborsInRegion(searchRegion, pixel);
+
+  for(unsigned int i = 0; i < neighborPixels.size(); ++i)
+  {
+    itk::ImageRegion<2> region = GetRegionInRadiusAroundPixel(neighborPixels[i], queryRegionSize[0]/2);
+    if(searchRegion.IsInside(region))
+    {
+      validNeighborRegions.push_back(region);
+    }
+  }
+
+  return validNeighborRegions;
+}
+
+itk::ImageRegion<2> DilateRegion(const itk::ImageRegion<2>& region, const unsigned int radius)
+{
+  itk::ImageRegion<2> dilatedRegion;
+
+  itk::Index<2> dilatedRegionCorner = region.GetIndex();
+  dilatedRegionCorner[0] -= (radius + 1);
+  dilatedRegionCorner[1] -= (radius + 1);
+  dilatedRegion.SetIndex(dilatedRegionCorner);
+
+  // 2*radius is the number of pixels that a patch can be shifted and still
+  // touch the original region. The second *2 is because this is possible on both sides.
+  itk::Size<2> dilatedRegionSize = region.GetSize();
+  dilatedRegionSize[0] += (radius*2 * 2);
+  dilatedRegionSize[1] += (radius*2 * 2);
+  dilatedRegion.SetSize(dilatedRegionSize);
+
+  return dilatedRegion;
+}
+
+itk::ImageRegion<2> ErodeRegion(const itk::ImageRegion<2>& region, const unsigned int radius)
+{
+  itk::ImageRegion<2> erodedRegion;
+
+  itk::Index<2> erodedRegionCorner = region.GetIndex();
+  erodedRegionCorner[0] += (radius + 1);
+  erodedRegionCorner[1] += (radius + 1);
+  erodedRegion.SetIndex(erodedRegionCorner);
+
+  // 2*radius is the number of pixels that a patch can be shifted and still
+  // touch the original region. The second *2 is because this is possible on both sides.
+  itk::Size<2> erodedRegionSize = region.GetSize();
+  erodedRegionSize[0] -= (radius*2 * 2);
+  erodedRegionSize[1] -= (radius*2 * 2);
+  erodedRegion.SetSize(erodedRegionSize);
+
+  return erodedRegion;
+}
+
+void HighlightAndWriteRegions(const itk::Size<2>& imageSize, const std::vector<itk::ImageRegion<2> >& regions, const std::string& filename)
+{
+  UnsignedCharScalarImageType::Pointer image = UnsignedCharScalarImageType::New();
+  itk::Index<2> corner = {{0,0}};
+  
+  itk::ImageRegion<2> region(corner, imageSize);
+  image->SetRegions(region);
+  image->Allocate();
+  image->FillBuffer(0);
+
+  for(size_t i = 0; i < regions.size(); ++i)
+  {
+    SetRegionToConstant(image.GetPointer(), regions[i], 255);
+  }
+
+  WriteImage(image.GetPointer(), filename);
 }
 
 } // end namespace
