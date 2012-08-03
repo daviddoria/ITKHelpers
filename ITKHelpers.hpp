@@ -661,7 +661,7 @@ void ExtractChannel(const itk::Image<TInputPixel, 2>* const image, const unsigne
   if(channel > 0)
   {
     std::stringstream ss;
-    ss << "Cannot ReplaceChannel " << channel << "on a scalar image!";
+    ss << "Cannot ExtractChannel " << channel << "on a scalar image!";
     throw std::runtime_error(ss.str());
   }
   DeepCopy(image, output);
