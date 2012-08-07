@@ -216,14 +216,16 @@ template<typename TImage>
 void ANDRegions(const TImage* const image1, const itk::ImageRegion<2>& region1,
                 const TImage* const image2, const itk::ImageRegion<2>& region2, itk::Image<bool, 2>* const output);
 
-/** XOR regions. */
-template<typename TImage>
-void XORRegions(const TImage* const image1, const itk::ImageRegion<2>& region1,
-                const TImage* const image2, const itk::ImageRegion<2>& region2, itk::Image<bool, 2>* const output);
-
 /** XOR images. */
-template<typename TImage>
-void XORRegions(const TImage* const image1, const TImage* const image2, itk::Image<bool, 2>* const output);
+template<typename TInputImage, typename TOutputImage>
+void XORImages(const TInputImage* const image1, const TInputImage* const image2, TOutputImage* const output,
+               const typename TOutputImage::PixelType& trueValue = 1);
+
+/** XOR regions. */
+template<typename TInputImage, typename TOutputImage>
+void XORRegions(const TInputImage* const image1, const itk::ImageRegion<2>& region1,
+                const TInputImage* const image2, const itk::ImageRegion<2>& region2, TOutputImage* const output,
+                const typename TOutputImage::PixelType& trueValue = 1);
 
 /** Change the value of all pixels with value = 'oldValue' to 'newValue. */
 template<typename TImage>

@@ -1185,35 +1185,40 @@ void ANDRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, 
     }
 }
 
-template<typename TImage>
-void XORImages(const TImage* const image1, const TImage* const image2, itk::Image<bool, 2>* const output)
+template<typename TInputImage, typename TOutputImage>
+void XORImages(const TInputImage* const image1, const TInputImage* const image2, TOutputImage* const output,
+               const typename TOutputImage::PixelType& trueValue)
 {
   assert(image1->GetLargestPossibleRegion() == image2->GetLargestPossibleRegion());
-  XORRegions(image1, image1->GetLargestPossibleRegion(), image2, image2->GetLargestPossibleRegion(), output);
+  XORRegions(image1, image1->GetLargestPossibleRegion(), image2, image2->GetLargestPossibleRegion(), output, trueValue);
 }
 
-template<typename TImage>
-void XORRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, const TImage* const image2,
-                const itk::ImageRegion<2>& region2, itk::Image<bool, 2>* const output)
+template<typename TInputImage, typename TOutputImage>
+void XORRegions(const TInputImage* const image1, const itk::ImageRegion<2>& region1, const TInputImage* const image2,
+                const itk::ImageRegion<2>& region2, TOutputImage* const output, const typename TOutputImage::PixelType& trueValue)
 {
   assert(region1.GetSize() == region2.GetSize());
 
   itk::ImageRegion<2> outputRegion = CornerRegion(region1.GetSize());
   output->SetRegions(outputRegion);
   output->Allocate();
+  output->FillBuffer(0);
 
-  itk::ImageRegionConstIterator<TImage> image1Iterator(image1, region1);
-  itk::ImageRegionConstIterator<TImage> image2Iterator(image2, region2);
+  itk::ImageRegionConstIterator<TInputImage> image1Iterator(image1, region1);
+  itk::ImageRegionConstIterator<TInputImage> image2Iterator(image2, region2);
 
   while(!image1Iterator.IsAtEnd())
-    {
+  {
     bool result = image1Iterator.Get() ^ image2Iterator.Get(); // ^ is XOR (exclusive OR)
-    itk::Index<2> index = Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >
-                          (image1Iterator.GetIndex() - region1.GetIndex());
-    output->SetPixel(index, result);
+    if(result)
+    {
+      itk::Index<2> index = Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >
+                            (image1Iterator.GetIndex() - region1.GetIndex());
+      output->SetPixel(index, trueValue);
+    }
     ++image1Iterator;
     ++image2Iterator;
-    }
+  }
 }
 
 template<typename TImage>
