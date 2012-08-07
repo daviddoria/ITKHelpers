@@ -52,6 +52,8 @@ static void TestGetAllPatchesContainingPixel();
 
 static void TestClosestPoint();
 
+static void TestGetBoundaryPixels();
+
 int main( int argc, char ** argv )
 {
 //   TestRandomImage();
@@ -72,7 +74,7 @@ int main( int argc, char ** argv )
 // 
 //   TestHistogramOfGradients();
 // 
-   TestExtractChannel();
+//    TestExtractChannel();
 //   TestExtractChannels();
 // 
 //   TestSumOfComponentMagnitudes();
@@ -89,6 +91,7 @@ int main( int argc, char ** argv )
 //   TestDeepCopyFloatVector();
 //   TestDeepCopyUnsignedCharVector();
 
+  TestGetBoundaryPixels();
   return 0;
 }
 
@@ -689,4 +692,20 @@ void TestRandomImage()
 
   ITKHelpers::RandomImage(image.GetPointer());
   ITKHelpers::WriteImage(image.GetPointer(), "random.png");
+}
+
+void TestGetBoundaryPixels()
+{
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{3,3}};
+  itk::ImageRegion<2> region(corner,size);
+
+  unsigned int thickness = 1;
+  
+  std::vector<itk::Index<2> > boundaryPixels = ITKHelpers::GetBoundaryPixels(region, thickness);
+
+  for(size_t i = 0; i < boundaryPixels.size(); ++i)
+  {
+    std::cout << boundaryPixels[i] << std::endl;
+  }
 }

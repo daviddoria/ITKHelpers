@@ -366,6 +366,31 @@ std::vector<itk::Offset<2> > IndicesToOffsets(const std::vector<itk::Index<2> >&
   return offsets;
 }
 
+std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region, const unsigned int thickness)
+{
+  std::vector<itk::Index<2> > boundaryPixels;
+
+  typedef itk::Image<float,2> DummyImageType;
+  DummyImageType::Pointer dummyImage = DummyImageType::New();
+  dummyImage->SetRegions(region);
+
+  itk::ImageRegionIteratorWithIndex<DummyImageType> imageIterator(dummyImage, region);
+
+  while(!imageIterator.IsAtEnd())
+  {
+    if( (abs(imageIterator.GetIndex()[0] - region.GetIndex()[0]) < thickness) ||
+        (abs(imageIterator.GetIndex()[0] - (region.GetIndex()[0] + region.GetSize()[0] - 1)) < thickness) ||
+        (abs(imageIterator.GetIndex()[1] - region.GetIndex()[1]) < thickness) ||
+        (abs(imageIterator.GetIndex()[1] - (region.GetIndex()[1] + region.GetSize()[1] - 1)) < thickness))
+    {
+      boundaryPixels.push_back(imageIterator.GetIndex());
+    }
+    ++imageIterator;
+  }
+
+  return boundaryPixels;
+}
+
 std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region)
 {
   std::vector<itk::Index<2> > boundaryPixels;

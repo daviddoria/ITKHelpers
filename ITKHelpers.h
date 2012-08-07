@@ -708,6 +708,9 @@ std::vector<itk::Offset<2> > IndicesToOffsets(const std::vector<itk::Index<2> >&
 /** Get the locations of the pixels on the boundary of a region. */
 std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region);
 
+/** Get the locations of the pixels within 'thickness' on the boundary (interior only) of a region. */
+std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region, const unsigned int thickness);
+
 /** Given a list of pixels, form them into an image, dilate the image,
   * and get the list of pixels in the dilated image. */
 std::vector<itk::Index<2> > DilatePixelList(const std::vector<itk::Index<2> >& pixelList,
