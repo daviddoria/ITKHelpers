@@ -21,9 +21,12 @@ if(UNIX)
 endif(UNIX)
 
 # ITK
-FIND_PACKAGE(ITK REQUIRED ITKCommon ITKIOImageBase ITKIOPNG
-             ITKImageIntensity ITKImageFeature ITKMathematicalMorphology ITKBinaryMathematicalMorphology)
-INCLUDE(${ITK_USE_FILE})
+if(NOT ITK_FOUND)
+  FIND_PACKAGE(ITK REQUIRED ITKCommon ITKIOImageBase ITKIOPNG
+                            ITKImageIntensity ITKImageFeature ITKMathematicalMorphology
+                            ITKBinaryMathematicalMorphology)
+  INCLUDE(${ITK_USE_FILE})
+endif()
 
 add_library(ITKHelpers ITKHelpers.cpp)
 target_link_libraries(ITKHelpers Helpers ${ITK_LIBRARIES})
