@@ -23,7 +23,7 @@
 
 // Submodules
 class Mask;
-#include "Helpers/TypeTraits.h"
+#include <Helpers/TypeTraits.h>
 
 // STL
 #include <string>
@@ -42,6 +42,15 @@ namespace ITKHelpers
 ////////////////////////////////////////////////////////////////////////
 ///////// Function templates (defined in ITKHelpers.hpp) /////////
 ////////////////////////////////////////////////////////////////////////
+
+/** Convert an RGB image to the CIELAB colorspace.
+ * 'rgbImage' cannot be const because the adaptor doesn't allow it. */
+template<typename TOutputImage>
+void RGBImageToHSVImage(RGBImageType* const rgbImage, TOutputImage* const hsvImage);
+
+/** Convert an image to the HSV colorspace. */
+template <typename TInputImage, typename TOutputImage>
+void ITKImageToHSVImage(const TInputImage* const image, TOutputImage* const hsvImage);
 
 /** Convert an RGB image to the CIELAB colorspace.
  * 'rgbImage' cannot be const because the adaptor doesn't allow it. */
@@ -207,10 +216,16 @@ template<typename TImage>
 void ANDRegions(const TImage* const image1, const itk::ImageRegion<2>& region1,
                 const TImage* const image2, const itk::ImageRegion<2>& region2, itk::Image<bool, 2>* const output);
 
+/** XOR images. */
+template<typename TInputImage, typename TOutputImage>
+void XORImages(const TInputImage* const image1, const TInputImage* const image2, TOutputImage* const output,
+               const typename TOutputImage::PixelType& trueValue = 1);
+
 /** XOR regions. */
-template<typename TImage>
-void XORRegions(const TImage* const image1, const itk::ImageRegion<2>& region1,
-                const TImage* const image2, const itk::ImageRegion<2>& region2, itk::Image<bool, 2>* const output);
+template<typename TInputImage, typename TOutputImage>
+void XORRegions(const TInputImage* const image1, const itk::ImageRegion<2>& region1,
+                const TInputImage* const image2, const itk::ImageRegion<2>& region2, TOutputImage* const output,
+                const typename TOutputImage::PixelType& trueValue = 1);
 
 /** Change the value of all pixels with value = 'oldValue' to 'newValue. */
 template<typename TImage>
@@ -391,6 +406,9 @@ void SetChannel(TVectorImage* const vectorImage, const unsigned int channel, con
 template<typename TImage>
 void ScaleAllChannelsTo255(TImage* const image);
 
+template<typename TInputImage,typename TOutputImage>
+void CastImage(const TInputImage* const inputImage, TOutputImage* const outputImage);
+
 template<typename TImage>
 void ScaleTo255(TImage* const image);
 
@@ -438,6 +456,10 @@ std::vector<typename TImage::InternalPixelType> ComputeMaxOfAllChannels(const TI
 /** Create a string representation of a vector. */
 template <typename TVector>
 std::string VectorToString(const TVector& vec);
+
+/** Create a string representation of an itk::CovariantVector. */
+template <typename TComponent, unsigned int Dimension>
+std::string VectorToString(const itk::CovariantVector<TComponent, Dimension>& vec);
 
 /** Downsample 'image' by 'factor'. */
 template <typename TImage>
@@ -533,9 +555,10 @@ bool IsClosedLoop(const TImage* const image, const itk::Index<2>& start);
 template<typename TImage>
 void WriteRGBImage(const TImage* const input, const std::string& filename);
 
-/** Write an image to a file named 'prefix'_'iteration'.mha*/
+/** Write an image to a file named 'prefix'_'iteration'.extension*/
 template <typename TImage>
-void WriteSequentialImage(const TImage* const image, const std::string& filePrefix, const unsigned int iteration);
+void WriteSequentialImage(const TImage* const image, const std::string& filePrefix, const unsigned int iteration,
+                          const unsigned int iterationLength, const std::string& extension);
 
 /** Write 'image' to 'fileName' if 'condition' is true. */
 template <typename TImage>
@@ -565,8 +588,8 @@ void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1,
                  typename itk::VectorImage<TPixel, 2>* const output);
 
 /** Convert the first 3 channels of a float vector image to an unsigned char/color/rgb image. */
-template <typename TPixel>
-void VectorImageToRGBImage(const itk::VectorImage<TPixel, 2>* const image, RGBImageType* const rgbImage);
+template <typename TImage>
+void VectorImageToRGBImage(const TImage* const image, RGBImageType* const rgbImage);
 
 /** Draw a rectangle in an image. */
 template <typename TImage>
@@ -685,6 +708,9 @@ std::vector<itk::Offset<2> > IndicesToOffsets(const std::vector<itk::Index<2> >&
 /** Get the locations of the pixels on the boundary of a region. */
 std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region);
 
+/** Get the locations of the pixels within 'thickness' on the boundary (interior only) of a region. */
+std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region, const unsigned int thickness);
+
 /** Given a list of pixels, form them into an image, dilate the image,
   * and get the list of pixels in the dilated image. */
 std::vector<itk::Index<2> > DilatePixelList(const std::vector<itk::Index<2> >& pixelList,
@@ -746,8 +772,14 @@ void Write2DVectorImage(const FloatVector2ImageType* const image, const std::str
 /** Determine if two pixels touch. */
 bool IsNeighbor(const itk::Index<2>& index1, const itk::Index<2>& index2);
 
-/** Dilate a region by a radius. */
+/** Dilate (expand) a region by a radius. */
 itk::ImageRegion<2> DilateRegion(const itk::ImageRegion<2>& region, const unsigned int radius);
+
+/** Erode (shrink) a region by a radius. */
+itk::ImageRegion<2> ErodeRegion(const itk::ImageRegion<2>& region, const unsigned int radius);
+
+/** Write an image where the pixels in 'regions' have been colored. */
+void HighlightAndWriteRegions(const itk::Size<2>& imageSize, const std::vector<itk::ImageRegion<2> >& regions, const std::string& filename);
 
 namespace detail
 {

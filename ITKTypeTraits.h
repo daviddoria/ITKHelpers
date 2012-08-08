@@ -19,8 +19,10 @@
 #ifndef ITKTypeTraits_H
 #define ITKTypeTraits_H
 
-#include "Helpers/TypeTraits.h"
+// Submodules
+#include <Helpers/TypeTraits.h>
 
+// ITK
 #include "itkVariableLengthVector.h"
 #include "itkCovariantVector.h"
 
