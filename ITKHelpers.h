@@ -61,7 +61,9 @@ void RGBImageToCIELabImage(RGBImageType* const rgbImage, TOutputImage* const cie
 template <typename TInputImage, typename TOutputImage>
 void ITKImageToCIELabImage(const TInputImage* const rgbImage, TOutputImage* const cielabImage);
 
-/** Convert a multichannel image to another multichannel image using a specified 'adaptor'. */
+/** Convert a multichannel image to another multichannel image using a specified 'adaptor'.
+  * The adaptor expects to be able to modify the image (even though we don't in this case),
+  * so we cannot pass a const TInputImage* const.*/
 template<typename TInputImage, typename TOutputImage, typename TAdaptor>
 void ApplyMultichannelImageAdaptor(TInputImage* const inputImage, TOutputImage* const outputImage,
                                    TAdaptor* adaptor);

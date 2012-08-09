@@ -2100,7 +2100,7 @@ void RGBImageToHSVImage(RGBImageType* const rgbImage, TOutputImage* const hsvIma
   typedef itk::ImageAdaptor<RGBImageType, AccessorType> RGBToHSVAdaptorType;
   RGBToHSVAdaptorType::Pointer rgbToHSVAdaptor = RGBToHSVAdaptorType::New();
 
-  ApplyMultichannelImageAdaptor(rgbImage, hsvImage, rgbToHSVAdaptor);
+  ApplyMultichannelImageAdaptor(rgbImage, hsvImage, rgbToHSVAdaptor.GetPointer());
 }
 
 
@@ -2125,17 +2125,14 @@ void RGBImageToCIELabImage(RGBImageType* const rgbImage, TOutputImage* const cie
   typedef itk::ImageAdaptor<RGBImageType, RGBToLabColorSpaceAccessorType> RGBToLabAdaptorType;
   RGBToLabAdaptorType::Pointer rgbToLabAdaptor = RGBToLabAdaptorType::New();
 
-  ApplyMultichannelImageAdaptor(rgbImage, cielabImage, rgbToLabAdaptor);
+  ApplyMultichannelImageAdaptor(rgbImage, cielabImage, rgbToLabAdaptor.GetPointer());
 }
 
 template<typename TInputImage, typename TOutputImage, typename TAdaptor>
 void ApplyMultichannelImageAdaptor(TInputImage* const inputImage, TOutputImage* const outputImage,
                                    TAdaptor* adaptor)
 {
-  // The adaptor expects to be able to modify the image (even though we don't in this case),
-  // so we cannot pass a const TInputImage* const.
-
-  itkConceptMacro( nameOfCheck, ( itk::Concept::IsFloatingPoint<typename TOutputImage::ValueType> ) );
+  //itkConceptMacro( nameOfCheck, ( itk::Concept::IsFloatingPoint<typename TOutputImage::ValueType> ) );
 
   adaptor->SetImage(inputImage);
 
@@ -2158,7 +2155,7 @@ void ApplyMultichannelImageAdaptor(TInputImage* const inputImage, TOutputImage* 
     vectorIndexSelectionFilter->SetIndex(i);
     vectorIndexSelectionFilter->Update();
     DeepCopy(vectorIndexSelectionFilter->GetOutput(), channels[i].GetPointer());
-    reassembler->SetNthInput(i, channels[i]);
+    reassembler->SetInput(i, channels[i]);
     }
 
   reassembler->Update();
