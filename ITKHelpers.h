@@ -57,6 +57,15 @@ void ITKImageToHSVImage(const TInputImage* const image, TOutputImage* const hsvI
 template<typename TOutputImage>
 void RGBImageToCIELabImage(RGBImageType* const rgbImage, TOutputImage* const cielabImage);
 
+/** Convert the first 3 channels of an ITK image to the CIELAB colorspace. */
+template <typename TInputImage, typename TOutputImage>
+void ITKImageToCIELabImage(const TInputImage* const rgbImage, TOutputImage* const cielabImage);
+
+/** Convert a multichannel image to another multichannel image using a specified 'adaptor'. */
+template<typename TInputImage, typename TOutputImage, typename TAdaptor>
+void ApplyMultichannelImageAdaptor(TInputImage* const inputImage, TOutputImage* const outputImage,
+                                   TAdaptor* adaptor);
+
 /** Determine if any of the 8 neighbors pixels has the specified value. */
 template<typename TImage>
 bool HasNeighborWithValue(const itk::Index<2>& pixel, const TImage* const image,
@@ -522,10 +531,6 @@ std::vector<float> HistogramOfGradientsPrecomputed(const TGradientImage* const i
 template <typename TOutputPixel>
 void RGBImageToVectorImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* const image,
                            itk::VectorImage<TOutputPixel, 2>* const outputImage);
-
-/** Convert the first 3 channels of an ITK image to the CIELAB colorspace. */
-template <typename TInputImage, typename TOutputImage>
-void ITKImageToCIELabImage(const TInputImage* const rgbImage, TOutputImage* const cielabImage);
 
 /** Compute the central derivative of 'image' in 'direction' and store it in 'output'. */
 template <class TImage>
