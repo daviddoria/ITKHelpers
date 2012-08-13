@@ -788,6 +788,8 @@ itk::ImageRegion<2> ErodeRegion(const itk::ImageRegion<2>& region, const unsigne
 /** Write an image where the pixels in 'regions' have been colored. */
 void HighlightAndWriteRegions(const itk::Size<2>& imageSize, const std::vector<itk::ImageRegion<2> >& regions, const std::string& filename);
 
+itk::Offset<2> IndexToOffset(const itk::Index<2>& index);
+
 namespace detail
 {
   /** Extract a channel of an image. The output image should be a scalar image,
