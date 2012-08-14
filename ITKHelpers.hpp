@@ -2100,33 +2100,8 @@ void RGBImageToHSVImage(RGBImageType* const rgbImage, TOutputImage* const hsvIma
   typedef itk::Accessor::RGBToHSVColorSpacePixelAccessor<unsigned char, float> AccessorType;
   typedef itk::ImageAdaptor<RGBImageType, AccessorType> RGBToHSVAdaptorType;
   RGBToHSVAdaptorType::Pointer rgbToHSVAdaptor = RGBToHSVAdaptorType::New();
-  rgbToHSVAdaptor->SetImage(rgbImage);
 
-  // Disassembler
-  typedef itk::VectorIndexSelectionCastImageFilter<RGBToHSVAdaptorType, FloatScalarImageType>
-               VectorIndexSelectionFilterType;
-  VectorIndexSelectionFilterType::Pointer vectorIndexSelectionFilter = VectorIndexSelectionFilterType::New();
-  vectorIndexSelectionFilter->SetInput(rgbToHSVAdaptor);
-
-  std::vector<FloatScalarImageType::Pointer> channels;
-
-  // Reassembler
-  typedef itk::ComposeImageFilter<FloatScalarImageType> ReassemblerType;
-  ReassemblerType::Pointer reassembler = ReassemblerType::New();
-
-  for(unsigned int i = 0; i < 3; ++i)
-    {
-    channels.push_back(FloatScalarImageType::New());
-    vectorIndexSelectionFilter->SetIndex(i);
-    vectorIndexSelectionFilter->Update();
-    DeepCopy(vectorIndexSelectionFilter->GetOutput(), channels[i].GetPointer());
-    reassembler->SetInput(i, channels[i]);
-    }
-
-  reassembler->Update();
-
-  // Copy to the output
-  DeepCopy(reassembler->GetOutput(), hsvImage);
+  ApplyMultichannelImageAdaptor(rgbImage, hsvImage, rgbToHSVAdaptor.GetPointer());
 }
 
 
@@ -2150,13 +2125,24 @@ void RGBImageToCIELabImage(RGBImageType* const rgbImage, TOutputImage* const cie
   typedef itk::Accessor::RGBToLabColorSpacePixelAccessor<unsigned char, float> RGBToLabColorSpaceAccessorType;
   typedef itk::ImageAdaptor<RGBImageType, RGBToLabColorSpaceAccessorType> RGBToLabAdaptorType;
   RGBToLabAdaptorType::Pointer rgbToLabAdaptor = RGBToLabAdaptorType::New();
-  rgbToLabAdaptor->SetImage(rgbImage);
+
+  ApplyMultichannelImageAdaptor(rgbImage, cielabImage, rgbToLabAdaptor.GetPointer());
+}
+
+template<typename TInputImage, typename TOutputImage, typename TAdaptor>
+void ApplyMultichannelImageAdaptor(TInputImage* const inputImage, TOutputImage* const outputImage,
+                                   TAdaptor* adaptor)
+{
+  //itkConceptMacro( nameOfCheck, ( itk::Concept::IsFloatingPoint<typename TOutputImage::ValueType> ) );
+
+  adaptor->SetImage(inputImage);
 
   // Disassembler
-  typedef itk::VectorIndexSelectionCastImageFilter<RGBToLabAdaptorType, FloatScalarImageType>
+  typedef itk::VectorIndexSelectionCastImageFilter<TAdaptor, FloatScalarImageType>
                VectorIndexSelectionFilterType;
-  VectorIndexSelectionFilterType::Pointer vectorIndexSelectionFilter = VectorIndexSelectionFilterType::New();
-  vectorIndexSelectionFilter->SetInput(rgbToLabAdaptor);
+  typename VectorIndexSelectionFilterType::Pointer vectorIndexSelectionFilter =
+    VectorIndexSelectionFilterType::New();
+  vectorIndexSelectionFilter->SetInput(adaptor);
 
   std::vector<FloatScalarImageType::Pointer> channels;
 
@@ -2170,13 +2156,13 @@ void RGBImageToCIELabImage(RGBImageType* const rgbImage, TOutputImage* const cie
     vectorIndexSelectionFilter->SetIndex(i);
     vectorIndexSelectionFilter->Update();
     DeepCopy(vectorIndexSelectionFilter->GetOutput(), channels[i].GetPointer());
-    reassembler->SetNthInput(i, channels[i]);
+    reassembler->SetInput(i, channels[i]);
     }
 
   reassembler->Update();
 
   // Copy to the output
-  DeepCopy(reassembler->GetOutput(), cielabImage);
+  DeepCopy(reassembler->GetOutput(), outputImage);
 }
 
 template<typename TImage>

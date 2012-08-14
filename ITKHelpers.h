@@ -71,6 +71,17 @@ void ITKImageToHSVImage(const TInputImage* const image, TOutputImage* const hsvI
 template<typename TOutputImage>
 void RGBImageToCIELabImage(RGBImageType* const rgbImage, TOutputImage* const cielabImage);
 
+/** Convert the first 3 channels of an ITK image to the CIELAB colorspace. */
+template <typename TInputImage, typename TOutputImage>
+void ITKImageToCIELabImage(const TInputImage* const rgbImage, TOutputImage* const cielabImage);
+
+/** Convert a multichannel image to another multichannel image using a specified 'adaptor'.
+  * The adaptor expects to be able to modify the image (even though we don't in this case),
+  * so we cannot pass a const TInputImage* const.*/
+template<typename TInputImage, typename TOutputImage, typename TAdaptor>
+void ApplyMultichannelImageAdaptor(TInputImage* const inputImage, TOutputImage* const outputImage,
+                                   TAdaptor* adaptor);
+
 /** Determine if any of the 8 neighbors pixels has the specified value. */
 template<typename TImage>
 bool HasNeighborWithValue(const itk::Index<2>& pixel, const TImage* const image,
@@ -537,10 +548,6 @@ template <typename TOutputPixel>
 void RGBImageToVectorImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* const image,
                            itk::VectorImage<TOutputPixel, 2>* const outputImage);
 
-/** Convert the first 3 channels of an ITK image to the CIELAB colorspace. */
-template <typename TInputImage, typename TOutputImage>
-void ITKImageToCIELabImage(const TInputImage* const rgbImage, TOutputImage* const cielabImage);
-
 /** Compute the central derivative of 'image' in 'direction' and store it in 'output'. */
 template <class TImage>
 void CentralDifferenceDerivative(const TImage* const image, const unsigned int direction, TImage* const output);
@@ -794,6 +801,8 @@ itk::ImageRegion<2> ErodeRegion(const itk::ImageRegion<2>& region, const unsigne
 
 /** Write an image where the pixels in 'regions' have been colored. */
 void HighlightAndWriteRegions(const itk::Size<2>& imageSize, const std::vector<itk::ImageRegion<2> >& regions, const std::string& filename);
+
+itk::Offset<2> IndexToOffset(const itk::Index<2>& index);
 
 namespace detail
 {

@@ -845,4 +845,10 @@ void HighlightAndWriteRegions(const itk::Size<2>& imageSize, const std::vector<i
   WriteImage(image.GetPointer(), filename);
 }
 
+itk::Offset<2> IndexToOffset(const itk::Index<2>& index)
+{
+  itk::Offset<2> offset = {{index[0], index[1]}};
+  return offset;
+}
+
 } // end namespace
