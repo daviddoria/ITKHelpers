@@ -42,6 +42,7 @@
 #include "itkImageFileWriter.h"
 #include "itkComposeImageFilter.h"
 #include "itkJoinImageFilter.h"
+#include "itkMedianImageFilter.h"
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkMultiplyImageFilter.h"
 #include "itkPasteImageFilter.h"
@@ -2662,6 +2663,56 @@ void CastImage(const TInputImage* const inputImage, TOutputImage* const outputIm
   castFilter->Update();
 
   DeepCopy(castFilter->GetOutput(), outputImage);
+}
+
+template<typename TImage>
+void MedianFilter(const TImage* const image, const unsigned int kernelRadius, TImage* const output)
+{
+  //std::cout << "Median filtering with radius " << kernelRadius << std::endl;
+  typedef itk::MedianImageFilter<TImage, TImage> MedianFilterType;
+  typename MedianFilterType::Pointer medianFilter = MedianFilterType::New();
+  typename MedianFilterType::InputSizeType radius;
+  radius.Fill(kernelRadius);
+  medianFilter->SetRadius(radius);
+  medianFilter->SetInput(image);
+  medianFilter->Update();
+
+  DeepCopy(medianFilter->GetOutput(), output);
+}
+
+template <typename TImage, typename TTestFunctor>
+std::vector<itk::Index<2> > GetTestedPixels(const TImage* const image,
+                                            TTestFunctor testFunctor)
+{
+  std::vector<itk::Index<2> > passPixels;
+
+  itk::ImageRegionConstIteratorWithIndex<TImage> imageIterator(image, image->GetLargestPossibleRegion());
+
+  while(!imageIterator.IsAtEnd())
+    {
+    if(testFunctor(imageIterator.Get()))
+    {
+      passPixels.push_back(imageIterator.GetIndex());
+    }
+    ++imageIterator;
+    }
+  return passPixels;
+}
+
+template <typename TImage, typename TTestFunctor, typename TOperationFunctor>
+void ApplyOperationToTestedPixels(TImage* const image,
+                                  TTestFunctor testFunctor, TOperationFunctor operationFunctor)
+{
+  itk::ImageRegionConstIteratorWithIndex<TImage> imageIterator(image, image->GetLargestPossibleRegion());
+
+  while(!imageIterator.IsAtEnd())
+    {
+    if(testFunctor(imageIterator.GetIndex()))
+    {
+      operationFunctor(imageIterator.GetIndex());
+    }
+    ++imageIterator;
+    }
 }
 
 }// end namespace ITKHelpers

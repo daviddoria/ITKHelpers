@@ -43,6 +43,20 @@ namespace ITKHelpers
 ///////// Function templates (defined in ITKHelpers.hpp) /////////
 ////////////////////////////////////////////////////////////////////////
 
+template<typename TImage>
+void MedianFilter(const TImage* const image, const unsigned int kernelRadius,
+                  TImage* const output);
+
+/** Apply an 'operationFunctor' to all pixels that pass the 'testFunctor'. */
+template <typename TImage, typename TTestFunctor, typename TOperationFunctor>
+void ApplyOperationToTestedPixels(TImage* const image,
+                                  TTestFunctor testFunctor, TOperationFunctor operationFunctor);
+
+/** Get the locations of the pixels in 'image' that pass (return true) the 'testFunctor'. */
+template <typename TImage, typename TTestFunctor>
+std::vector<itk::Index<2> > GetTestedPixels(TImage* const image,
+                                            TTestFunctor testFunctor);
+
 /** Convert an RGB image to the CIELAB colorspace.
  * 'rgbImage' cannot be const because the adaptor doesn't allow it. */
 template<typename TOutputImage>
