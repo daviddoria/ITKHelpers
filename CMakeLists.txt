@@ -1,4 +1,5 @@
 project(ITKHelpers)
+SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 cmake_minimum_required(VERSION 2.8)
 
@@ -6,12 +7,17 @@ cmake_minimum_required(VERSION 2.8)
 if(NOT TARGET Helpers)
   add_subdirectory(Helpers)
   include_directories(${Helpers_includes})
+  set(ITKHelpers_includes ${ITKHelpers_includes} ${Helpers_includes})
+  set(ITKHelpers_libraries ${ITKHelpers_libraries} Helpers)
+  message("ITKHelpers submodule in ${CMAKE_CURRENT_SOURCE_DIR} used Helpers submodule (with includes ${Helpers_includes} ).")
 endif()
 
 # Add this directory and all submodule directories to a variable that can
 # be used in by a parent project to set the include path
 if(NOT ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
-  set(ITKHelpers_includes ${Helpers_includes} ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
+  set(ITKHelpers_includes ${ITKHelpers_includes} ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
+  set(ITKHelpers_libraries ${ITKHelpers_libraries} ITKHelpers ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
+  message("ITKHelpers submodule used from ${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
 
 # Required because of the c++0x used in Helpers
@@ -20,12 +26,22 @@ if(UNIX)
 endif(UNIX)
 
 # ITK
-FIND_PACKAGE(ITK REQUIRED ITKCommon ITKIOImageBase
-ITKImageIntensity ITKImageFeature ITKMathematicalMorphology ITKBinaryMathematicalMorphology)
-INCLUDE(${ITK_USE_FILE})
+if(NOT ITK_FOUND)
+  FIND_PACKAGE(ITK REQUIRED ITKCommon ITKIOImageBase ITKIOPNG
+                            ITKImageIntensity ITKImageFeature ITKMathematicalMorphology
+                            ITKBinaryMathematicalMorphology)
+  INCLUDE(${ITK_USE_FILE})
+endif()
+
+set(ITKHelpers_libraries ${ITKHelpers_libraries} ${ITK_LIBRARIES})
 
 add_library(ITKHelpers ITKHelpers.cpp)
-target_link_libraries(ITKHelpers Helpers ${ITK_LIBRARIES})
+target_link_libraries(ITKHelpers ${ITKHelpers_libraries})
+
+set(ITKHelpers_libraries ${ITKHelpers_libraries} ITKHelpers)
+
+GET_DIRECTORY_PROPERTY(AllITKHelpersIncludes INCLUDE_DIRECTORIES)
+message("AllITKHelpersIncludes include directories: ${AllITKHelpersIncludes}")
 
 SET(ITKHelpers_BuildTests OFF CACHE BOOL "ITKHelpers_BuildTests")
 if(ITKHelpers_BuildTests)
