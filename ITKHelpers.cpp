@@ -189,7 +189,6 @@ itk::Size<2> SizeFromRadius(const unsigned int radius)
   return size;
 }
 
-
 itk::ImageRegion<2> GetRegionInRadiusAroundPixel(const itk::Index<2>& pixel, const unsigned int radius)
 {
   // This function returns a Region with the specified 'radius' centered at 'pixel'. By the definition of the radius of a square patch, the output region is (radius*2 + 1)x(radius*2 + 1).
