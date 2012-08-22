@@ -519,8 +519,10 @@ void MagnitudeImage(const itk::Image<itk::CovariantVector<TInputPixel, TVectorDi
                     itk::Image<TOutputPixel,2>* const output);
 
 /**  Write the first 3 channels of 'image' as an unsigned char (RGB) image. */
-template <typename TPixel>
-void WriteVectorImageAsRGB(const itk::VectorImage<TPixel,2>* const image, const std::string& fileName);
+//template <typename TPixel>
+//void WriteVectorImageAsRGB(const itk::VectorImage<TPixel,2>* const image, const std::string& fileName);
+template <typename TImage>
+void WriteVectorImageAsRGB(const TImage* const image, const std::string& fileName);
 
 /** Write a 'region' of an 'image' to 'filename'.*/
 template <typename TPixel>
@@ -596,6 +598,12 @@ void WriteImage(const TImage* const image, const std::string& fileName);
 /** Write a 'region' of an 'image' to 'filename'.*/
 template<typename TImage>
 void WriteRegion(const TImage* const image, const itk::ImageRegion<2>& region, const std::string& filename);
+
+/** Write a 'region' of an 'image' to 'filename'. This function varies from WriteRegion() in that the Origin of the output image is (0,0).
+  * Because of this, the region cannot be overlayed on the original image,
+  *  but can be easily compared to other regions. */
+template<typename TImage>
+void WriteRegionAsImage(const TImage* image, const itk::ImageRegion<2>& region, const std::string& filename);
 
 /** Write a vector 'v' to the screen.*/
 template <typename T>

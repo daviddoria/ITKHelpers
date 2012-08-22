@@ -1772,8 +1772,10 @@ void CentralDifferenceDerivative(const TImage* const image, const unsigned int d
   DeepCopy(derivativeFilter->GetOutput(), output);
 }
 
-template <typename TPixel>
-void WriteVectorImageAsRGB(const itk::VectorImage<TPixel,2>* const image, const std::string& fileName)
+//template <typename TPixel>
+//void WriteVectorImageAsRGB(const itk::VectorImage<TPixel,2>* const image, const std::string& fileName)
+template <typename TImage>
+void WriteVectorImageAsRGB(const TImage* const image, const std::string& fileName)
 {
   RGBImageType::Pointer rgbImage = RGBImageType::New();
   ITKHelpers::VectorImageToRGBImage(image, rgbImage);
