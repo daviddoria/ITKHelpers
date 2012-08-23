@@ -932,6 +932,10 @@ std::vector<itk::Index<2> > Get8NeighborsInRegionNotEqualValue(const itk::Index<
   return neighborsWithValue;
 }
 
+/** Get a list of the neighbors of a 'pixel' with a specified 'value' that are inside 'region'.
+  * If 'region' is image->LargestPossibleRegion(), Get8NeighborsWithValue() will do this check automatically.
+  */
+// This technique is 2x slower than the one below (which uses a NeighborhoodIterator)
 template<typename TImage>
 std::vector<itk::Index<2> > Get8NeighborsInRegionWithValue(const itk::Index<2>& pixel, const TImage* const image,
                                                            const itk::ImageRegion<2>& region,
@@ -949,20 +953,62 @@ std::vector<itk::Index<2> > Get8NeighborsInRegionWithValue(const itk::Index<2>& 
   return neighborsWithValue;
 }
 
-/** Get a list of the valid neighbors of a pixel.*/
+/** Get a list of the neighbors of a 'pixel' with a specified 'value'.*/
+// This technique is 2x slower than the one below (which uses a NeighborhoodIterator)
+//template<typename TImage>
+//std::vector<itk::Index<2> > Get8NeighborsWithValue(const itk::Index<2>& pixel, const TImage* const image,
+//                                                   const typename TImage::PixelType& value)
+//{
+//  std::vector<itk::Index<2> > neighbors = Get8Neighbors(pixel);
+//  std::vector<itk::Index<2> > neighborsWithValue;
+//  for(unsigned int i = 0; i < neighbors.size(); ++i)
+//    {
+//    if(image->GetPixel(neighbors[i]) == value)
+//      {
+//      neighborsWithValue.push_back(neighbors[i]);
+//      }
+//    }
+//  return neighborsWithValue;
+//}
+
+/** Get a list of the neighbors of a 'pixel' with a specified 'value'.*/
 template<typename TImage>
 std::vector<itk::Index<2> > Get8NeighborsWithValue(const itk::Index<2>& pixel, const TImage* const image,
-                                                   const typename TImage::PixelType& value)
+                                                       const typename TImage::PixelType& value)
 {
-  std::vector<itk::Index<2> > neighbors = Get8Neighbors(pixel);
   std::vector<itk::Index<2> > neighborsWithValue;
-  for(unsigned int i = 0; i < neighbors.size(); ++i)
+
+  // Construct a 1x1 region (a single pixel)
+  typename TImage::SizeType regionSize = {{1,1}};
+
+  typename TImage::RegionType region(pixel, regionSize);
+
+  // Construct a 1x1 radius (to make a 3x3 patch, or the 8-neighborhood)
+  typename TImage::SizeType radius = {{1,1}};
+
+  itk::ConstNeighborhoodIterator<TImage> neighborhoodIterator(radius, image, region);
+
+  typename TImage::SizeType neighborhoodSize = neighborhoodIterator.GetSize();
+
+  unsigned int numberOfPixelsInNeighborhood = neighborhoodSize[0] * neighborhoodSize[1];
+//  std::cout << "numberOfPixelsInNeighborhood: " << numberOfPixelsInNeighborhood << std::endl; // This outputs '9'
+
+  // Do not need to wrap this in a while(!iterator.IsAtEnd()) because we only want to visit the single pixel in 'region'
+  for(unsigned int i = 0; i < numberOfPixelsInNeighborhood; i++)
+  {
+    if(i != neighborhoodIterator.GetCenterNeighborhoodIndex()) // Skip the center, as it is not a neighbor, but the query pixel itself
     {
-    if(image->GetPixel(neighbors[i]) == value)
+      bool inBounds = false;
+      if(neighborhoodIterator.GetPixel(i, inBounds) == value)
       {
-      neighborsWithValue.push_back(neighbors[i]);
+        if(inBounds)
+        {
+          neighborsWithValue.push_back(neighborhoodIterator.GetIndex(i));
+        }
       }
     }
+  }
+
   return neighborsWithValue;
 }
 
