@@ -458,15 +458,17 @@ std::vector<itk::Index<2> > GetNonZeroPixels(const TImage* image, const itk::Ima
   return nonZeroPixels;
 }
 
-
 template<typename TImage>
-void WriteRegionAsImage(const TImage* image, const itk::ImageRegion<2>& region, const std::string& filename)
+void WriteRegionAsImage(const TImage* image, itk::ImageRegion<2> region, const std::string& filename)
 {
   // This function varies from WriteRegion() in that the Origin of the output image is (0,0).
   // Because of this, the region cannot be overlayed on the original image,
   // but can be easily compared to other regions.
   //std::cout << "WriteRegion() " << filename << std::endl;
   //std::cout << "region " << region << std::endl;
+
+  // Ensure the region is inside the image
+  region.Crop(image->GetLargestPossibleRegion());
 
   typedef itk::RegionOfInterestImageFilter<TImage, TImage> RegionOfInterestImageFilterType;
 
@@ -488,8 +490,6 @@ void WriteRegionAsImage(const TImage* image, const itk::ImageRegion<2>& region, 
   writer->SetInput(regionOfInterestImageFilter->GetOutput());
   writer->Update();
 }
-
-
 
 template<typename TImage>
 void WriteRegionUnsignedChar(const TImage* image, const itk::ImageRegion<2>& region, const std::string& filename)
@@ -1568,10 +1568,14 @@ void WriteRGBImage(const TImage* const input, const std::string& filename)
 
 
 template<typename TImage>
-void WriteRegion(const TImage* const image, const itk::ImageRegion<2>& region, const std::string& filename)
+void WriteRegion(const TImage* const image, itk::ImageRegion<2> region, const std::string& filename)
 {
   //std::cout << "WriteRegion() " << filename << std::endl;
   //std::cout << "region " << region << std::endl;
+
+  // Ensure the region is inside the image
+  region.Crop(image->GetLargestPossibleRegion());
+
   typedef itk::RegionOfInterestImageFilter<TImage, TImage> RegionOfInterestImageFilterType;
 
   typename RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter =

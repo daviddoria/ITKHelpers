@@ -595,15 +595,17 @@ void WriteScaledScalarImage(const TImage* const image, const std::string& filena
 template<typename TImage>
 void WriteImage(const TImage* const image, const std::string& fileName);
 
-/** Write a 'region' of an 'image' to 'filename'.*/
+/** Write a 'region' of an 'image' to 'filename'.
+  * If the 'region' is not entirely inside the image, it is cropped first (this is why it is not passed by const&).*/
 template<typename TImage>
 void WriteRegion(const TImage* const image, const itk::ImageRegion<2>& region, const std::string& filename);
 
 /** Write a 'region' of an 'image' to 'filename'. This function varies from WriteRegion() in that the Origin of the output image is (0,0).
   * Because of this, the region cannot be overlayed on the original image,
-  *  but can be easily compared to other regions. */
+  * but can be easily compared to other regions.
+  * If the 'region' is not entirely inside the image, it is cropped first (this is why it is not passed by const&).*/
 template<typename TImage>
-void WriteRegionAsImage(const TImage* image, const itk::ImageRegion<2>& region, const std::string& filename);
+void WriteRegionAsImage(const TImage* image, itk::ImageRegion<2> region, const std::string& filename);
 
 /** Write a vector 'v' to the screen.*/
 template <typename T>
