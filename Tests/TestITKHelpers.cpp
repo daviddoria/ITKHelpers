@@ -54,6 +54,8 @@ static void TestClosestPoint();
 
 static void TestGetBoundaryPixels();
 
+static void TestDivideRegion();
+
 int main( int argc, char ** argv )
 {
 //   TestRandomImage();
@@ -91,7 +93,10 @@ int main( int argc, char ** argv )
 //   TestDeepCopyFloatVector();
 //   TestDeepCopyUnsignedCharVector();
 
-  TestGetBoundaryPixels();
+//  TestGetBoundaryPixels();
+
+  TestDivideRegion();
+
   return 0;
 }
 
@@ -709,3 +714,37 @@ void TestGetBoundaryPixels()
     std::cout << boundaryPixels[i] << std::endl;
   }
 }
+
+void TestDivideRegion()
+{
+  // Test an evenly divisible region
+  {
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{10,10}};
+  itk::ImageRegion<2> region(corner, size);
+  const unsigned int divisionsPerDimension = 2;
+  std::vector<itk::ImageRegion<2> > subregions = ITKHelpers::DivideRegion(region, divisionsPerDimension);
+
+  std::cout << "There are " << subregions.size() << " subregions" << std::endl;
+  for(size_t i = 0; i < subregions.size(); ++i)
+  {
+    std::cout << "Subregion " << i << " : " << subregions[i] << std::endl;
+  }
+  }
+
+  // Test a non-evenly divisible region
+  {
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{11,11}};
+  itk::ImageRegion<2> region(corner, size);
+  const unsigned int divisionsPerDimension = 2;
+  std::vector<itk::ImageRegion<2> > subregions = ITKHelpers::DivideRegion(region, divisionsPerDimension);
+
+  std::cout << "There are " << subregions.size() << " subregions" << std::endl;
+  for(size_t i = 0; i < subregions.size(); ++i)
+  {
+    std::cout << "Subregion " << i << " : " << subregions[i] << std::endl;
+  }
+  }
+}
+

@@ -850,4 +850,56 @@ itk::Offset<2> IndexToOffset(const itk::Index<2>& index)
   return offset;
 }
 
+std::vector<itk::ImageRegion<2> > DivideRegion(const itk::ImageRegion<2>& region, const unsigned int divisionsPerDimension)
+{
+  assert(divisionsPerDimension > 0);
+
+  unsigned int numberOfPixelsX = region.GetSize()[0];
+  while(numberOfPixelsX % divisionsPerDimension != 0)
+  {
+    numberOfPixelsX -= 1;
+  }
+
+  unsigned int numberOfPixelsY = region.GetSize()[1];
+  while(numberOfPixelsY % divisionsPerDimension != 0)
+  {
+    numberOfPixelsY -= 1;
+  }
+
+  std::vector<itk::ImageRegion<2> > subregions;
+
+  std::vector<unsigned int> startingPointsX;
+  unsigned int startingPoint = 0;
+  while(startingPoint < numberOfPixelsX)
+  {
+    startingPointsX.push_back(startingPoint);
+    startingPoint += numberOfPixelsX/divisionsPerDimension;
+  }
+
+  assert(startingPointsX.size() == divisionsPerDimension);
+
+  std::vector<unsigned int> startingPointsY;
+  startingPoint = 0;
+  while(startingPoint < numberOfPixelsY)
+  {
+    startingPointsY.push_back(startingPoint);
+    startingPoint += numberOfPixelsY/divisionsPerDimension;
+  }
+
+  assert(startingPointsY.size() == divisionsPerDimension);
+
+  itk::Size<2> subregionSize = {{numberOfPixelsX/divisionsPerDimension, numberOfPixelsY/divisionsPerDimension}};
+  for(unsigned int i = 0; i < startingPointsX.size(); ++i)
+  {
+    for(unsigned int j = 0; j < startingPointsY.size(); ++j)
+    {
+      itk::Index<2> corner = {{startingPointsX[i], startingPointsY[j]}};
+      itk::ImageRegion<2> subregion(corner, subregionSize);
+      subregions.push_back(subregion);
+    }
+  }
+
+  return subregions;
+}
+
 } // end namespace

@@ -822,7 +822,14 @@ itk::ImageRegion<2> ErodeRegion(const itk::ImageRegion<2>& region, const unsigne
 /** Write an image where the pixels in 'regions' have been colored. */
 void HighlightAndWriteRegions(const itk::Size<2>& imageSize, const std::vector<itk::ImageRegion<2> >& regions, const std::string& filename);
 
+/** Convert an itk::Index to an itk::Offset simply by copying the [0] and [1] values. */
 itk::Offset<2> IndexToOffset(const itk::Index<2>& index);
+
+/** Divide a 'region' into a number of subregions. For example, if 'region' is 10x10 and 'divisionsPerDimension' is 2, the function
+  * will produce 4 5x5 regions. NOTE: if the region is not exactly divisible in each dimension by 'divisionsPerDimension', some pixels
+  * (at the end of the region) will not be used. For example, if 'region' is 11x11 and 'divisionsPerDimension' is 2, the last row and last
+  * column will not be included at all in the returned regions. */
+std::vector<itk::ImageRegion<2> > DivideRegion(const itk::ImageRegion<2>& region, const unsigned int divisionsPerDimension);
 
 namespace detail
 {
