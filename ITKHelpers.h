@@ -583,6 +583,11 @@ template <typename TImage>
 void WriteSequentialImage(const TImage* const image, const std::string& filePrefix, const unsigned int iteration,
                           const unsigned int iterationLength, const std::string& extension);
 
+/** Same as WriteSequentialImage, but forces the image to be writable to png (i.e. converts it to unsigned char). */
+template <typename TImage>
+void WriteSequentialRGBImage(const TImage* const image, const std::string& filePrefix, const unsigned int iteration,
+                             const unsigned int iterationLength, const std::string& extension);
+
 /** Write 'image' to 'fileName' if 'condition' is true. */
 template <typename TImage>
 void WriteImageConditional(const TImage* const image, const std::string& fileName, const bool condition);
@@ -605,7 +610,12 @@ void WriteRegion(const TImage* const image, const itk::ImageRegion<2>& region, c
   * but can be easily compared to other regions.
   * If the 'region' is not entirely inside the image, it is cropped first (this is why it is not passed by const&).*/
 template<typename TImage>
-void WriteRegionAsImage(const TImage* image, itk::ImageRegion<2> region, const std::string& filename);
+void WriteRegionAsImage(const TImage* image, itk::ImageRegion<2> region, const std::string& filename, const bool rgb = false);
+
+/** See WriteRegionAsImage, but this function converts the pixels to uchar before writing them.
+  * The pixels are assumed to have values in [0,255] for each component.*/
+template<typename TImage>
+void WriteRegionAsRGBImage(const TImage* image, itk::ImageRegion<2> region, const std::string& filename);
 
 /** Write a vector 'v' to the screen.*/
 template <typename T>

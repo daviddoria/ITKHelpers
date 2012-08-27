@@ -459,7 +459,13 @@ std::vector<itk::Index<2> > GetNonZeroPixels(const TImage* image, const itk::Ima
 }
 
 template<typename TImage>
-void WriteRegionAsImage(const TImage* image, itk::ImageRegion<2> region, const std::string& filename)
+void WriteRegionAsRGBImage(const TImage* image, itk::ImageRegion<2> region, const std::string& filename)
+{
+  WriteRegionAsImage(image, region, filename, true);
+}
+
+template<typename TImage>
+void WriteRegionAsImage(const TImage* image, itk::ImageRegion<2> region, const std::string& filename, const bool rgb)
 {
   // This function varies from WriteRegion() in that the Origin of the output image is (0,0).
   // Because of this, the region cannot be overlayed on the original image,
@@ -485,10 +491,14 @@ void WriteRegionAsImage(const TImage* image, itk::ImageRegion<2> region, const s
   //std::cout << "regionOfInterestImageFilter "
   //          << regionOfInterestImageFilter->GetOutput()->GetLargestPossibleRegion() << std::endl;
 
-  typename itk::ImageFileWriter<TImage>::Pointer writer = itk::ImageFileWriter<TImage>::New();
-  writer->SetFileName(filename);
-  writer->SetInput(regionOfInterestImageFilter->GetOutput());
-  writer->Update();
+  if(rgb)
+  {
+    WriteRGBImage(regionOfInterestImageFilter->GetOutput(), filename);
+  }
+  else
+  {
+    WriteImage(regionOfInterestImageFilter->GetOutput(), filename);
+  }
 }
 
 template<typename TImage>
@@ -513,10 +523,7 @@ void WriteRegionUnsignedChar(const TImage* image, const itk::ImageRegion<2>& reg
 
   //std::cout << "rgbImage " << rgbImage->GetLargestPossibleRegion() << std::endl;
 
-  typename itk::ImageFileWriter<RGBImageType>::Pointer writer = itk::ImageFileWriter<RGBImageType>::New();
-  writer->SetFileName(filename);
-  writer->SetInput(rgbImage);
-  writer->Update();
+  WriteImage(rgbImage.GetPointer(), filename);
 }
 
 template<typename TImage>
@@ -1474,8 +1481,15 @@ void WriteSequentialImage(const TImage* const image, const std::string& filePref
                           const unsigned int iterationLength, const std::string& extension)
 {
   std::string fileName = Helpers::GetSequentialFileName(filePrefix, iteration, extension, iterationLength);
-
   WriteImage(image, fileName);
+}
+
+template <typename TImage>
+void WriteSequentialRGBImage(const TImage* const image, const std::string& filePrefix, const unsigned int iteration,
+                             const unsigned int iterationLength, const std::string& extension)
+{
+  std::string fileName = Helpers::GetSequentialFileName(filePrefix, iteration, extension, iterationLength);
+  WriteRGBImage(image, fileName);
 }
 
 template <typename TImage>
