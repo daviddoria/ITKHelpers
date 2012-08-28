@@ -38,6 +38,9 @@ set(ITKHelpers_libraries ${ITKHelpers_libraries} ${ITK_LIBRARIES})
 add_library(ITKHelpers ITKHelpers.cpp)
 target_link_libraries(ITKHelpers ${ITKHelpers_libraries})
 
+add_custom_target(ITKHelpersSources SOURCES ITKHelpers.hpp ITKTypeTraits.h ITKContainerInterface.h ITKContainerInterface.hpp
+                  ITKHelpersTypes.h itkRGBToHSVColorSpacePixelAccessor.h itkRGBToLabColorSpacePixelAccessor.h)
+
 set(ITKHelpers_libraries ${ITKHelpers_libraries} ITKHelpers)
 
 GET_DIRECTORY_PROPERTY(AllITKHelpersIncludes INCLUDE_DIRECTORIES)
