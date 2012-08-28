@@ -603,7 +603,12 @@ void WriteImage(const TImage* const image, const std::string& fileName);
 /** Write a 'region' of an 'image' to 'filename'.
   * If the 'region' is not entirely inside the image, it is cropped first (this is why it is not passed by const&).*/
 template<typename TImage>
-void WriteRegion(const TImage* const image, const itk::ImageRegion<2>& region, const std::string& filename);
+void WriteRegion(const TImage* const image, itk::ImageRegion<2> region, const std::string& filename);
+
+/** Write a 'region' of a scalar 'image' to 'filename'.
+  * If the 'region' is not entirely inside the image, it is cropped first (this is why it is not passed by const&).*/
+template<typename TImage>
+void WriteScalarImageRegion(const TImage* const image, itk::ImageRegion<2> region, const std::string& filename);
 
 /** Write a 'region' of an 'image' to 'filename'. This function varies from WriteRegion() in that the Origin of the output image is (0,0).
   * Because of this, the region cannot be overlayed on the original image,

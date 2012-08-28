@@ -1529,11 +1529,20 @@ void WriteScaledScalarImage(const TImage* const image, const std::string& filena
 template<typename TImage>
 void WriteImage(const TImage* const image, const std::string& filename)
 {
-  // This is a convenience function so that images can be written in 1 line instead of 4.
-  typename itk::ImageFileWriter<TImage>::Pointer writer = itk::ImageFileWriter<TImage>::New();
-  writer->SetFileName(filename);
-  writer->SetInput(image);
-  writer->Update();
+  try
+  {
+    // This is a convenience function so that images can be written in 1 line instead of 4.
+    typename itk::ImageFileWriter<TImage>::Pointer writer = itk::ImageFileWriter<TImage>::New();
+    writer->SetFileName(filename);
+    writer->SetInput(image);
+    writer->Update();
+  }
+  catch (...)
+  {
+    std::stringstream ss;
+    ss << "ITKHelpers::WriteImage failed! Region is: " << image->GetLargestPossibleRegion();
+    throw std::runtime_error(ss.str());
+  }
 }
 
 
@@ -1580,6 +1589,11 @@ void WriteRGBImage(const TImage* const input, const std::string& filename)
 //   WriteMaskedRegion<TImage>(patch.Image, mask, patch.Region, filename);
 // }
 
+template<typename TImage>
+void WriteScalarImageRegion(const TImage* const image, itk::ImageRegion<2> region, const std::string& filename)
+{
+  WriteRegion(image, region, filename);
+}
 
 template<typename TImage>
 void WriteRegion(const TImage* const image, itk::ImageRegion<2> region, const std::string& filename)
@@ -1601,10 +1615,7 @@ void WriteRegion(const TImage* const image, itk::ImageRegion<2> region, const st
   //std::cout << "regionOfInterestImageFilter "
   //          << regionOfInterestImageFilter->GetOutput()->GetLargestPossibleRegion() << std::endl;
 
-  typename itk::ImageFileWriter<TImage>::Pointer writer = itk::ImageFileWriter<TImage>::New();
-  writer->SetFileName(filename);
-  writer->SetInput(regionOfInterestImageFilter->GetOutput());
-  writer->Update();
+  WriteImage(regionOfInterestImageFilter->GetOutput(), filename);
 }
 
 // Why is RegionOfInterestImageFilter used (above) instead of ExtractFilterType ?
