@@ -346,8 +346,8 @@ std::vector<itk::Index<2> > Get8NeighborsInRegionNotEqualValue(const itk::Index<
 
 /** Get the locations of pixels with value 'value' in 'region'. */
 template<typename TImage>
-std::vector<itk::Index<2> > GetPixelsWithValue(const TImage* const image, const itk::ImageRegion<2>& region,
-                                               const typename TImage::PixelType& value);
+std::vector<itk::Index<2> > GetPixelsWithValueInRegion(const TImage* const image, const itk::ImageRegion<2>& region,
+                                                       const typename TImage::PixelType& value);
 
 /** Get the locations of pixels with value 'value'. */
 template<typename TImage>

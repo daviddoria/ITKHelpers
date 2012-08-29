@@ -1027,8 +1027,8 @@ std::vector<itk::Index<2> > GetPixelsWithValue(const TImage* const image,
 }
 
 template<typename TImage>
-std::vector<itk::Index<2> > GetPixelsWithValue(const TImage* const image, const itk::ImageRegion<2>& region,
-                                               const typename TImage::PixelType& value)
+std::vector<itk::Index<2> > GetPixelsWithValueInRegion(const TImage* const image, const itk::ImageRegion<2>& region,
+                                                       const typename TImage::PixelType& value)
 {
   std::vector<itk::Index<2> > pixelsWithValue;
 
