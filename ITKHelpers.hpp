@@ -1027,20 +1027,22 @@ std::vector<itk::Index<2> > GetPixelsWithValue(const TImage* const image,
 }
 
 template<typename TImage>
-std::vector<itk::Index<2> > GetPixelsWithValueInRegion(const TImage* const image, const itk::ImageRegion<2>& region,
+std::vector<itk::Index<2> > GetPixelsWithValueInRegion(const TImage* const image, itk::ImageRegion<2> region,
                                                        const typename TImage::PixelType& value)
 {
+  region.Crop(image->GetLargestPossibleRegion());
+
   std::vector<itk::Index<2> > pixelsWithValue;
 
   itk::ImageRegionConstIterator<TImage> regionIterator(image, region);
   while(!regionIterator.IsAtEnd())
-    {
+  {
     if(regionIterator.Get() == value)
-      {
+    {
       pixelsWithValue.push_back(regionIterator.GetIndex());
-      }
-    ++regionIterator;
     }
+    ++regionIterator;
+  }
 
   return pixelsWithValue;
 }
