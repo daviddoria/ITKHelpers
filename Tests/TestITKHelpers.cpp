@@ -56,6 +56,8 @@ static void TestGetBoundaryPixels();
 
 static void TestDivideRegion();
 
+static void TestMinOfIndex();
+
 int main( int argc, char ** argv )
 {
 //   TestRandomImage();
@@ -95,7 +97,9 @@ int main( int argc, char ** argv )
 
 //  TestGetBoundaryPixels();
 
-  TestDivideRegion();
+//  TestDivideRegion();
+
+  TestMinOfIndex();
 
   return 0;
 }
@@ -748,3 +752,20 @@ void TestDivideRegion()
   }
 }
 
+void TestMinOfIndex()
+{
+  typedef itk::CovariantVector<int, 3> CovariantVectorType;
+  std::vector<CovariantVectorType> vectorOfVectors;
+  for(unsigned int i = 4; i < 10; ++i)
+  {
+    CovariantVectorType v;
+    v[0] = i;
+    v[1] = i;
+    v[2] = i;
+    vectorOfVectors.push_back(v);
+  }
+
+  int minComponent2 = Helpers::MinOfIndex(vectorOfVectors, 2);
+
+  std::cout << "minComponent2: " << minComponent2 << std::endl;
+}

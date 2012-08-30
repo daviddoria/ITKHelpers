@@ -2652,7 +2652,7 @@ unsigned int ClosestValueIndex(const std::vector<TValue>& vec, const TValue& val
     distances[i] = distance;
   }
 
-  return Helpers::argmin(distances);
+  return Helpers::Argmin(distances);
 }
 
 template<typename TComponent, unsigned int NumberOfComponents>
@@ -2666,7 +2666,7 @@ unsigned int ClosestValueIndex(
     distances[i] = (vec[i] - value).GetSquaredNorm();
   }
 
-  return Helpers::argmin(distances);
+  return Helpers::Argmin(distances);
 }
 
 template<typename TImage>
