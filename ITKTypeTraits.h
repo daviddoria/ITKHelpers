@@ -66,4 +66,14 @@ struct TypeTraits<itk::CovariantVector<unsigned char, N> >
   typedef unsigned char ComponentType;
 };
 
+/** For itk::CovariantVector<int, N>, use itk::CovariantVector<float, N> as the LargerType.
+  * This is a partial specialization. */
+template <unsigned int N>
+struct TypeTraits<itk::CovariantVector<int, N> >
+{
+  typedef itk::CovariantVector<float, N> LargerType;
+  typedef float LargerComponentType;
+  typedef unsigned char ComponentType;
+};
+
 #endif
