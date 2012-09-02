@@ -2780,4 +2780,16 @@ void ApplyOperationToTestedPixels(TImage* const image,
     }
 }
 
+template<typename TVector>
+TVector ComponentWiseMultiple(const TVector& a, const TVector& b)
+{
+  TVector product;
+  for(unsigned int i = 0; i < a.GetSize(); ++i)
+  {
+    product[i] = a[i] * b[i];
+  }
+
+  return product;
+}
+
 }// end namespace ITKHelpers

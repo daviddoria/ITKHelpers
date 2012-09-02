@@ -671,6 +671,9 @@ template<typename TImage>
 itk::ImageRegion<2> ComputeBoundingBox(const TImage* const image,
                                        const typename TImage::PixelType& value);
 
+/** Multiply objects component wise. */
+template<typename TVector>
+TVector ComponentWiseMultiple(const TVector& a, const TVector& b);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Non-template function declarations (defined in Helpers.cpp) ///////////////////
