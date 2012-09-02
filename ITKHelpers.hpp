@@ -1539,10 +1539,11 @@ void WriteImage(const TImage* const image, const std::string& filename)
     writer->SetInput(image);
     writer->Update();
   }
-  catch (...)
+  catch (itk::ExceptionObject & err)
   {
     std::stringstream ss;
-    ss << "ITKHelpers::WriteImage failed! Region is: " << image->GetLargestPossibleRegion();
+    ss << "ITKHelpers::WriteImage failed! Region is: " << image->GetLargestPossibleRegion()
+       << "Original ITK exception: " << err;
     throw std::runtime_error(ss.str());
   }
 }
