@@ -66,18 +66,35 @@ namespace ITKHelpers
 {
 
 template<typename TImage>
+bool HasNeighborWithValueOtherThan(const itk::Index<2>& pixel, const TImage* const image,
+                                   const typename TImage::PixelType& value)
+{
+  std::vector<itk::Offset<2> > offsets = Get8NeighborOffsets();
+
+  for(unsigned int neighborId = 0; neighborId < offsets.size(); ++neighborId)
+  {
+    if(image->GetPixel(pixel + offsets[neighborId]) != value)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+template<typename TImage>
 bool HasNeighborWithValue(const itk::Index<2>& pixel, const TImage* const image,
                           const typename TImage::PixelType& value)
 {
   std::vector<itk::Offset<2> > offsets = Get8NeighborOffsets();
 
   for(unsigned int neighborId = 0; neighborId < offsets.size(); ++neighborId)
-    {
+  {
     if(image->GetPixel(pixel + offsets[neighborId]) == value)
-      {
+    {
       return true;
-      }
     }
+  }
 
   return false;
 }
@@ -2070,21 +2087,29 @@ void MagnitudeImage(const itk::Image<itk::CovariantVector<TInputPixel, TVectorDi
   MagnitudeImage_Generic(image, output);
 }
 
-template <typename TImage>
+template <typename TImage, typename TGradientImage>
 void ComputeGradients(const TImage* const image,
-                      itk::Image<itk::CovariantVector<float, 2>, 2>* output)
+                      TGradientImage* output)
+{
+  ComputeGradientsInRegion(image, image->GetLargestPossibleRegion(), output);
+}
+
+template <typename TImage, typename TGradientImage>
+void ComputeGradientsInRegion(const TImage* const image, const itk::ImageRegion<2>& region,
+                              TGradientImage* const output)
 {
   // Convert the image to a magnitude image
   FloatScalarImageType::Pointer magnitudeImage = FloatScalarImageType::New();
   MagnitudeImage(image, magnitudeImage.GetPointer());
 
   // Compute the gradient
-  typedef itk::GradientImageFilter<FloatScalarImageType, float>  GradientFilterType;
-  GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
+  typedef itk::GradientImageFilter<FloatScalarImageType, float, float, TGradientImage>  GradientFilterType;
+  typename GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
   gradientFilter->SetInput(magnitudeImage);
+  gradientFilter->GetOutput()->SetRequestedRegion(region);
   gradientFilter->Update();
 
-  DeepCopy(gradientFilter->GetOutput(), output);
+  DeepCopyInRegion(gradientFilter->GetOutput(), region, output);
 }
 
 /** Compute a histogram of gradients. */

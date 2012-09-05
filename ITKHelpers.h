@@ -87,6 +87,11 @@ template<typename TImage>
 bool HasNeighborWithValue(const itk::Index<2>& pixel, const TImage* const image,
                           const typename TImage::PixelType& value);
 
+/** Determine if any of the 8 neighbors pixels has a value different from the specified value. */
+template<typename TImage>
+bool HasNeighborWithValueOtherThan(const itk::Index<2>& pixel, const TImage* const image,
+                                   const typename TImage::PixelType& value);
+
 /** Blur all channels of an image. */
 template<typename TImage>
 void BlurAllChannels(const TImage* const image, TImage* const output,
@@ -535,9 +540,14 @@ std::vector<float> HistogramOfGradients(const TImage* const image,
                                         const itk::ImageRegion<2>& region, const unsigned int numberOfBins);
 
 /** Compute the gradient of an image. */
-template <typename TImage>
+template <typename TImage, typename TGradientImage>
 void ComputeGradients(const TImage* const image,
-                      itk::Image<itk::CovariantVector<float, 2>, 2>* output);
+                      TGradientImage* output);
+
+/** Compute the gradient of an image only in a specified region. */
+template <typename TImage, typename TGradientImage>
+void ComputeGradientsInRegion(const TImage* const image, const itk::ImageRegion<2>& region,
+                              TGradientImage* const output);
 
 /** Compute a histogram of gradients when the gradients are already known. */
 template <typename TGradientImage>
