@@ -902,4 +902,20 @@ std::vector<itk::ImageRegion<2> > DivideRegion(const itk::ImageRegion<2>& region
   return subregions;
 }
 
+itk::ImageRegion<2> CropRegionAtPosition(itk::ImageRegion<2> regionToCrop, const itk::ImageRegion<2>& fullRegion, itk::ImageRegion<2> cropPosition)
+{
+  if(regionToCrop.GetSize() != cropPosition.GetSize())
+  {
+    throw std::runtime_error("CropRegionAtPosition only makes sense if the regions are the same size!");
+  }
+
+  itk::Offset<2> offset = cropPosition.GetIndex() - regionToCrop.GetIndex();
+
+  regionToCrop.SetIndex(regionToCrop.GetIndex() + offset);
+  regionToCrop.Crop(fullRegion);
+  regionToCrop.SetIndex(regionToCrop.GetIndex() - offset);
+
+  return regionToCrop;
+}
+
 } // end namespace
