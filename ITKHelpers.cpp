@@ -68,6 +68,17 @@ itk::ImageRegion<2> GetQuadrant(const itk::ImageRegion<2>& region, const unsigne
 {
   // Note: the four quadrants might not cover the entire 'region'.
 
+  // If the region is smaller than 2x2, it doesn't make sense to get a quadrant of it
+  if((region.GetSize()[0] < 2) || (region.GetSize()[1] < 2))
+  {
+//    std::stringstream ss;
+//    ss << "GetQuadrant(): 'region' is only " << region.GetSize();
+//    throw std::runtime_error(ss.str());
+
+    std::cerr << "Warning: GetQuadrant(): 'region' is only " << region.GetSize() << std::endl;
+    return region;
+  }
+
   unsigned int quadrantSideLength = region.GetSize()[0]/2;
   itk::Size<2> size = {{quadrantSideLength, quadrantSideLength}};
   itk::Index<2> corner;
