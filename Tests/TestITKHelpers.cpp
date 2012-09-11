@@ -60,6 +60,8 @@ static void TestMinOfIndex();
 
 static void TestMinOfAllIndices();
 
+static void TestComputeGradientsInRegion();
+
 int main( int argc, char ** argv )
 {
 //   TestRandomImage();
@@ -103,7 +105,9 @@ int main( int argc, char ** argv )
 
 //  TestMinOfIndex();
 
-  TestMinOfAllIndices();
+//  TestMinOfAllIndices();
+
+  TestComputeGradientsInRegion();
 
   return 0;
 }
@@ -796,4 +800,40 @@ void TestMinOfAllIndices()
   {
     std::cout << minComponents[i] << std::endl;
   }
+}
+
+void TestComputeGradientsInRegion()
+{
+  itk::Index<2> imageCorner = {{0,0}};
+  itk::Size<2> imageSize = {{100,100}};
+  itk::ImageRegion<2> imageRegion(imageCorner, imageSize);
+
+  typedef itk::Image<unsigned char, 2> ImageType;
+  ImageType::Pointer image = ImageType::New();
+  image->SetRegions(imageRegion);
+  image->Allocate();
+
+  itk::ImageRegionIterator<ImageType> imageIterator(image, image->GetLargestPossibleRegion());
+
+  while(!imageIterator.IsAtEnd())
+  {
+    imageIterator.Set(rand() % 255);
+
+    ++imageIterator;
+  }
+
+  ITKHelpers::WriteImage(image.GetPointer(), "Image.mha");
+
+  itk::Index<2> regionCorner = {{50,50}};
+  itk::Size<2> regionSize = {{10,10}};
+  itk::ImageRegion<2> region(regionCorner, regionSize);
+
+  typedef itk::Image<itk::CovariantVector<float, 2>, 2> GradientImageType;
+  GradientImageType::Pointer gradientImage = GradientImageType::New();
+
+  std::cout << "Computing gradients..." << std::endl;
+  ITKHelpers::ComputeGradientsInRegion(image.GetPointer(), region, gradientImage.GetPointer());
+
+  std::cout << "Writing..." << std::endl;
+  ITKHelpers::WriteImage(gradientImage.GetPointer(), "GradientImage.mha");
 }

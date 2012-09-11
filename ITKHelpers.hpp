@@ -2109,6 +2109,13 @@ void ComputeGradientsInRegion(const TImage* const image, const itk::ImageRegion<
   gradientFilter->GetOutput()->SetRequestedRegion(region);
   gradientFilter->Update();
 
+  if(output->GetLargestPossibleRegion() != image->GetLargestPossibleRegion())
+  {
+    output->SetRegions(image->GetLargestPossibleRegion());
+    output->Allocate();
+    typename TGradientImage::PixelType zeroPixel = itk::NumericTraits<typename TGradientImage::PixelType>::Zero;
+    output->FillBuffer(zeroPixel);
+  }
   DeepCopyInRegion(gradientFilter->GetOutput(), region, output);
 }
 
