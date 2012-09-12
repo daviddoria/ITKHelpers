@@ -49,6 +49,7 @@
 #include "itkRegionOfInterestImageFilter.h"
 #include "itkResampleImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
+#include "itkRGBToLuminanceImageFilter.h"
 #include "itkSmoothingRecursiveGaussianImageFilter.h"
 #include "itkVectorCastImageFilter.h"
 #include "itkVectorMagnitudeImageFilter.h"
@@ -710,7 +711,9 @@ template<typename TInputPixel, typename TOutputPixel>
 void ExtractChannel(const itk::Image<TInputPixel, 2>* const image, const unsigned int channel,
                     itk::Image<TOutputPixel, 2>* const output)
 {
-  // Here TInputPixel should only be a scalar - there are specializations for CovariantVector and Vector
+  // Here TInputPixel should only be a scalar - there are specializations for Image<CovariantVector> and Image<Vector>
+  static_assert(std::is_fundamental<TInputPixel>::value, "This overload of ExtractChannel requires a scalar pixel type.");
+
   if(channel > 0)
   {
     std::stringstream ss;
@@ -2814,7 +2817,7 @@ void ApplyOperationToTestedPixels(TImage* const image,
 }
 
 template<typename TVector>
-TVector ComponentWiseMultiple(const TVector& a, const TVector& b)
+TVector ComponentWiseMultiply(const TVector& a, const TVector& b)
 {
   TVector product;
   for(unsigned int i = 0; i < a.GetSize(); ++i)
@@ -2823,6 +2826,34 @@ TVector ComponentWiseMultiple(const TVector& a, const TVector& b)
   }
 
   return product;
+}
+
+template<typename TRGBImage, typename TOutputImage>
+void CreateLuminanceImage(const TRGBImage* const image, TOutputImage* const luminanceImage)
+{
+  // This function converts a vector image to an RGBImage and then calls an overload of CreateLuminanceImage
+  typedef itk::Image<itk::RGBPixel<unsigned char>, 2> RGBImageType;
+  RGBImageType::Pointer rgbImage = RGBImageType::New();
+
+  VectorImageToRGBImage(image, rgbImage.GetPointer());
+
+  CreateLuminanceImage(rgbImage.GetPointer(), luminanceImage);
+}
+
+template<typename TOutputImage>
+void CreateLuminanceImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* const image, itk::Image<float, 2>* const luminanceImage)
+{
+  static_assert(std::is_floating_point<typename TOutputImage::PixelType>::value, "CreateLuminanceImage requires a floating point output pixel type.");
+
+  typedef itk::Image<itk::RGBPixel<unsigned char>, 2> RGBImageType;
+
+  typedef itk::Image<float, 2> LuminanceImageType;
+  typedef itk::RGBToLuminanceImageFilter<RGBImageType, LuminanceImageType> LuminanceFilterType;
+  typename LuminanceFilterType::Pointer luminanceFilter = LuminanceFilterType::New();
+  luminanceFilter->SetInput(image);
+  luminanceFilter->Update();
+
+  DeepCopy(luminanceFilter->GetOutput(), luminanceImage);
 }
 
 }// end namespace ITKHelpers

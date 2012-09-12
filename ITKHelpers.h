@@ -262,6 +262,14 @@ template<typename TImage>
 void ChangeValue(const TImage* const image, const typename TImage::PixelType& oldValue,
                  const typename TImage::PixelType& newValue);
 
+/** Create a luminance image from an rgb image. */
+template<typename TOutputImage>
+void CreateLuminanceImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* const image, itk::Image<float, 2>* const luminanceImage);
+
+/** Create a luminance image from a vector image. */
+template<typename TRGBImage, typename TOutputImage>
+void CreateLuminanceImage(const TRGBImage* const image, TOutputImage* const luminanceImage);
+
 /** Extract a channel of an image. The output image should be a scalar image,
   * but does not have to have the same pixel type as the input image. */
 template<typename TInputImage, typename TOutputImage>
