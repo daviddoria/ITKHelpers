@@ -62,6 +62,8 @@ static void TestMinOfAllIndices();
 
 static void TestComputeGradientsInRegion();
 
+static void TestCreateLuminanceImage();
+
 int main( int argc, char ** argv )
 {
 //   TestRandomImage();
@@ -107,7 +109,9 @@ int main( int argc, char ** argv )
 
 //  TestMinOfAllIndices();
 
-  TestComputeGradientsInRegion();
+//  TestComputeGradientsInRegion();
+
+  TestCreateLuminanceImage();
 
   return 0;
 }
@@ -836,4 +840,42 @@ void TestComputeGradientsInRegion()
 
   std::cout << "Writing..." << std::endl;
   ITKHelpers::WriteImage(gradientImage.GetPointer(), "GradientImage.mha");
+}
+
+void TestCreateLuminanceImage()
+{
+  // From RGB image
+  {
+  itk::Index<2> imageCorner = {{0,0}};
+  itk::Size<2> imageSize = {{100,100}};
+  itk::ImageRegion<2> imageRegion(imageCorner, imageSize);
+
+  typedef itk::Image<itk::RGBPixel<unsigned char>, 2> RGBImageType;
+  RGBImageType::Pointer rgbImage = RGBImageType::New();
+  rgbImage->SetRegions(imageRegion);
+  rgbImage->Allocate();
+
+  typedef itk::Image<float, 2> LuminanceImageType;
+  LuminanceImageType::Pointer luminanceImage = LuminanceImageType::New();
+
+  ITKHelpers::CreateLuminanceImage(rgbImage.GetPointer(), luminanceImage.GetPointer());
+  }
+
+  // From Vector image
+  {
+  itk::Index<2> imageCorner = {{0,0}};
+  itk::Size<2> imageSize = {{100,100}};
+  itk::ImageRegion<2> imageRegion(imageCorner, imageSize);
+
+  typedef itk::Image<itk::CovariantVector<unsigned char, 3>, 2> VectorImageType;
+  VectorImageType::Pointer vectorImage = VectorImageType::New();
+  vectorImage->SetRegions(imageRegion);
+  vectorImage->Allocate();
+
+  typedef itk::Image<float, 2> LuminanceImageType;
+  LuminanceImageType::Pointer luminanceImage = LuminanceImageType::New();
+
+  ITKHelpers::CreateLuminanceImage(vectorImage.GetPointer(), luminanceImage.GetPointer());
+  }
+
 }

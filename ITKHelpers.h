@@ -264,7 +264,8 @@ void ChangeValue(const TImage* const image, const typename TImage::PixelType& ol
 
 /** Create a luminance image from an rgb image. */
 template<typename TOutputImage>
-void CreateLuminanceImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* const image, itk::Image<float, 2>* const luminanceImage);
+void CreateLuminanceImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* const image,
+                          TOutputImage* const luminanceImage);
 
 /** Create a luminance image from a vector image. */
 template<typename TRGBImage, typename TOutputImage>
