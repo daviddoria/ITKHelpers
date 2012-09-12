@@ -2831,7 +2831,8 @@ TVector ComponentWiseMultiply(const TVector& a, const TVector& b)
 template<typename TRGBImage, typename TOutputImage>
 void CreateLuminanceImage(const TRGBImage* const image, TOutputImage* const luminanceImage)
 {
-  std::cout << "CreateLuminanceImage from vector image." << std::endl;
+//  std::cout << "CreateLuminanceImage from vector image." << std::endl;
+
   // This function converts a vector image to an RGBImage and then calls an overload of CreateLuminanceImage
   typedef itk::Image<itk::RGBPixel<unsigned char>, 2> RGBImageType;
   RGBImageType::Pointer rgbImage = RGBImageType::New();
@@ -2845,7 +2846,7 @@ template<typename TOutputImage>
 void CreateLuminanceImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* const image,
                           TOutputImage* const luminanceImage)
 {
-  std::cout << "CreateLuminanceImage from RGB image." << std::endl;
+//  std::cout << "CreateLuminanceImage from RGB image." << std::endl;
   static_assert(std::is_floating_point<typename TOutputImage::PixelType>::value, "CreateLuminanceImage requires a floating point output pixel type.");
 
   typedef itk::Image<itk::RGBPixel<unsigned char>, 2> RGBImageType;
