@@ -2259,17 +2259,17 @@ void ApplyMultichannelImageAdaptor(TInputImage* const inputImage, TOutputImage* 
   std::vector<FloatScalarImageType::Pointer> channels;
 
   // Reassembler
-  typedef itk::ComposeImageFilter<FloatScalarImageType> ReassemblerType;
-  ReassemblerType::Pointer reassembler = ReassemblerType::New();
+  typedef itk::ComposeImageFilter<FloatScalarImageType, TOutputImage> ReassemblerType;
+  typename ReassemblerType::Pointer reassembler = ReassemblerType::New();
 
   for(unsigned int i = 0; i < 3; ++i)
-    {
+  {
     channels.push_back(FloatScalarImageType::New());
     vectorIndexSelectionFilter->SetIndex(i);
     vectorIndexSelectionFilter->Update();
     DeepCopy(vectorIndexSelectionFilter->GetOutput(), channels[i].GetPointer());
     reassembler->SetInput(i, channels[i]);
-    }
+  }
 
   reassembler->Update();
 
