@@ -64,6 +64,8 @@ static void TestComputeGradientsInRegion();
 
 static void TestCreateLuminanceImage();
 
+static void TestHasBracketOperator();
+
 int main( int argc, char ** argv )
 {
 //   TestRandomImage();
@@ -111,7 +113,9 @@ int main( int argc, char ** argv )
 
 //  TestComputeGradientsInRegion();
 
-  TestCreateLuminanceImage();
+//  TestCreateLuminanceImage();
+
+  TestHasBracketOperator();
 
   return 0;
 }
@@ -878,4 +882,27 @@ void TestCreateLuminanceImage()
   ITKHelpers::CreateLuminanceImage(vectorImage.GetPointer(), luminanceImage.GetPointer());
   }
 
+}
+
+void TestHasBracketOperator()
+{
+  {
+  typedef itk::CovariantVector<int, 3> VectorType;
+
+  static_assert(Helpers::HasBracketOperator<VectorType>::value,
+              "TestHasBracketOperator for CovariantVector failed!");
+  }
+
+  {
+  typedef itk::VariableLengthVector<int> VectorType;
+
+  static_assert(Helpers::HasBracketOperator<VectorType>::value,
+              "TestHasBracketOperator for VariableLengthVector failed!");
+  }
+
+  // This (intentionally) fails
+//  {
+//  static_assert(Helpers::HasBracketOperator<float>::value,
+//              "TestHasBracketOperator for float failed!");
+//  }
 }

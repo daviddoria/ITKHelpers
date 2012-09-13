@@ -479,11 +479,47 @@ std::vector<itk::Index<2> > GetNonZeroPixels(const TImage* image, const itk::Ima
 template<typename TImage>
 void WriteRegionAsRGBImage(const TImage* image, itk::ImageRegion<2> region, const std::string& filename)
 {
-  WriteRegionAsImage(image, region, filename, true);
+  static_assert(Helpers::HasBracketOperator<typename TImage::PixelType>::value,
+                "WriteRegionAsRGBImage requires the pixels to have an operator[]!");
+
+  // We cannot simply call WriteRegionAsImage and have a conditional to decide to call
+  // WriteImage or WriteRGBImage at the end because this function (and WriteRGBImage) require pixels
+  // with operator[].
+
+  // This function varies from WriteRegion() in that the Origin of the output image is (0,0).
+  // Because of this, the region cannot be overlayed on the original image,
+  // but can be easily compared to other regions.
+  //std::cout << "WriteRegion() " << filename << std::endl;
+  //std::cout << "region " << region << std::endl;
+
+  // Ensure the region is inside the image
+  region.Crop(image->GetLargestPossibleRegion());
+
+  typedef itk::RegionOfInterestImageFilter<TImage, TImage> RegionOfInterestImageFilterType;
+
+  typename RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter =
+           RegionOfInterestImageFilterType::New();
+  regionOfInterestImageFilter->SetRegionOfInterest(region);
+  regionOfInterestImageFilter->SetInput(image);
+  regionOfInterestImageFilter->Update();
+
+  itk::Point<float, 2> origin;
+  origin.Fill(0);
+  regionOfInterestImageFilter->GetOutput()->SetOrigin(origin);
+
+  WriteRGBImage(regionOfInterestImageFilter->GetOutput(), filename);
 }
 
 template<typename TImage>
-void WriteRegionAsImage(const TImage* image, itk::ImageRegion<2> region, const std::string& filename, const bool rgb)
+void ResetOrigin(TImage* const image)
+{
+  itk::Point<float, 2> origin;
+  origin.Fill(0);
+  image->SetOrigin(origin);
+}
+
+template<typename TImage>
+void WriteRegionAsImage(const TImage* image, itk::ImageRegion<2> region, const std::string& filename)
 {
   // This function varies from WriteRegion() in that the Origin of the output image is (0,0).
   // Because of this, the region cannot be overlayed on the original image,
@@ -506,17 +542,7 @@ void WriteRegionAsImage(const TImage* image, itk::ImageRegion<2> region, const s
   origin.Fill(0);
   regionOfInterestImageFilter->GetOutput()->SetOrigin(origin);
 
-  //std::cout << "regionOfInterestImageFilter "
-  //          << regionOfInterestImageFilter->GetOutput()->GetLargestPossibleRegion() << std::endl;
-
-  if(rgb)
-  {
-    WriteRGBImage(regionOfInterestImageFilter->GetOutput(), filename);
-  }
-  else
-  {
-    WriteImage(regionOfInterestImageFilter->GetOutput(), filename);
-  }
+  WriteImage(regionOfInterestImageFilter->GetOutput(), filename);
 }
 
 template<typename TImage>
@@ -1572,6 +1598,9 @@ void WriteImage(const TImage* const image, const std::string& filename)
 template<typename TImage>
 void WriteRGBImage(const TImage* const input, const std::string& filename)
 {
+  static_assert(Helpers::HasBracketOperator<typename TImage::PixelType>::value,
+                "WriteRGBImage requires the pixels to have an operator[]!");
+
   typedef itk::Image<itk::CovariantVector<unsigned char, 3>, 2> RGBImageType;
 
   RGBImageType::Pointer output = RGBImageType::New();

@@ -629,12 +629,16 @@ void WriteRegion(const TImage* const image, itk::ImageRegion<2> region, const st
 template<typename TImage>
 void WriteScalarImageRegion(const TImage* const image, itk::ImageRegion<2> region, const std::string& filename);
 
+/** Reset the origin of an image to (0,0).*/
+template<typename TImage>
+void ResetOrigin(TImage* const image);
+
 /** Write a 'region' of an 'image' to 'filename'. This function varies from WriteRegion() in that the Origin of the output image is (0,0).
   * Because of this, the region cannot be overlayed on the original image,
   * but can be easily compared to other regions.
   * If the 'region' is not entirely inside the image, it is cropped first (this is why it is not passed by const&).*/
 template<typename TImage>
-void WriteRegionAsImage(const TImage* image, itk::ImageRegion<2> region, const std::string& filename, const bool rgb = false);
+void WriteRegionAsImage(const TImage* image, itk::ImageRegion<2> region, const std::string& filename);
 
 /** See WriteRegionAsImage, but this function converts the pixels to uchar before writing them.
   * The pixels are assumed to have values in [0,255] for each component.*/
