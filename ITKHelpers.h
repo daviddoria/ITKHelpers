@@ -516,8 +516,16 @@ void CreateEvenSizeImage(const TImage* const image, TImage* const output);
 template <typename TImage>
 void ScaleImage(const TImage* const image, const itk::Size<2>& destinationSize, TImage* const output);
 
+namespace detail
+{
 template <typename TInputImage, typename TOutputImage>
 void MagnitudeImage_Generic(const TInputImage* const image, TOutputImage* const output);
+}
+
+/** Compute the magnitude image in a specified 'region'. */
+template <typename TInputImage, typename TOutputImage>
+void MagnitudeImageInRegion(const TInputImage* const image, const itk::ImageRegion<2>& region,
+                            TOutputImage* const output);
 
 /** Compute the magnitude image. */
 template <typename TInputImage, typename TOutputImage>

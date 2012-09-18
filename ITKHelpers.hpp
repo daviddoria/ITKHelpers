@@ -2066,6 +2066,8 @@ void CreateEvenSizeImage(const TImage* const image, TImage* const output)
   CopyRegion(image, output, evenRegion, evenRegion);
 }
 
+namespace detail
+{
 template <typename TInputImage, typename TOutputImage>
 void MagnitudeImage_Generic(const TInputImage* const image, TOutputImage* const output)
 {
@@ -2077,6 +2079,7 @@ void MagnitudeImage_Generic(const TInputImage* const image, TOutputImage* const 
   magnitudeFilter->Update();
 
   ITKHelpers::DeepCopy(magnitudeFilter->GetOutput(), output);
+}
 }
 
 template<typename TImage>
@@ -2102,7 +2105,7 @@ void InterpolateLineBetweenPoints(TImage* const image, const itk::Index<2>& p0, 
 template <typename TInputImage, typename TOutputImage>
 void MagnitudeImage(const TInputImage* const image, TOutputImage* const output)
 {
-  MagnitudeImage_Generic(image, output);
+  detail::MagnitudeImage_Generic(image, output);
 }
 
 template <typename TInputPixel, typename TOutputPixel>
@@ -2122,7 +2125,22 @@ template <typename TInputPixel, unsigned int TVectorDim, typename TOutputPixel>
 void MagnitudeImage(const itk::Image<itk::CovariantVector<TInputPixel, TVectorDim>, 2>* const image,
                     itk::Image<TOutputPixel,2>* const output)
 {
-  MagnitudeImage_Generic(image, output);
+  detail::MagnitudeImage_Generic(image, output);
+}
+
+template <typename TInputImage, typename TOutputImage>
+void MagnitudeImageInRegion(const TInputImage* const image, const itk::ImageRegion<2>& region,
+                            TOutputImage* const output)
+{
+  typedef itk::VectorMagnitudeImageFilter<
+    TInputImage, TOutputImage >  VectorMagnitudeFilterType;
+  typename VectorMagnitudeFilterType::Pointer magnitudeFilter =
+    VectorMagnitudeFilterType::New();
+  magnitudeFilter->SetInput(image);
+  magnitudeFilter->GetOutput()->SetRequestedRegion(region);
+  magnitudeFilter->Update();
+
+  ITKHelpers::DeepCopyInRegion(magnitudeFilter->GetOutput(), region, output);
 }
 
 template <typename TImage, typename TGradientImage>
