@@ -27,19 +27,17 @@ if(NOT ITK_FOUND)
                             ITKBinaryMathematicalMorphology)
   INCLUDE(${ITK_USE_FILE})
 endif()
-
 set(ITKHelpers_libraries ${ITKHelpers_libraries} ${ITK_LIBRARIES})
+
+include_directories(${ITKHelpers_includes})
 
 add_library(ITKHelpers ITKHelpers.cpp)
 target_link_libraries(ITKHelpers ${ITKHelpers_libraries})
-
-add_custom_target(ITKHelpersSources SOURCES ITKHelpers.hpp ITKTypeTraits.h ITKContainerInterface.h ITKContainerInterface.hpp
-                  ITKHelpersTypes.h itkRGBToHSVColorSpacePixelAccessor.h itkRGBToLabColorSpacePixelAccessor.h)
-
 set(ITKHelpers_libraries ${ITKHelpers_libraries} ITKHelpers)
 
-GET_DIRECTORY_PROPERTY(AllITKHelpersIncludes INCLUDE_DIRECTORIES)
-message("AllITKHelpersIncludes include directories: ${AllITKHelpersIncludes}")
+add_custom_target(ITKHelpersSources SOURCES
+ITKHelpers.hpp ITKTypeTraits.h ITKContainerInterface.h ITKContainerInterface.hpp
+ITKHelpersTypes.h itkRGBToHSVColorSpacePixelAccessor.h itkRGBToLabColorSpacePixelAccessor.h)
 
 SET(ITKHelpers_BuildTests OFF CACHE BOOL "ITKHelpers_BuildTests")
 if(ITKHelpers_BuildTests)
