@@ -23,8 +23,9 @@
 #include <Helpers/TypeTraits.h>
 
 // ITK
-#include "itkVariableLengthVector.h"
 #include "itkCovariantVector.h"
+#include "itkVariableLengthVector.h"
+#include "itkRGBPixel.h"
 
 /** For generic itk::VariableLengthVector, use the same type as the LargerType.
   * This is a partial specialization. */
@@ -44,6 +45,16 @@ struct TypeTraits<itk::VariableLengthVector<unsigned char> >
   typedef itk::VariableLengthVector<float> LargerType;
   typedef float LargerComponentType;
   typedef unsigned char ComponentType;
+};
+
+/** For itk::RGBPixel<T>.
+  * This is a partial specialization. */
+template <typename T>
+struct TypeTraits<itk::RGBPixel<T> >
+{
+  typedef itk::RGBPixel<T> LargerType;
+  typedef T LargerComponentType;
+  typedef T ComponentType;
 };
 
 /** For itk::CovariantVector<T, N>.
