@@ -1,24 +1,18 @@
+cmake_minimum_required(VERSION 2.8)
+
 project(ITKHelpers)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-cmake_minimum_required(VERSION 2.8)
-
 # Only include Helpers if it is not already available
-if(NOT TARGET Helpers)
+get_property(FoundHelpers GLOBAL PROPERTY HelpersIncludeDirs SET)
+if(NOT FoundHelpers)
   add_subdirectory(Helpers)
-  include_directories(${Helpers_includes})
-  set(ITKHelpers_includes ${ITKHelpers_includes} ${Helpers_includes})
-  set(ITKHelpers_libraries ${ITKHelpers_libraries} Helpers)
-  message("ITKHelpers submodule in ${CMAKE_CURRENT_SOURCE_DIR} used Helpers submodule (with includes ${Helpers_includes} ).")
 endif()
 
-# Add this directory and all submodule directories to a variable that can
-# be used in by a parent project to set the include path
-if(NOT ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
-  set(ITKHelpers_includes ${ITKHelpers_includes} ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
-  set(ITKHelpers_libraries ${ITKHelpers_libraries} ITKHelpers ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
-  message("ITKHelpers submodule used from ${CMAKE_CURRENT_SOURCE_DIR}")
-endif()
+get_property(HelpersIncludeDirs GLOBAL PROPERTY HelpersIncludeDirs)
+set(ITKHelpers_include_dirs ${ITKHelpers_include_dirs} ${HelpersIncludeDirs})
+get_property(HelpersLibs GLOBAL PROPERTY HelpersLibs)
+set(ITKHelpers_libraries ${ITKHelpers_libraries} ${HelpersLibs})
 
 # Required because of the c++0x used in Helpers
 if(UNIX)
@@ -32,20 +26,27 @@ if(NOT ITK_FOUND)
                             ITKBinaryMathematicalMorphology)
   INCLUDE(${ITK_USE_FILE})
 endif()
-
 set(ITKHelpers_libraries ${ITKHelpers_libraries} ${ITK_LIBRARIES})
 
+# Give the compiler all of the required include directories
+include_directories(${ITKHelpers_include_dirs})
+
+# Create the library
 add_library(ITKHelpers ITKHelpers.cpp)
 target_link_libraries(ITKHelpers ${ITKHelpers_libraries})
-
-add_custom_target(ITKHelpersSources SOURCES ITKHelpers.hpp ITKTypeTraits.h ITKContainerInterface.h ITKContainerInterface.hpp
-                  ITKHelpersTypes.h itkRGBToHSVColorSpacePixelAccessor.h itkRGBToLabColorSpacePixelAccessor.h)
-
 set(ITKHelpers_libraries ${ITKHelpers_libraries} ITKHelpers)
 
-GET_DIRECTORY_PROPERTY(AllITKHelpersIncludes INCLUDE_DIRECTORIES)
-message("AllITKHelpersIncludes include directories: ${AllITKHelpersIncludes}")
+# Add all of the non-compiled files to the project
+add_custom_target(ITKHelpersSources SOURCES
+ITKHelpers.hpp ITKTypeTraits.h ITKContainerInterface.h ITKContainerInterface.hpp
+ITKHelpersTypes.h itkRGBToHSVColorSpacePixelAccessor.h itkRGBToLabColorSpacePixelAccessor.h)
 
+# Allow this project to be detected and used as a submodule
+set(ITKHelpers_include_dirs ${ITKHelpers_include_dirs} ${CMAKE_CURRENT_SOURCE_DIR})
+set_property(GLOBAL PROPERTY ITKHelpersIncludeDirs ${ITKHelpers_include_dirs})
+set_property(GLOBAL PROPERTY ITKHelpersLibs ${ITKHelpers_libraries})
+
+# Build the tests if requested
 SET(ITKHelpers_BuildTests OFF CACHE BOOL "ITKHelpers_BuildTests")
 if(ITKHelpers_BuildTests)
   add_subdirectory(Tests)
