@@ -4,7 +4,7 @@ project(ITKHelpers)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Only include Helpers if it is not already available
-get_property(FoundHelpers GLOBAL PROPERTY HelpersDir SET)
+get_property(FoundHelpers GLOBAL PROPERTY HelpersIncludeDirs SET)
 if(NOT FoundHelpers)
   add_subdirectory(Helpers)
 endif()
