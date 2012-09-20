@@ -292,6 +292,11 @@ template<typename TInputPixelComponent, unsigned int PixelDimension, typename TO
 void ExtractChannel(const itk::Image<itk::Vector<TInputPixelComponent, PixelDimension>, 2>* const image, const unsigned int channel,
                     itk::Image<TOutputPixel, 2>* const output);
 
+/** An even further  specialization to allow this function to process Image<RGBPixel<> >. */
+template<typename TInputPixelComponent, typename TOutputPixel>
+void ExtractChannel(const itk::Image<itk::RGBPixel<TInputPixelComponent>, 2>* const image, const unsigned int channel,
+                    itk::Image<TOutputPixel, 2>* const output);
+
 /** Extract a channels of an image. */
 template<typename TInputImage, typename TOutputImage>
 void ExtractChannels(const TInputImage* const image, const std::vector<unsigned int> channels,
@@ -663,6 +668,14 @@ template <typename TPixel>
 void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1,
                  const typename itk::VectorImage<TPixel, 2>* const image2,
                  typename itk::VectorImage<TPixel, 2>* const output);
+
+/** Combine two images into an image where the number of channels is
+  * the sum of the two input images. 'output' must have the correct number of
+  * channels before this call. */
+template <typename TImage1, typename TImage2, typename TOutputImage>
+void StackImages(const TImage1* const image1,
+                 const TImage2* const image2,
+                 TOutputImage* const output);
 
 /** Convert the first 3 channels of a float vector image to an unsigned char/color/rgb image (only in 'region'). */
 template <typename TImage>

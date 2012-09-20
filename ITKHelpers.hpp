@@ -733,6 +733,13 @@ void ExtractChannel(const itk::Image<itk::Vector<TInputPixelComponent, PixelDime
   detail::ExtractChannel(image, channel, output);
 }
 
+template<typename TInputPixelComponent, typename TOutputPixel>
+void ExtractChannel(const itk::Image<itk::RGBPixel<TInputPixelComponent>, 2>* const image, const unsigned int channel,
+                    itk::Image<TOutputPixel, 2>* const output)
+{
+  detail::ExtractChannel(image, channel, output);
+}
+
 template<typename TInputPixel, typename TOutputPixel>
 void ExtractChannel(const itk::Image<TInputPixel, 2>* const image, const unsigned int channel,
                     itk::Image<TOutputPixel, 2>* const output)
@@ -886,6 +893,67 @@ void NormalizeVectorImage(TImage* const image)
     imageIterator.Set(pixel);
     ++imageIterator;
     }
+}
+
+template <typename TImage1, typename TImage2, typename TOutputImage>
+void StackImages(const TImage1* const image1,
+                 const TImage2* const image2,
+                 TOutputImage* const output)
+{
+  // 'output' must have the correct number of components per pixel before this call.
+
+  if(image1->GetLargestPossibleRegion() != image2->GetLargestPossibleRegion())
+    {
+    std::stringstream ss;
+    ss << "StackImages: Images must be the same size!" << std::endl
+       << "Image1 is " << image1->GetLargestPossibleRegion() << std::endl
+       << "Image2 is " << image2->GetLargestPossibleRegion() << std::endl;
+    throw std::runtime_error(ss.str());
+    }
+
+  std::cout << "StackImages: Image1 has " << image1->GetNumberOfComponentsPerPixel() << " components." << std::endl;
+  std::cout << "StackImages: Image2 has " << image2->GetNumberOfComponentsPerPixel() << " components." << std::endl;
+
+  // Create output image
+  itk::ImageRegion<2> region = image1->GetLargestPossibleRegion();
+
+  unsigned int totalNumberOfComponents = image1->GetNumberOfComponentsPerPixel() +
+                                         image2->GetNumberOfComponentsPerPixel();
+
+  if(totalNumberOfComponents != output->GetNumberOfComponentsPerPixel())
+  {
+    std::stringstream ss;
+    ss << "StackImages must have 'output' presized. totalNumberOfComponents = " << totalNumberOfComponents
+       << " but output has " << output->GetNumberOfComponentsPerPixel();
+    throw std::runtime_error(ss.str());
+  }
+
+  std::cout << "Output image has " << totalNumberOfComponents << " components." << std::endl;
+
+  output->SetRegions(region);
+  output->Allocate();
+
+  for(unsigned int i = 0; i < image1->GetNumberOfComponentsPerPixel(); i++)
+  {
+    typedef itk::Image<typename TypeTraits<typename TImage1::PixelType>::ComponentType, 2> ScalarImageType;
+    typename ScalarImageType::Pointer channel = ScalarImageType::New();
+    channel->SetRegions(region);
+    channel->Allocate();
+
+    ExtractChannel(image1, i, channel.GetPointer());
+    SetChannel(output, i, channel.GetPointer());
+  }
+
+  for(unsigned int i = 0; i < image2->GetNumberOfComponentsPerPixel(); i++)
+  {
+    typedef itk::Image<typename TypeTraits<typename TImage2::PixelType>::ComponentType, 2> ScalarImageType;
+    typename ScalarImageType::Pointer channel = ScalarImageType::New();
+    channel->SetRegions(region);
+    channel->Allocate();
+
+    ExtractChannel(image2, i, channel.GetPointer());
+    SetChannel(output, image1->GetNumberOfComponentsPerPixel() + i, channel.GetPointer());
+  }
 }
 
 template <typename TPixel>
