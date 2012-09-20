@@ -9,8 +9,8 @@ if(NOT FoundHelpers)
   add_subdirectory(Helpers)
 endif()
 
-get_property(HelpersDir GLOBAL PROPERTY HelpersDir)
-set(ITKHelpers_includes ${ITKHelpers_include_dirs} ${HelpersDir})
+get_property(HelpersIncludeDirs GLOBAL PROPERTY HelpersIncludeDirs)
+set(ITKHelpers_include_dirs ${ITKHelpers_include_dirs} ${HelpersIncludeDirs})
 get_property(HelpersLibs GLOBAL PROPERTY HelpersLibs)
 set(ITKHelpers_libraries ${ITKHelpers_libraries} ${HelpersLibs})
 
