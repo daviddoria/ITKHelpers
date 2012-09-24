@@ -30,15 +30,16 @@
 namespace ITKHelpers
 {
 
-std::vector<itk::Index<2> > GetDownsampledIndicesInRegion(const itk::ImageRegion<2>& region, const unsigned int stride)
+std::vector<itk::Index<2> > GetDownsampledIndicesInRegion(const itk::ImageRegion<2>& region, const itk::SizeValueType stride)
 {
   std::vector<itk::Index<2> > indices;
 
-  for(unsigned int i = 0; i < region.GetSize()[0]; i += stride)
+  for(itk::SizeValueType i = 0; i < region.GetSize()[0]; i += stride)
   {
-    for(unsigned int j = 0; j < region.GetSize()[1]; j += stride)
+    for(itk::SizeValueType j = 0; j < region.GetSize()[1]; j += stride)
     {
-    itk::Index<2> currentIndex = {{i,j}};
+    itk::Index<2> currentIndex = {{static_cast<itk::Index<2>::IndexValueType>(i),
+                                   static_cast<itk::Index<2>::IndexValueType>(j)}};
     indices.push_back(currentIndex);
     }
   }
@@ -79,8 +80,9 @@ itk::ImageRegion<2> GetQuadrant(const itk::ImageRegion<2>& region, const unsigne
     return region;
   }
 
-  unsigned int quadrantSideLength = region.GetSize()[0]/2;
-  itk::Size<2> size = {{quadrantSideLength, quadrantSideLength}};
+  itk::Offset<2>::OffsetValueType quadrantSideLength = region.GetSize()[0]/2;
+  itk::Size<2> size = {{static_cast<itk::SizeValueType>(quadrantSideLength),
+                        static_cast<itk::SizeValueType>(quadrantSideLength)}};
   itk::Index<2> corner;
   if(requestedQuadrant == 0)
   {
@@ -600,7 +602,8 @@ itk::ImageRegion<2> GetInternalRegion(const itk::ImageRegion<2>& wholeRegion, co
   unsigned int width = wholeRegion.GetSize()[0];
   unsigned int height = wholeRegion.GetSize()[1];
 
-  itk::Index<2> regionCorner = {{patchRadius, patchRadius}};
+  itk::Index<2> regionCorner = {{static_cast<itk::Index<2>::IndexValueType>(patchRadius),
+                                 static_cast<itk::Index<2>::IndexValueType>(patchRadius)}};
   itk::Size<2> regionSize = {{width - 2*patchRadius, height - 2*patchRadius}};
   itk::ImageRegion<2> region(regionCorner, regionSize);
 
@@ -676,7 +679,8 @@ std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<
   //dummyImage->Allocate(); // Do we actually need this to iterate over the image?
 
   // This region includes all patch centers
-  itk::Index<2> possibleRegionCorner = {{pixel[0] - patchRadius, pixel[1] - patchRadius}};
+  itk::Index<2> possibleRegionCorner = {{pixel[0] - static_cast<itk::Index<2>::IndexValueType>(patchRadius),
+                                         pixel[1] - static_cast<itk::Index<2>::IndexValueType>(patchRadius)}};
   itk::Size<2> possibleRegionSize = {{patchRadius*2 + 1, patchRadius*2 + 1}};
   itk::ImageRegion<2> possibleRegion(possibleRegionCorner, possibleRegionSize);
 
@@ -879,7 +883,7 @@ std::vector<itk::ImageRegion<2> > DivideRegion(const itk::ImageRegion<2>& region
 
   std::vector<itk::ImageRegion<2> > subregions;
 
-  std::vector<unsigned int> startingPointsX;
+  std::vector<itk::Index<2>::IndexValueType> startingPointsX;
   unsigned int startingPoint = 0;
   while(startingPoint < numberOfPixelsX)
   {
@@ -889,7 +893,7 @@ std::vector<itk::ImageRegion<2> > DivideRegion(const itk::ImageRegion<2>& region
 
   assert(startingPointsX.size() == divisionsPerDimension);
 
-  std::vector<unsigned int> startingPointsY;
+  std::vector<itk::Index<2>::IndexValueType> startingPointsY;
   startingPoint = 0;
   while(startingPoint < numberOfPixelsY)
   {
