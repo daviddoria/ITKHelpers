@@ -1013,7 +1013,8 @@ void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1,
 template<typename T>
 itk::Index<2> CreateIndex(const T& v)
 {
-  itk::Index<2> index = {{v[0], v[1]}};
+  itk::Index<2> index = {{static_cast<itk::Index<2>::IndexValueType>(v[0]),
+                          static_cast<itk::Index<2>::IndexValueType>(v[1])}};
   return index;
 }
 
