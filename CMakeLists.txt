@@ -47,7 +47,7 @@ set_property(GLOBAL PROPERTY ITKHelpersIncludeDirs ${ITKHelpers_include_dirs})
 set_property(GLOBAL PROPERTY ITKHelpersLibs ${ITKHelpers_libraries})
 
 # Build the tests if requested
-SET(ITKHelpers_BuildTests OFF CACHE BOOL "ITKHelpers_BuildTests")
+option(ITKHelpers_BuildTests "Build ITKHelpers tests?" OFF)
 if(ITKHelpers_BuildTests)
   add_subdirectory(Tests)
 endif()
