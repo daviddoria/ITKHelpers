@@ -760,6 +760,15 @@ template<typename TInputImage, typename TOutputImage>
 void ExtractChannels(const TInputImage* const image, const std::vector<unsigned int> channels,
                     TOutputImage* const output)
 {
+  // Size the image if necessary
+  if(output->GetLargestPossibleRegion().GetSize()[0] == 0)
+  {
+    output->SetRegions(image->GetLargestPossibleRegion());
+    output->Allocate();
+  }
+
+  assert(image->GetLargestPossibleRegion() == output->GetLargestPossibleRegion());
+
   if(output->GetNumberOfComponentsPerPixel() != channels.size())
   {
     std::stringstream ss;
@@ -1480,6 +1489,13 @@ std::vector<typename TImage::PixelType> GetPixelValuesInRegion(const TImage* con
 template<typename TVectorImage, typename TScalarImage>
 void SetChannel(TVectorImage* const vectorImage, const unsigned int channel, const TScalarImage* const image)
 {
+  // Size the image if necessary
+  if(vectorImage->GetLargestPossibleRegion().GetSize()[0] == 0)
+  {
+    vectorImage->SetRegions(image->GetLargestPossibleRegion());
+    vectorImage->Allocate();
+  }
+
   assert(vectorImage->GetLargestPossibleRegion() == image->GetLargestPossibleRegion());
 
   if(channel > vectorImage->GetNumberOfComponentsPerPixel() - 1)
