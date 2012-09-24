@@ -848,7 +848,7 @@ std::vector<itk::Index<2> > GetIndicesInRegion(const itk::ImageRegion<2>& region
 
 /** Get a list of the indices in a 'region' downsampled in both dimensions by 'stride' . */
 std::vector<itk::Index<2> > GetDownsampledIndicesInRegion(const itk::ImageRegion<2>& region,
-                                                          const unsigned int stride);
+                                                          const itk::SizeValueType stride);
 
 /** Get the 4-neighbor indices around 'pixel' that are inside 'region'. */
 std::vector<itk::Index<2> > Get4NeighborIndicesInsideRegion(const itk::Index<2>& pixel,

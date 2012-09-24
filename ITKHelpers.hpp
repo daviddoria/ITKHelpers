@@ -2841,8 +2841,8 @@ itk::ImageRegion<2> ComputeBoundingBox(const TImage* const image,
 
   // Initialize backwards (the min is set to the max of the image, and the max
   // is set to the min of the image)
-  itk::Index<2> min = {{image->GetLargestPossibleRegion().GetSize()[0],
-                        image->GetLargestPossibleRegion().GetSize()[1]}};
+  itk::Index<2> min = {{static_cast<itk::Index<2>::IndexValueType>(image->GetLargestPossibleRegion().GetSize()[0]),
+                        static_cast<itk::Index<2>::IndexValueType>(image->GetLargestPossibleRegion().GetSize()[1])}};
   itk::Index<2> max = {{0, 0}};
 
   while(!imageIterator.IsAtEnd())
@@ -2871,7 +2871,8 @@ itk::ImageRegion<2> ComputeBoundingBox(const TImage* const image,
     }
 
   // The +1's are fencepost error correction
-  itk::Size<2> size = {{max[0] - min[0] + 1, max[1] - min[1] + 1}}; 
+  itk::Size<2> size = {{static_cast<itk::SizeValueType>(max[0] - min[0] + 1),
+                        static_cast<itk::SizeValueType>(max[1] - min[1] + 1)}};
   itk::ImageRegion<2> region(min, size);
   return region;
 }

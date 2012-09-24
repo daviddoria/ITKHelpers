@@ -48,9 +48,12 @@ void TestDeepCopyUnsignedCharScalar();
 void TestDeepCopyFloatVector();
 void TestDeepCopyUnsignedCharVector();
 
+static void TestUpsample();
+static void TestDownsample();
+
 static void TestGetAllPatchesContainingPixel();
 
-static void TestClosestPoint();
+static void TestBreadthFirstOrderingNonZeroPixels();
 
 static void TestGetBoundaryPixels();
 
@@ -66,54 +69,54 @@ static void TestCreateLuminanceImage();
 
 static void TestHasBracketOperator();
 
-int main( int argc, char ** argv )
+int main(int, char **)
 {
-//   TestRandomImage();
-// 
-//   TestGetClosedContourOrdering();
-// 
-//   TestGetOpenContourOrdering();
-// 
-//   TestDrawRectangle();
-// 
-//   TestIsClosedLoop();
-// 
-//   TestBreadthFirstOrderingNonZeroPixels();
+  TestRandomImage();
 
-  //TestBlurAllChannelsVector();
-  // TestBlurAllChannelsScalar();
-//   TestBilateralFilterAllChannels();
-// 
-//   TestHistogramOfGradients();
-// 
-//    TestExtractChannel();
-//   TestExtractChannels();
-// 
-//   TestSumOfComponentMagnitudes();
-// 
-//   TestClosestPoint();
-// 
-//   TestGetAllPatchesContainingPixel();
-// 
-//   TestDownsample();
-//   TestUpsample();
-// 
-//   TestDeepCopyFloatScalar();
-//   TestDeepCopyUnsignedCharScalar();
-//   TestDeepCopyFloatVector();
-//   TestDeepCopyUnsignedCharVector();
+  TestGetClosedContourOrdering();
 
-//  TestGetBoundaryPixels();
+  TestGetOpenContourOrdering();
 
-//  TestDivideRegion();
+  TestDrawRectangle();
 
-//  TestMinOfIndex();
+  TestIsClosedLoop();
 
-//  TestMinOfAllIndices();
+  TestClosestValueIndex();
 
-//  TestComputeGradientsInRegion();
+  TestBreadthFirstOrderingNonZeroPixels();
 
-//  TestCreateLuminanceImage();
+  TestBlurAllChannelsVector();
+  TestBlurAllChannelsScalar();
+  TestBilateralFilterAllChannels();
+
+  TestHistogramOfGradients();
+
+  TestExtractChannel();
+  TestExtractChannels();
+
+  TestSumOfComponentMagnitudes();
+
+  TestGetAllPatchesContainingPixel();
+
+  TestDownsample();
+  TestUpsample();
+
+  TestDeepCopyFloatScalar();
+  TestDeepCopyUnsignedCharScalar();
+  TestDeepCopyFloatVector();
+  TestDeepCopyUnsignedCharVector();
+
+  TestGetBoundaryPixels();
+
+  TestDivideRegion();
+
+  TestMinOfIndex();
+
+  TestMinOfAllIndices();
+
+  TestComputeGradientsInRegion();
+
+  TestCreateLuminanceImage();
 
   TestHasBracketOperator();
 
@@ -544,7 +547,7 @@ void TestBreadthFirstOrderingNonZeroPixels()
   image->Allocate();
   image->FillBuffer(0);
 
-  for(unsigned int i = 20; i < 30; ++i)
+  for(itk::Index<2>::IndexValueType i = 20; i < 30; ++i)
   {
     itk::Index<2> pixel = {{i, 50}};
     image->SetPixel(pixel, 255);
@@ -580,7 +583,7 @@ void TestIsClosedLoop()
   image->Allocate();
   image->FillBuffer(0);
 
-  for(unsigned int i = 20; i < 30; ++i)
+  for(itk::Index<2>::IndexValueType i = 20; i < 30; ++i)
   {
     itk::Index<2> pixel = {{i, 50}};
     image->SetPixel(pixel, 255);
@@ -653,7 +656,7 @@ void TestGetOpenContourOrdering()
   image->Allocate();
   image->FillBuffer(0);
 
-  for(unsigned int i = 20; i < 30; ++i)
+  for(itk::Index<2>::IndexValueType i = 20; i < 30; ++i)
   {
     itk::Index<2> pixel = {{i, 50}};
     image->SetPixel(pixel, 255);
