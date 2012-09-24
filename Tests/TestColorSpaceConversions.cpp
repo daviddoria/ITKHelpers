@@ -31,7 +31,7 @@ static void TestConversion_Instantiations();
 
 int main()
 {
-//  TestAdaptor();
+  TestAdaptor();
 
   TestConversion_Range();
 
