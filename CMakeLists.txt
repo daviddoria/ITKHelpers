@@ -14,7 +14,7 @@ set(ITKHelpers_include_dirs ${ITKHelpers_include_dirs} ${HelpersIncludeDirs})
 get_property(HelpersLibs GLOBAL PROPERTY HelpersLibs)
 set(ITKHelpers_libraries ${ITKHelpers_libraries} ${HelpersLibs})
 
-# Required because of the c++0x used in Helpers
+# Enable c++11
 if(UNIX)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 endif(UNIX)
@@ -51,3 +51,9 @@ option(ITKHelpers_BuildTests "Build ITKHelpers tests?" OFF)
 if(ITKHelpers_BuildTests)
   add_subdirectory(Tests)
 endif()
+
+# Display where this code was used from (if it is used as a submodule, there may be multiple instances of this submodule in the project, only the first of which is used)
+option(ITKHelpers_ShowSubmoduleLocation "Show the path from which ITKHelpers was used?" OFF)
+if(ITKHelpers_ShowSubmoduleLocation)
+  message("ITKHelpers used from ${CMAKE_CURRENT_SOURCE_DIR}")
+endif(ITKHelpers_ShowSubmoduleLocation)
