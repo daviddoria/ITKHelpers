@@ -16,7 +16,7 @@ set(ITKHelpers_libraries ${ITKHelpers_libraries} ${HelpersLibs})
 
 # Required because of the c++0x used in Helpers
 if(UNIX)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 endif(UNIX)
 
 # ITK
