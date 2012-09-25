@@ -760,6 +760,15 @@ template<typename TInputImage, typename TOutputImage>
 void ExtractChannels(const TInputImage* const image, const std::vector<unsigned int> channels,
                     TOutputImage* const output)
 {
+  // Size the image if necessary
+  if(output->GetLargestPossibleRegion().GetSize()[0] == 0)
+  {
+    output->SetRegions(image->GetLargestPossibleRegion());
+    output->Allocate();
+  }
+
+  assert(image->GetLargestPossibleRegion() == output->GetLargestPossibleRegion());
+
   if(output->GetNumberOfComponentsPerPixel() != channels.size())
   {
     std::stringstream ss;
@@ -1013,7 +1022,8 @@ void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1,
 template<typename T>
 itk::Index<2> CreateIndex(const T& v)
 {
-  itk::Index<2> index = {{v[0], v[1]}};
+  itk::Index<2> index = {{static_cast<itk::Index<2>::IndexValueType>(v[0]),
+                          static_cast<itk::Index<2>::IndexValueType>(v[1])}};
   return index;
 }
 
@@ -1479,6 +1489,13 @@ std::vector<typename TImage::PixelType> GetPixelValuesInRegion(const TImage* con
 template<typename TVectorImage, typename TScalarImage>
 void SetChannel(TVectorImage* const vectorImage, const unsigned int channel, const TScalarImage* const image)
 {
+  // Size the image if necessary
+  if(vectorImage->GetLargestPossibleRegion().GetSize()[0] == 0)
+  {
+    vectorImage->SetRegions(image->GetLargestPossibleRegion());
+    vectorImage->Allocate();
+  }
+
   assert(vectorImage->GetLargestPossibleRegion() == image->GetLargestPossibleRegion());
 
   if(channel > vectorImage->GetNumberOfComponentsPerPixel() - 1)
@@ -2840,8 +2857,8 @@ itk::ImageRegion<2> ComputeBoundingBox(const TImage* const image,
 
   // Initialize backwards (the min is set to the max of the image, and the max
   // is set to the min of the image)
-  itk::Index<2> min = {{image->GetLargestPossibleRegion().GetSize()[0],
-                        image->GetLargestPossibleRegion().GetSize()[1]}};
+  itk::Index<2> min = {{static_cast<itk::Index<2>::IndexValueType>(image->GetLargestPossibleRegion().GetSize()[0]),
+                        static_cast<itk::Index<2>::IndexValueType>(image->GetLargestPossibleRegion().GetSize()[1])}};
   itk::Index<2> max = {{0, 0}};
 
   while(!imageIterator.IsAtEnd())
@@ -2870,7 +2887,8 @@ itk::ImageRegion<2> ComputeBoundingBox(const TImage* const image,
     }
 
   // The +1's are fencepost error correction
-  itk::Size<2> size = {{max[0] - min[0] + 1, max[1] - min[1] + 1}}; 
+  itk::Size<2> size = {{static_cast<itk::SizeValueType>(max[0] - min[0] + 1),
+                        static_cast<itk::SizeValueType>(max[1] - min[1] + 1)}};
   itk::ImageRegion<2> region(min, size);
   return region;
 }
