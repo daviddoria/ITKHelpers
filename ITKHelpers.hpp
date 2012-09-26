@@ -2998,4 +2998,44 @@ void CreateLuminanceImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* con
   DeepCopy(luminanceFilter->GetOutput(), luminanceImage);
 }
 
+template<typename TScalarImage, typename TGradientImage>
+void ForwardDifferenceDerivatives(const TScalarImage* const scalarImage, TGradientImage* const gradientImage)
+{
+  // Setup operator
+  typedef itk::ForwardDifferenceOperator<float, 2> OperatorType;
+  itk::Size<2> radius;
+  radius.Fill(1); // a radius of 1x1 creates a 3x3 operator
+
+  // Compute both derivative images
+  // X Derivative
+  OperatorType operatorX;
+  operatorX.SetDirection(0); // Create the operator for the X axis derivative
+  operatorX.CreateToRadius(radius);
+
+  typedef itk::NeighborhoodOperatorImageFilter<TScalarImage, TScalarImage> NeighborhoodOperatorImageFilterType;
+  NeighborhoodOperatorImageFilterType::Pointer xDerivativeFilter = NeighborhoodOperatorImageFilterType::New();
+  xDerivativeFilter->SetOperator(operatorX);
+  xDerivativeFilter->SetInput(scalarImage);
+  xDerivativeFilter->Update();
+
+  // Y Derivative
+  OperatorType operatorY;
+  operatorY.SetDirection(1); // Create the operator for the Y axis derivative
+  operatorY.CreateToRadius(radius);
+
+  NeighborhoodOperatorImageFilterType::Pointer yDerivativeFilter = NeighborhoodOperatorImageFilterType::New();
+  yDerivativeFilter->SetOperator(operatorY);
+  yDerivativeFilter->SetInput(scalarImage);
+  yDerivativeFilter->Update();
+
+  // Combine the derivative images into a gradient image
+  typedef itk::ComposeImageFilter<TScalarImage, TGradientImage> ComposeImageFilterType;
+  ComposeImageFilterType::Pointer composeImageFilterType = ComposeImageFilterType::New();
+  composeImageFilterType->SetInput(0, xDerivativeFilter->GetOutput());
+  composeImageFilterType->SetInput(1, yDerivativeFilter->GetOutput());
+  composeImageFilterType->Update();
+
+  DeepCopy(composeImageFilterType->GetOutput(), gradientImage);
+}
+
 }// end namespace ITKHelpers

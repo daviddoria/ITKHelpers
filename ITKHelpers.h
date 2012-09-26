@@ -723,6 +723,10 @@ itk::ImageRegion<2> ComputeBoundingBox(const TImage* const image,
 template<typename TVector>
 TVector ComponentWiseMultiple(const TVector& a, const TVector& b);
 
+/** Forward difference derivatives. */
+template<typename TScalarImage, typename TGradientImage>
+void ForwardDifferenceDerivatives(const TScalarImage* const scalarImage, TGradientImage* const gradientImage);
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Non-template function declarations (defined in Helpers.cpp) ///////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
