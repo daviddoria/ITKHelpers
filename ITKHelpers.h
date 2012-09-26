@@ -318,16 +318,20 @@ void ConvertTo3Channel(const typename itk::VectorImage<TPixel, 2>* const image,
                       typename itk::VectorImage<TPixel, 2>* const output);
 
 /** Replace a channel of an image. */
-template<typename TPixel>
-void ReplaceChannel(const typename itk::VectorImage<TPixel, 2>* const image, const unsigned int channel,
-                    const typename itk::Image<TPixel, 2>* const replacement,
-                    typename itk::VectorImage<TPixel, 2>* const output);
+template<typename TImage, typename TReplacementImage>
+void ReplaceChannel(TImage* const image, const unsigned int channel,
+                    const TReplacementImage* const replacement);
+
+/** Replace channels of a 'image' with those in 'replacement'. Of course the channels listed in 'channels'
+  * Must be available in 'replacementImage'. */
+template<typename TImage, typename TReplacementImage, typename TChannelVector>
+void ReplaceChannels(TImage* const image, const TChannelVector& channels,
+                     const TReplacementImage* const replacementImage);
 
 /** A specialization to allow this function to pass through scalar images. */
 template<typename TPixel>
-void ReplaceChannel(const itk::Image<TPixel, 2>* const image, const unsigned int channel,
-                    const itk::Image<TPixel, 2>* const replacement,
-                    itk::Image<TPixel, 2>* const output);
+void ReplaceChannel(itk::Image<TPixel, 2>* const image, const unsigned int channel,
+                    const itk::Image<TPixel, 2>* const replacement);
 
 /** Read an image from a file. */
 template<typename TImage>

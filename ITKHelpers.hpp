@@ -35,6 +35,7 @@
 #include "itkCastImageFilter.h"
 #include "itkComposeImageFilter.h"
 #include "itkDerivativeImageFilter.h"
+#include "itkForwardDifferenceOperator.h"
 #include "itkGaussianOperator.h"
 #include "itkGradientImageFilter.h"
 #include "itkImageAdaptor.h"
@@ -832,35 +833,47 @@ void ScaleChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned
 
   DeepCopy(image, output);
 
-  ReplaceChannel(output, channel, rescaleFilter->GetOutput(), output);
+  ReplaceChannel(output, channel, rescaleFilter->GetOutput());
 }
 
-template<typename TPixel>
-void ReplaceChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned int channel,
-                    const itk::Image<TPixel, 2>* const replacement, itk::VectorImage<TPixel, 2>* const output)
+template<typename TImage, typename TReplacementImage, typename TChannelVector>
+void ReplaceChannels(TImage* const image, const TChannelVector& channels,
+                     const TReplacementImage* const replacementImage)
 {
+  for(unsigned int channelId = 0; channelId < channels.size(); ++channelId)
+  {
+    typedef itk::Image<float, 2> FloatScalarImageType;
+    FloatScalarImageType::Pointer replacementChannel = FloatScalarImageType::New();
+    ExtractChannel(replacementImage, channels[channelId], replacementChannel.GetPointer());
+    ReplaceChannel(image, channels[channelId], replacementChannel.GetPointer());
+  }
+}
+
+template<typename TImage, typename TReplacementImage>
+void ReplaceChannel(TImage* const image, const unsigned int channel,
+                    const TReplacementImage* const replacement)
+{
+  static_assert(std::is_pod<typename TReplacementImage::PixelType>::value, "ReplaceChannel(): TReplacementImage::PixelType must be a POD");
+
   if(image->GetLargestPossibleRegion() != replacement->GetLargestPossibleRegion())
-    {
-    throw std::runtime_error("Image and replacement channel are not the same size!");
-    }
+  {
+    throw std::runtime_error("ReplaceChannel(): Image and replacement channel are not the same size!");
+  }
 
-  DeepCopy(image, output);
+  itk::ImageRegionConstIteratorWithIndex<TImage> imageIterator(image, image->GetLargestPossibleRegion());
 
-  itk::ImageRegionConstIterator<itk::VectorImage<TPixel, 2> > iterator(image, image->GetLargestPossibleRegion());
-
-  while(!iterator.IsAtEnd())
-    {
-    typename itk::VectorImage<TPixel, 2>::PixelType pixel = iterator.Get();
-    pixel[channel] = replacement->GetPixel(iterator.GetIndex());
-    output->SetPixel(iterator.GetIndex(), pixel);
-    ++iterator;
-    }
+  while(!imageIterator.IsAtEnd())
+  {
+    typename TImage::PixelType pixel = imageIterator.Get();
+    pixel[channel] = replacement->GetPixel(imageIterator.GetIndex());
+    image->SetPixel(imageIterator.GetIndex(), pixel);
+    ++imageIterator;
+  }
 }
 
 template<typename TPixel>
-void ReplaceChannel(const itk::Image<TPixel, 2>* const image, const unsigned int channel,
-                    const itk::Image<TPixel, 2>* const replacement,
-                    itk::Image<TPixel, 2>* const output)
+void ReplaceChannel(itk::Image<TPixel, 2>* const image, const unsigned int channel,
+                    const itk::Image<TPixel, 2>* const replacement)
 {
   if(image->GetLargestPossibleRegion() != replacement->GetLargestPossibleRegion())
     {
@@ -874,7 +887,7 @@ void ReplaceChannel(const itk::Image<TPixel, 2>* const image, const unsigned int
     throw std::runtime_error(ss.str());
   }
 
-  DeepCopy(replacement, output);
+  DeepCopy(replacement, image);
 }
 
 template<typename TImage>
@@ -3013,7 +3026,7 @@ void ForwardDifferenceDerivatives(const TScalarImage* const scalarImage, TGradie
   operatorX.CreateToRadius(radius);
 
   typedef itk::NeighborhoodOperatorImageFilter<TScalarImage, TScalarImage> NeighborhoodOperatorImageFilterType;
-  NeighborhoodOperatorImageFilterType::Pointer xDerivativeFilter = NeighborhoodOperatorImageFilterType::New();
+  typename NeighborhoodOperatorImageFilterType::Pointer xDerivativeFilter = NeighborhoodOperatorImageFilterType::New();
   xDerivativeFilter->SetOperator(operatorX);
   xDerivativeFilter->SetInput(scalarImage);
   xDerivativeFilter->Update();
@@ -3023,14 +3036,14 @@ void ForwardDifferenceDerivatives(const TScalarImage* const scalarImage, TGradie
   operatorY.SetDirection(1); // Create the operator for the Y axis derivative
   operatorY.CreateToRadius(radius);
 
-  NeighborhoodOperatorImageFilterType::Pointer yDerivativeFilter = NeighborhoodOperatorImageFilterType::New();
+  typename NeighborhoodOperatorImageFilterType::Pointer yDerivativeFilter = NeighborhoodOperatorImageFilterType::New();
   yDerivativeFilter->SetOperator(operatorY);
   yDerivativeFilter->SetInput(scalarImage);
   yDerivativeFilter->Update();
 
   // Combine the derivative images into a gradient image
   typedef itk::ComposeImageFilter<TScalarImage, TGradientImage> ComposeImageFilterType;
-  ComposeImageFilterType::Pointer composeImageFilterType = ComposeImageFilterType::New();
+  typename ComposeImageFilterType::Pointer composeImageFilterType = ComposeImageFilterType::New();
   composeImageFilterType->SetInput(0, xDerivativeFilter->GetOutput());
   composeImageFilterType->SetInput(1, yDerivativeFilter->GetOutput());
   composeImageFilterType->Update();
