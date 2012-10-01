@@ -799,8 +799,8 @@ void ExtractChannels(const TInputImage* const image, const std::vector<unsigned 
 
   for(unsigned int channelIndex = 0; channelIndex < channels.size(); ++channelIndex)
   {
-    std::cout << "Extracting channel " << channels[channelIndex]
-              << " and setting channel " << channelIndex << std::endl;
+//    std::cout << "Extracting channel " << channels[channelIndex]
+//              << " and setting channel " << channelIndex << std::endl;
     typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
     indexSelectionFilter->SetIndex(channels[channelIndex]);
     indexSelectionFilter->SetInput(image);
