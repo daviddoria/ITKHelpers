@@ -958,4 +958,25 @@ void WriteBoolImage(const itk::Image<bool, 2>* const image, const std::string& f
   WriteImage(unsignedCharImage.GetPointer(), fileName);
 }
 
+void WriteIndexImage(const itk::Image<itk::Index<2>, 2>* const image, const std::string& fileName)
+{
+  typedef itk::Image<itk::CovariantVector<int, 2> > VectorImageType;
+  VectorImageType::Pointer vectorImage = VectorImageType::New();
+  vectorImage->SetRegions(image->GetLargestPossibleRegion());
+  vectorImage->Allocate();
+
+  itk::ImageRegionIteratorWithIndex<VectorImageType>
+      vectorImageIterator(vectorImage, vectorImage->GetLargestPossibleRegion());
+  while(!vectorImageIterator.IsAtEnd())
+  {
+    VectorImageType::PixelType vectorPixel;
+    vectorPixel[0] = image->GetPixel(vectorImageIterator.GetIndex())[0];
+    vectorPixel[1] = image->GetPixel(vectorImageIterator.GetIndex())[1];
+
+    ++vectorImageIterator;
+  }
+
+  WriteImage(vectorImage.GetPointer(), fileName);
+}
+
 } // end namespace
