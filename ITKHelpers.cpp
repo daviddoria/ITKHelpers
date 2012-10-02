@@ -933,4 +933,29 @@ itk::ImageRegion<2> CropRegionAtPosition(itk::ImageRegion<2> regionToCrop, const
   return regionToCrop;
 }
 
+void WriteBoolImage(const itk::Image<bool, 2>* const image, const std::string& fileName)
+{
+  typedef itk::Image<unsigned char, 2> UnsignedCharImageType;
+  UnsignedCharImageType::Pointer unsignedCharImage = UnsignedCharImageType::New();
+  unsignedCharImage->SetRegions(image->GetLargestPossibleRegion());
+  unsignedCharImage->Allocate();
+
+  itk::ImageRegionIteratorWithIndex<UnsignedCharImageType>
+      unsignedCharImageIterator(unsignedCharImage, unsignedCharImage->GetLargestPossibleRegion());
+  while(!unsignedCharImageIterator.IsAtEnd())
+    {
+    if(image->GetPixel(unsignedCharImageIterator.GetIndex()))
+    {
+      unsignedCharImageIterator.Set(255);
+    }
+    else
+    {
+      unsignedCharImageIterator.Set(0);
+    }
+    ++unsignedCharImageIterator;
+    }
+
+  WriteImage(unsignedCharImage.GetPointer(), fileName);
+}
+
 } // end namespace

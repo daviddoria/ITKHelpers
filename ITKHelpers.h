@@ -892,6 +892,9 @@ itk::Offset<2> IndexToOffset(const itk::Index<2>& index);
 /** Crop region with a region as if it were in a different position. */
 itk::ImageRegion<2> CropRegionAtPosition(itk::ImageRegion<2> regionToCrop, const itk::ImageRegion<2>& fullRegion, itk::ImageRegion<2> cropPosition);
 
+/** Write a bool image as a black/white image. */
+void WriteBoolImage(const itk::Image<bool, 2>* const image, const std::string& fileName);
+
 /** Divide a 'region' into a number of subregions. For example, if 'region' is 10x10 and 'divisionsPerDimension' is 2, the function
   * will produce 4 5x5 regions. NOTE: if the region is not exactly divisible in each dimension by 'divisionsPerDimension', some pixels
   * (at the end of the region) will not be used. For example, if 'region' is 11x11 and 'divisionsPerDimension' is 2, the last row and last
