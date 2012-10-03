@@ -973,6 +973,8 @@ void WriteIndexImage(const itk::Image<itk::Index<2>, 2>* const image, const std:
     vectorPixel[0] = image->GetPixel(vectorImageIterator.GetIndex())[0];
     vectorPixel[1] = image->GetPixel(vectorImageIterator.GetIndex())[1];
 
+    vectorImageIterator.Set(vectorPixel);
+
     ++vectorImageIterator;
   }
 
