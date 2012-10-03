@@ -1935,13 +1935,13 @@ float StandardDeviation(const TImage* const image)
   return sqrt(Variance(image));
 }
 
-template<typename TImage>
-std::vector<typename TImage::InternalPixelType> ComputeMinOfAllChannels(const TImage* const image)
+template<typename TImage, typename TVector>
+void ComputeMinOfAllChannels(const TImage* const image, TVector& mins)
 {
-  std::vector<typename TImage::InternalPixelType> mins(image->GetNumberOfComponentsPerPixel(), -1);
+  assert(mins.size() == image->GetNumberOfComponentsPerPixel() - 1);
 
   for(unsigned int i = 0; i < image->GetNumberOfComponentsPerPixel(); ++i)
-    {
+  {
     typedef itk::VectorIndexSelectionCastImageFilter<TImage, FloatScalarImageType> IndexSelectionType;
     typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
     indexSelectionFilter->SetIndex(i);
@@ -1954,18 +1954,16 @@ std::vector<typename TImage::InternalPixelType> ComputeMinOfAllChannels(const TI
     imageCalculatorFilter->Compute();
 
     mins[i] = imageCalculatorFilter->GetMinimum();
-    }
-
-  return mins;
+  }
 }
 
-template<typename TImage>
-std::vector<typename TImage::InternalPixelType> ComputeMaxOfAllChannels(const TImage* const image)
+template<typename TImage, typename TVector>
+void ComputeMaxOfAllChannels(const TImage* const image, TVector& maxs)
 {
-  std::vector<typename TImage::InternalPixelType> maxs(image->GetNumberOfComponentsPerPixel(), -1);
+  assert(maxs.size() == image->GetNumberOfComponentsPerPixel() - 1);
 
   for(unsigned int i = 0; i < image->GetNumberOfComponentsPerPixel(); ++i)
-    {
+  {
     typedef itk::VectorIndexSelectionCastImageFilter<TImage, FloatScalarImageType> IndexSelectionType;
     typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
     indexSelectionFilter->SetIndex(i);
@@ -1978,11 +1976,8 @@ std::vector<typename TImage::InternalPixelType> ComputeMaxOfAllChannels(const TI
     imageCalculatorFilter->Compute();
 
     maxs[i] = imageCalculatorFilter->GetMaximum();
-    }
-
-  return maxs;
+  }
 }
-
 
 template <class TImage>
 void CentralDifferenceDerivative(const TImage* const image, const unsigned int direction, TImage* const output)

@@ -491,15 +491,14 @@ float StandardDeviation(const TImage* const image);
 template<typename TImage>
 float Variance(const TImage* const image);
 
-/** Compute the minimum value of each channel of the image and return them in a vector whose length is
- *  the same as the number of components of the image. */
-template<typename TImage>
-std::vector<typename TImage::InternalPixelType> ComputeMinOfAllChannels(const TImage* const image);
+/** Compute the minimum value of each channel of the image. Store the results in the provided (presized to the number of channels) vector. */
+template<typename TImage, typename TVector>
+void ComputeMinOfAllChannels(const TImage* const image, TVector& mins);
 
 /** Compute the maximum value of each channel of the image and return them in a vector whose length is
  *  the same as the number of components of the image. */
-template<typename TImage>
-std::vector<typename TImage::InternalPixelType> ComputeMaxOfAllChannels(const TImage* const image);
+template<typename TImage, typename TVector>
+void ComputeMaxOfAllChannels(const TImage* const image, TVector& maxs);
 
 /** Create a string representation of a vector. */
 template <typename TVector>
