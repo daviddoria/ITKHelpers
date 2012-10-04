@@ -1938,7 +1938,7 @@ float StandardDeviation(const TImage* const image)
 template<typename TImage, typename TVector>
 void ComputeMinOfAllChannels(const TImage* const image, TVector& mins)
 {
-  assert(mins.size() == image->GetNumberOfComponentsPerPixel() - 1);
+  assert(Helpers::length(mins) == image->GetNumberOfComponentsPerPixel());
 
   for(unsigned int i = 0; i < image->GetNumberOfComponentsPerPixel(); ++i)
   {
@@ -1960,7 +1960,7 @@ void ComputeMinOfAllChannels(const TImage* const image, TVector& mins)
 template<typename TImage, typename TVector>
 void ComputeMaxOfAllChannels(const TImage* const image, TVector& maxs)
 {
-  assert(maxs.size() == image->GetNumberOfComponentsPerPixel() - 1);
+  assert(Helpers::length(maxs) == image->GetNumberOfComponentsPerPixel());
 
   for(unsigned int i = 0; i < image->GetNumberOfComponentsPerPixel(); ++i)
   {
