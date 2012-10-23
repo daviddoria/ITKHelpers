@@ -93,9 +93,14 @@ bool HasNeighborWithValueOtherThan(const itk::Index<2>& pixel, const TImage* con
                                    const typename TImage::PixelType& value);
 
 /** Blur all channels of an image. */
-template<typename TImage>
-void BlurAllChannels(const TImage* const image, TImage* const output,
+template<typename TInputImage, typename TOutputImage>
+void BlurAllChannels(const TInputImage* const image, TOutputImage* const output,
                      const float sigma);
+
+/** Blur all channels of an image. */
+template<typename TInputImage, typename TOutputImage>
+void BlurAllChannelsInRegion(const TInputImage* const image, TOutputImage* const output,
+                             const float sigma, const itk::ImageRegion<2>& region);
 
 /** Blur all channels of an image, preserving edges. */
 template<typename TInputImage, typename TPixelType>

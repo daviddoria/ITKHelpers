@@ -2426,9 +2426,9 @@ void ApplyMultichannelImageAdaptor(TInputImage* const inputImage, TOutputImage* 
   DeepCopy(reassembler->GetOutput(), outputImage);
 }
 
-template<typename TImage>
-void BlurAllChannels(const TImage* const image, TImage* const output,
-                     const float sigma)
+template<typename TInputImage, typename TOutputImage>
+void BlurAllChannelsInRegion(const TInputImage* const image, TOutputImage* const output,
+                             const float sigma, const itk::ImageRegion<2>& region)
 {
   if(sigma <= 0)
   {
@@ -2437,14 +2437,22 @@ void BlurAllChannels(const TImage* const image, TImage* const output,
     throw std::runtime_error(ss.str());
   }
   typedef itk::SmoothingRecursiveGaussianImageFilter<
-    TImage, TImage >  BlurFilterType;
+    TInputImage, TOutputImage >  BlurFilterType;
 
   typename BlurFilterType::Pointer blurFilter = BlurFilterType::New();
   blurFilter->SetInput(image);
   blurFilter->SetSigma(sigma);
+  blurFilter->GetOutput()->SetRequestedRegion(region);
   blurFilter->Update();
 
   ITKHelpers::DeepCopy(blurFilter->GetOutput(), output);
+}
+
+template<typename TInputImage, typename TOutputImage>
+void BlurAllChannels(const TInputImage* const image, TOutputImage* const output,
+                     const float sigma)
+{
+  BlurAllChannelsInRegion(image, output, sigma, image->GetLargestPossibleRegion());
 }
 
 template <class TImage>
