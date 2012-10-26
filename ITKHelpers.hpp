@@ -2024,7 +2024,8 @@ void WriteVectorImageRegionAsRGB(const itk::VectorImage<TPixel,2>* const image,
 }
 
 template <typename TImage>
-void VectorImageToRGBImageInRegion(const TImage* const image, RGBImageType* const rgbImage, const itk::ImageRegion<2>& region)
+void VectorImageToRGBImageInRegion(const TImage* const image, RGBImageType* const rgbImage,
+                                   const itk::ImageRegion<2>& region)
 {
   // Only the first 3 components are used (assumed to be RGB)
   rgbImage->SetRegions(region);
