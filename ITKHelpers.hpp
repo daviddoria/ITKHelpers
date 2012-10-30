@@ -1522,13 +1522,63 @@ void SetChannel(TVectorImage* const vectorImage, const unsigned int channel, con
   itk::ImageRegionIterator<TVectorImage> outputIterator(vectorImage, vectorImage->GetLargestPossibleRegion());
 
   while(!inputIterator.IsAtEnd())
-    {
+  {
     typename TVectorImage::PixelType pixel = outputIterator.Get();
     pixel[channel] = inputIterator.Get();
     outputIterator.Set(pixel);
     ++inputIterator;
     ++outputIterator;
+  }
+}
+
+template<typename TImage>
+void ConvertTo3Channel(const TImage* const image, TImage* const output)
+{
+  if(image->GetNumberOfComponentsPerPixel() == 3)
+  {
+    DeepCopy(image,output);
+    return;
+  }
+  else if(image->GetNumberOfComponentsPerPixel() > 3)
+  {
+    output->SetRegions(image->GetLargestPossibleRegion());
+    output->Allocate();
+    for(unsigned int channel = 0; channel < 3; ++channel)
+    {
+      typedef itk::Image<typename TImage::PixelType::ComponentType, 2> OutputChannelType;
+      typename OutputChannelType::Pointer outputComponent =
+          OutputChannelType::New();
+      outputComponent->SetRegions(image->GetLargestPossibleRegion());
+      outputComponent->Allocate();
+      ExtractChannel(image, channel, outputComponent.GetPointer());
+
+      SetChannel(output, channel, outputComponent.GetPointer());
     }
+  }
+  else if(image->GetNumberOfComponentsPerPixel() == 1)
+  {
+    output->SetRegions(image->GetLargestPossibleRegion());
+    output->Allocate();
+
+    typedef itk::Image<typename TImage::PixelType::ComponentType, 2> OutputChannelType;
+    typename OutputChannelType::Pointer outputComponent =
+        OutputChannelType::New();
+    outputComponent->SetRegions(image->GetLargestPossibleRegion());
+    outputComponent->Allocate();
+    ExtractChannel(image, 0, outputComponent.GetPointer());
+
+    for(unsigned int channel = 0; channel < 3; ++channel)
+    {
+      SetChannel(output, channel, outputComponent.GetPointer());
+    }
+  }
+  else
+  {
+    std::stringstream ss;
+    ss << "ConvertTo3Channel(): Not sure what to do with an image with "
+       << image->GetNumberOfComponentsPerPixel() << " channels!";
+    throw std::runtime_error(ss.str());
+  }
 }
 
 template<typename TPixel>
@@ -1548,14 +1598,14 @@ void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image,
     output->SetNumberOfComponentsPerPixel(3);
     output->Allocate();
     for(unsigned int channel = 0; channel < 3; ++channel)
-      {
+    {
       typename itk::Image<TPixel, 2>::Pointer outputComponent = itk::Image<TPixel, 2>::New();
       outputComponent->SetRegions(image->GetLargestPossibleRegion());
       outputComponent->Allocate();
       ExtractChannel(image, channel, outputComponent.GetPointer());
 
       SetChannel(output, channel, outputComponent.GetPointer());
-      }
+    }
   }
   else if(image->GetNumberOfComponentsPerPixel() == 1)
   {
@@ -1563,26 +1613,15 @@ void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image,
     output->SetNumberOfComponentsPerPixel(3);
     output->Allocate();
 
-    typedef itk::Image<TPixel, 2> ScalarImageType;
-    typename ScalarImageType::Pointer outputComponent = ScalarImageType::New();
+    typename itk::Image<TPixel, 2>::Pointer outputComponent = itk::Image<TPixel, 2>::New();
     outputComponent->SetRegions(image->GetLargestPossibleRegion());
     outputComponent->Allocate();
     ExtractChannel(image, 0, outputComponent.GetPointer());
 
-    itk::ImageRegionConstIterator<ScalarImageType> inputIterator(outputComponent, outputComponent->GetLargestPossibleRegion());
-    itk::ImageRegionIterator<ImageType> outputIterator(output, output->GetLargestPossibleRegion());
-
-    while(!inputIterator.IsAtEnd())
-      {
-      // Copy the first (only) channel of the input to the output
-      typename ImageType::PixelType pixel = outputIterator.Get();
-      pixel[0] = inputIterator.Get();
-      pixel[1] = inputIterator.Get();
-      pixel[2] = inputIterator.Get();
-      outputIterator.Set(pixel);
-      ++inputIterator;
-      ++outputIterator;
-      }
+    for(unsigned int channel = 0; channel < 3; ++channel)
+    {
+      SetChannel(output, channel, outputComponent.GetPointer());
+    }
   }
   else
   {
@@ -1609,7 +1648,7 @@ void ScaleTo255(TImage* const image)
 template<typename TImage>
 void ScaleAllChannelsTo255(TImage* const image)
 {
-  typedef itk::Image<typename TImage::InternalPixelType, 2> ScalarImageType;
+  typedef itk::Image<typename TImage::PixelType::ComponentType, 2> ScalarImageType;
   for(unsigned int channel = 0; channel < image->GetNumberOfComponentsPerPixel(); ++channel)
   {
     typename ScalarImageType::Pointer outputComponent = ScalarImageType::New();

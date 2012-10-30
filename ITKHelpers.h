@@ -317,10 +317,18 @@ template<typename TPixel>
 void ScaleChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned int channel,
                   const TPixel channelMax, typename itk::VectorImage<TPixel, 2>* const output);
 
-/** Force an image to be 3 channels. If it is already 3 channels, copy it through. If it is less than 3 channels. */
+/** Force an image to be 3 channels. If it is already 3 channels, copy it through.
+  * If it has more than 3 channels, extract the first 3.
+  * If it has one channel, copy that channel to the first 3 channels of the output.
+  * If it has 2 or >3 channels, throw an error.
+  */
+template<typename TImage>
+void ConvertTo3Channel(const TImage* const image, TImage* const output);
+
+/** Specialization for VectorImage. */
 template<typename TPixel>
 void ConvertTo3Channel(const typename itk::VectorImage<TPixel, 2>* const image,
-                      typename itk::VectorImage<TPixel, 2>* const output);
+                       typename itk::VectorImage<TPixel, 2>* const output);
 
 /** Replace a channel of an image. */
 template<typename TImage, typename TReplacementImage>
