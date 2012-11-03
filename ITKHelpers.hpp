@@ -1531,9 +1531,24 @@ void SetChannel(TVectorImage* const vectorImage, const unsigned int channel, con
   }
 }
 
-template<typename TImage>
-void ConvertTo3Channel(const TImage* const image, TImage* const output)
+template<typename TInputImage, typename TOutputImage>
+void ConvertTo3Channel(const TInputImage* const image, TOutputImage* const output)
 {
+  output->SetRegions(image->GetLargestPossibleRegion());
+  output->Allocate();
+
+  for(unsigned int channel = 0; channel < 3; ++channel)
+  {
+    SetChannel(output, channel, image);
+  }
+}
+
+template<typename TPixel, unsigned int NComponents>
+void ConvertTo3Channel(const itk::Image<itk::CovariantVector<TPixel, NComponents> >* const image,
+                       itk::Image<itk::CovariantVector<TPixel, NComponents> >* const output)
+{
+  typedef itk::Image<itk::CovariantVector<TPixel, NComponents> > TImage;
+
   if(image->GetNumberOfComponentsPerPixel() == 3)
   {
     DeepCopy(image,output);

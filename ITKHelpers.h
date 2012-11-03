@@ -322,8 +322,12 @@ void ScaleChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned
   * If it has one channel, copy that channel to the first 3 channels of the output.
   * If it has 2 or >3 channels, throw an error.
   */
-template<typename TImage>
-void ConvertTo3Channel(const TImage* const image, TImage* const output);
+template<typename TInputImage, typename TOutputImage>
+void ConvertTo3Channel(const TInputImage* const image, TOutputImage* const output);
+
+template<typename TPixel, unsigned int NComponents>
+void ConvertTo3Channel(const itk::Image<itk::CovariantVector<TPixel, NComponents> >* const image,
+                       itk::Image<itk::CovariantVector<TPixel, NComponents> >* const output);
 
 /** Specialization for VectorImage. */
 template<typename TPixel>
