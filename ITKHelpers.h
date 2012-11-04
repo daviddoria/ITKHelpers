@@ -307,7 +307,10 @@ template<typename TInputImage, typename TOutputImage>
 void ExtractChannels(const TInputImage* const image, const std::vector<unsigned int> channels,
                     TOutputImage* const output);
 
-/** Extract a region of an image. */
+/** Extract a region of an image. The 'output' image has Index={0,0}, not the index of 'region'.
+  * That is, it creates a new "standalone" image that does not reference the old location/region
+  * in any way.
+  */
 template<typename TImage>
 void ExtractRegion(const TImage* const image, const itk::ImageRegion<2>& region,
                    TImage* const output);
