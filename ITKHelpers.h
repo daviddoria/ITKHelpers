@@ -700,7 +700,8 @@ void StackImages(const TImage1* const image1,
                  const TImage2* const image2,
                  TOutputImage* const output);
 
-/** Convert the first 3 channels of a float vector image to an unsigned char/color/rgb image (only in 'region'). */
+/** Convert the first 3 channels of a float vector image to an unsigned char/color/rgb image (only in 'region').
+  * The output image is made to be the same size as the input image.*/
 template <typename TImage>
 void VectorImageToRGBImageInRegion(const TImage* const image, RGBImageType* const rgbImage, const itk::ImageRegion<2>& region);
 

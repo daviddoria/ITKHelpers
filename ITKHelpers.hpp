@@ -2086,13 +2086,17 @@ void VectorImageToRGBImageInRegion(const TImage* const image, RGBImageType* cons
                                    const itk::ImageRegion<2>& region)
 {
   // Only the first 3 components are used (assumed to be RGB)
-  rgbImage->SetRegions(region);
-  rgbImage->Allocate();
+
+  if(rgbImage->GetLargestPossibleRegion() != image->GetLargestPossibleRegion())
+  {
+    rgbImage->SetRegions(image->GetLargestPossibleRegion());
+    rgbImage->Allocate();
+  }
 
   itk::ImageRegionConstIteratorWithIndex<TImage> inputIterator(image, region);
 
   while(!inputIterator.IsAtEnd())
-    {
+  {
     typename TImage::PixelType inputPixel = inputIterator.Get();
     RGBImageType::PixelType outputPixel;
     outputPixel.SetRed(inputPixel[0]);
@@ -2101,7 +2105,7 @@ void VectorImageToRGBImageInRegion(const TImage* const image, RGBImageType* cons
 
     rgbImage->SetPixel(inputIterator.GetIndex(), outputPixel);
     ++inputIterator;
-    }
+  }
 }
 
 template <typename TImage>
