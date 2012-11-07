@@ -1472,15 +1472,19 @@ template<typename TImage>
 std::vector<typename TImage::PixelType> GetPixelValuesInRegion(const TImage* const image,
                                                                const itk::ImageRegion<2>& region)
 {
-  std::vector<typename TImage::PixelType> values;
+  assert(image->GetLargestPossibleRegion().IsInside(region));
+
+  std::vector<typename TImage::PixelType> values(region.GetNumberOfPixels());
 
   itk::ImageRegionConstIterator<TImage> imageIterator(image, region);
 
+  unsigned int counter = 0;
   while(!imageIterator.IsAtEnd())
-    {
-    values.push_back(imageIterator.Get());
+  {
+    values[counter] = imageIterator.Get();
+    counter++;
     ++imageIterator;
-    }
+  }
 
   return values;
 }
