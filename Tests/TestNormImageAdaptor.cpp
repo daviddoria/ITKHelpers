@@ -23,8 +23,22 @@
 #include "itkCovariantVector.h"
 #include "itkImage.h"
 
+static void TestGetPixel();
+static void TestAdaptorSize();
+static void TestChangeImage();
+
 int main()
 {
+
+  TestGetPixel();
+  TestAdaptorSize();
+  TestChangeImage();
+  return 0;
+}
+
+void TestGetPixel()
+{
+
   typedef itk::Image<itk::CovariantVector<float, 3> > ImageType;
 
   itk::Index<2> corner = {{0,0}};
@@ -47,5 +61,59 @@ int main()
 
   std::cout << adaptor->GetPixel(corner) << std::endl;
 
-  return 0;
+}
+
+void TestAdaptorSize()
+{
+
+  typedef itk::Image<itk::CovariantVector<float, 3> > ImageType;
+
+  itk::Index<2> corner = {{0,0}};
+
+  itk::Size<2> size = {{10,10}};
+
+  itk::ImageRegion<2> region(corner, size);
+
+  ImageType::Pointer image = ImageType::New();
+  image->SetRegions(region);
+  image->Allocate();
+
+  typedef itk::NormImageAdaptor<ImageType> ImageAdaptorType;
+  ImageAdaptorType::Pointer adaptor = ImageAdaptorType::New();
+  adaptor->SetImage(image);
+
+  std::cout << "image region: " << image->GetLargestPossibleRegion() << std::endl;
+  std::cout << "adaptor region: " << adaptor->GetLargestPossibleRegion() << std::endl;
+
+}
+
+void TestChangeImage()
+{
+  std::cout << "TestChangeImage()" << std::endl;
+  typedef itk::Image<itk::CovariantVector<float, 3> > ImageType;
+
+  itk::Index<2> corner = {{0,0}};
+
+  itk::Size<2> originalSize = {{0,0}};
+
+  itk::ImageRegion<2> region(corner, originalSize);
+
+  ImageType::Pointer image = ImageType::New();
+  image->SetRegions(region);
+  image->Allocate();
+
+  typedef itk::NormImageAdaptor<ImageType> ImageAdaptorType;
+  ImageAdaptorType::Pointer adaptor = ImageAdaptorType::New();
+  adaptor->SetImage(image);
+
+  std::cout << "image region: " << image->GetLargestPossibleRegion() << std::endl;
+  std::cout << "adaptor region: " << adaptor->GetLargestPossibleRegion() << std::endl;
+
+  itk::Size<2> newSize = {{10,10}};
+  region.SetSize(newSize);
+  image->SetRegions(region);
+
+  std::cout << "image region: " << image->GetLargestPossibleRegion() << std::endl;
+  std::cout << "adaptor region: " << adaptor->GetLargestPossibleRegion() << std::endl;
+
 }
