@@ -27,6 +27,8 @@
 // Helpers submodule
 #include <Helpers/Helpers.h>
 
+#include <cmath>
+
 namespace ITKHelpers
 {
 
@@ -390,10 +392,10 @@ std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region,
 
   while(!imageIterator.IsAtEnd())
   {
-    if( (abs(imageIterator.GetIndex()[0] - region.GetIndex()[0]) < static_cast<itk::Index<2>::IndexValueType>(thickness)) ||
-        (abs(imageIterator.GetIndex()[0] - (region.GetIndex()[0] + region.GetSize()[0] - 1)) < static_cast<itk::Index<2>::IndexValueType>(thickness)) ||
-        (abs(imageIterator.GetIndex()[1] - region.GetIndex()[1]) < static_cast<itk::Index<2>::IndexValueType>(thickness)) ||
-        (abs(imageIterator.GetIndex()[1] - (region.GetIndex()[1] + region.GetSize()[1] - 1)) < static_cast<itk::Index<2>::IndexValueType>(thickness)))
+    if( (std::abs(imageIterator.GetIndex()[0] - region.GetIndex()[0]) < static_cast<itk::Index<2>::IndexValueType>(thickness)) ||
+		(std::abs(imageIterator.GetIndex()[0] - (region.GetIndex()[0] + static_cast<itk::Index<2>::IndexValueType>(region.GetSize()[0]) - 1)) < static_cast<itk::Index<2>::IndexValueType>(thickness)) ||
+        (std::abs(imageIterator.GetIndex()[1] - region.GetIndex()[1]) < static_cast<itk::Index<2>::IndexValueType>(thickness)) ||
+        (std::abs(imageIterator.GetIndex()[1] - (region.GetIndex()[1] + static_cast<itk::Index<2>::IndexValueType>(region.GetSize()[1]) - 1)) < static_cast<itk::Index<2>::IndexValueType>(thickness)))
     {
       boundaryPixels.push_back(imageIterator.GetIndex());
     }
