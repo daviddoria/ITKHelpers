@@ -69,6 +69,15 @@ static void TestCreateLuminanceImage();
 
 static void TestHasBracketOperator();
 
+template<typename TImage>
+static void TestHasBracketOperator_ConstTemplate(const TImage* const image);
+
+template<typename TImage>
+static void TestHasBracketOperator_Template(TImage* image);
+
+template<typename TImage>
+static void TestHasBracketOperator_Template2();
+
 int main(int, char **)
 {
   TestRandomImage();
@@ -890,10 +899,52 @@ void TestCreateLuminanceImage()
 void TestHasBracketOperator()
 {
   {
-  typedef itk::CovariantVector<int, 3> VectorType;
+  typedef itk::CovariantVector<int, 3> IntVectorType;
 
-  static_assert(Helpers::HasBracketOperator<VectorType>::value,
-              "TestHasBracketOperator for CovariantVector failed!");
+  static_assert(Helpers::HasBracketOperator<IntVectorType>::value,
+              "TestHasBracketOperator for CovariantVector<int, 3> failed!");
+  }
+
+  {
+  typedef itk::CovariantVector<unsigned char, 3> UCharVectorType;
+
+  static_assert(Helpers::HasBracketOperator<UCharVectorType>::value,
+              "TestHasBracketOperator for CovariantVector<unsigned char, 3> failed!");
+  }
+
+  {
+  typedef itk::CovariantVector<float, 3> FloatVectorType;
+
+  static_assert(Helpers::HasBracketOperator<FloatVectorType>::value,
+              "TestHasBracketOperator for CovariantVector<float, 3> failed!");
+  }
+
+  {
+  typedef itk::Image<itk::CovariantVector<float, 3>, 2> FloatVectorImageType;
+
+  static_assert(Helpers::HasBracketOperator<FloatVectorImageType::PixelType>::value,
+              "TestHasBracketOperator for CovariantVector<float, 3> failed!");
+  }
+
+  {
+  typedef itk::Image<itk::CovariantVector<float, 3>, 2> FloatVectorImageType;
+  FloatVectorImageType::Pointer image = FloatVectorImageType::New();
+
+  TestHasBracketOperator_Template(image.GetPointer());
+  }
+
+  {
+  typedef itk::Image<itk::CovariantVector<float, 3>, 2> FloatVectorImageType;
+  itk::SmartPointer<FloatVectorImageType> image = FloatVectorImageType::New();
+
+  TestHasBracketOperator_Template(image.GetPointer());
+  TestHasBracketOperator_ConstTemplate(image.GetPointer());
+  }
+
+  {
+  typedef itk::Image<itk::CovariantVector<float, 3>, 2> FloatVectorImageType;
+
+  TestHasBracketOperator_Template2<FloatVectorImageType>();
   }
 
   {
@@ -903,9 +954,40 @@ void TestHasBracketOperator()
               "TestHasBracketOperator for VariableLengthVector failed!");
   }
 
+  // This fails but should pass
+//  {
+//  typedef std::vector<int> VectorType;
+
+//  static_assert(Helpers::HasBracketOperator<VectorType>::value,
+//              "TestHasBracketOperator for std::vector failed!");
+//  }
+
   // This (intentionally) fails
 //  {
 //  static_assert(Helpers::HasBracketOperator<float>::value,
 //              "TestHasBracketOperator for float failed!");
 //  }
+}
+
+template<typename TImage>
+void TestHasBracketOperator_ConstTemplate(const TImage* const image)
+{
+  static_assert(Helpers::HasBracketOperator<typename TImage::PixelType>::value,
+              "TestHasBracketOperator for TImage failed!");
+}
+
+template<typename TImage>
+void TestHasBracketOperator_Template(TImage* image)
+{
+  static_assert(Helpers::HasBracketOperator<typename TImage::PixelType>::value,
+              "TestHasBracketOperator for TImage failed!");
+}
+
+
+template<typename TImage>
+void TestHasBracketOperator_Template2()
+{
+  typename TImage::Pointer image = TImage::New();
+  static_assert(Helpers::HasBracketOperator<typename TImage::PixelType>::value,
+              "TestHasBracketOperator for TImage failed!");
 }
