@@ -1750,13 +1750,10 @@ void WriteImage(const TImage* const image, const std::string& filename)
   }
 }
 
-
-template<typename TImage>
-void WriteRGBImage(const TImage* const input, const std::string& filename)
+template <typename TImage>
+void WriteRGBImage(const TImage* const input, const std::string& filename,
+                   typename std::enable_if<Helpers::HasBracketOperator<typename TImage::PixelType>::value>::type* = 0)
 {
-  static_assert(Helpers::HasBracketOperator<typename TImage::PixelType>::value,
-                "WriteRGBImage requires the pixels to have an operator[]!");
-
   typedef itk::Image<itk::CovariantVector<unsigned char, 3>, 2> RGBImageType;
 
   RGBImageType::Pointer output = RGBImageType::New();
@@ -1772,6 +1769,37 @@ void WriteRGBImage(const TImage* const input, const std::string& filename)
     for(unsigned int i = 0; i < 3; ++i)
       {
       pixel[i] = inputIterator.Get()[i];
+      }
+    outputIterator.Set(pixel);
+    ++inputIterator;
+    ++outputIterator;
+    }
+
+  typename itk::ImageFileWriter<RGBImageType>::Pointer writer = itk::ImageFileWriter<RGBImageType>::New();
+  writer->SetFileName(filename);
+  writer->SetInput(output);
+  writer->Update();
+}
+
+template <typename TImage>
+void WriteRGBImage(const TImage* const input, const std::string& filename,
+                   typename std::enable_if<!Helpers::HasBracketOperator<typename TImage::PixelType>::value>::type* = 0)
+{
+  typedef itk::Image<itk::CovariantVector<unsigned char, 3>, 2> RGBImageType;
+
+  RGBImageType::Pointer output = RGBImageType::New();
+  output->SetRegions(input->GetLargestPossibleRegion());
+  output->Allocate();
+
+  itk::ImageRegionConstIterator<TImage> inputIterator(input, input->GetLargestPossibleRegion());
+  itk::ImageRegionIterator<RGBImageType> outputIterator(output, output->GetLargestPossibleRegion());
+
+  while(!inputIterator.IsAtEnd())
+    {
+    itk::CovariantVector<unsigned char, 3> pixel;
+    for(unsigned int i = 0; i < 3; ++i)
+      {
+      pixel[i] = inputIterator.Get(); // This is the only line that is different from the version that requires pixels to have operator[]
       }
     outputIterator.Set(pixel);
     ++inputIterator;

@@ -20,13 +20,16 @@
 #define ITKHelpers_H
 
 #include "ITKHelpersTypes.h"
+#include "ITKContainerInterface.h"
 
 // Submodules
 class Mask;
+#include <Helpers/Helpers.h>
 #include <Helpers/TypeTraits.h>
 
 // STL
 #include <string>
+#include <type_traits>
 
 // ITK
 #include "itkImage.h"
@@ -629,9 +632,15 @@ std::vector<itk::Index<2> > BreadthFirstOrderingNonZeroPixels(const TImage* cons
 template <class TImage>
 bool IsClosedLoop(const TImage* const image, const itk::Index<2>& start);
 
-/**  Write the first 3 channels of an image to a file as unsigned chars. */
-template<typename TImage>
-void WriteRGBImage(const TImage* const input, const std::string& filename);
+/**  Write the scalar image to a file as an RGB image (unsigned chars) with 3 identical channels. */
+template <typename TImage>
+void WriteRGBImage(const TImage* const input, const std::string& filename,
+                    typename std::enable_if<!Helpers::HasBracketOperator<typename TImage::PixelType>::value>::type* = 0);
+
+/**  Write the first 3 channels of the image to a file as an RGB image (unsigned chars). */
+template <typename TImage>
+void WriteRGBImage(const TImage* const input, const std::string& filename,
+                   typename std::enable_if<Helpers::HasBracketOperator<typename TImage::PixelType>::value>::type* = 0);
 
 /** Write an image to a file named 'prefix'_'iteration'.extension*/
 template <typename TImage>
