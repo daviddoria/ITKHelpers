@@ -331,9 +331,9 @@ void ScaleChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned
 template<typename TInputImage, typename TOutputImage>
 void ConvertTo3Channel(const TInputImage* const image, TOutputImage* const output);
 
-template<typename TPixel, unsigned int NComponents>
-void ConvertTo3Channel(const itk::Image<itk::CovariantVector<TPixel, NComponents> >* const image,
-                       itk::Image<itk::CovariantVector<TPixel, NComponents> >* const output);
+template<typename TInputPixel, typename TOutputPixel, unsigned int NComponents>
+void ConvertTo3Channel(const itk::Image<itk::CovariantVector<TInputPixel, NComponents> >* const image,
+                       itk::Image<itk::CovariantVector<TOutputPixel, 3> >* const output);
 
 /** Specialization for VectorImage. */
 template<typename TPixel>

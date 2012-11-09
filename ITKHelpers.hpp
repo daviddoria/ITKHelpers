@@ -1547,11 +1547,12 @@ void ConvertTo3Channel(const TInputImage* const image, TOutputImage* const outpu
   }
 }
 
-template<typename TPixel, unsigned int NComponents>
-void ConvertTo3Channel(const itk::Image<itk::CovariantVector<TPixel, NComponents> >* const image,
-                       itk::Image<itk::CovariantVector<TPixel, NComponents> >* const output)
+template<typename TInputPixel, typename TOutputPixel, unsigned int NComponents>
+void ConvertTo3Channel(const itk::Image<itk::CovariantVector<TInputPixel, NComponents> >* const image,
+                       itk::Image<itk::CovariantVector<TOutputPixel, 3> >* const output)
 {
-  typedef itk::Image<itk::CovariantVector<TPixel, NComponents> > TImage;
+  typedef itk::Image<itk::CovariantVector<TInputPixel, NComponents> > InputImageType;
+  typedef itk::Image<itk::CovariantVector<TOutputPixel, 3> > OutputImageType;
 
   if(image->GetNumberOfComponentsPerPixel() == 3)
   {
@@ -1564,7 +1565,7 @@ void ConvertTo3Channel(const itk::Image<itk::CovariantVector<TPixel, NComponents
     output->Allocate();
     for(unsigned int channel = 0; channel < 3; ++channel)
     {
-      typedef itk::Image<typename TImage::PixelType::ComponentType, 2> OutputChannelType;
+      typedef itk::Image<typename OutputImageType::PixelType::ComponentType, 2> OutputChannelType;
       typename OutputChannelType::Pointer outputComponent =
           OutputChannelType::New();
       outputComponent->SetRegions(image->GetLargestPossibleRegion());
@@ -1579,7 +1580,7 @@ void ConvertTo3Channel(const itk::Image<itk::CovariantVector<TPixel, NComponents
     output->SetRegions(image->GetLargestPossibleRegion());
     output->Allocate();
 
-    typedef itk::Image<typename TImage::PixelType::ComponentType, 2> OutputChannelType;
+    typedef itk::Image<typename OutputImageType::PixelType::ComponentType, 2> OutputChannelType;
     typename OutputChannelType::Pointer outputComponent =
         OutputChannelType::New();
     outputComponent->SetRegions(image->GetLargestPossibleRegion());
