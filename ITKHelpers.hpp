@@ -66,6 +66,15 @@
 namespace ITKHelpers
 {
 
+template <typename TReturn, typename TInput>
+TReturn convert(const TInput& input)
+{
+  TReturn output;
+  output[0] = input[0];
+  output[1] = input[1];
+  return output;
+}
+
 template<typename TImage>
 bool HasNeighborWithValueOtherThan(const itk::Index<2>& pixel, const TImage* const image,
                                    const typename TImage::PixelType& value)
@@ -1321,14 +1330,15 @@ void SubtractRegions(const TImage* const image1, const itk::ImageRegion<2>& regi
   itk::ImageRegionConstIterator<TImage> image2Iterator(image2, region2);
 
   while(!image1Iterator.IsAtEnd())
-    {
+  {
     float difference = image1Iterator.Get() - image2Iterator.Get();
-    itk::Index<2> index = Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >
-                          (image1Iterator.GetIndex() - image1->GetLargestPossibleRegion().GetIndex());
+    auto offset = image1Iterator.GetIndex() - image1->GetLargestPossibleRegion().GetIndex();
+    auto index = ITKHelpers::Convert2DValue<itk::Index<2> >(offset);
+
     output.SetPixel(index, difference);
     ++image1Iterator;
     ++image2Iterator;
-    }
+  }
 }
 
 template<typename TImage>
@@ -1345,15 +1355,15 @@ void ANDRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, 
   itk::ImageRegionConstIterator<TImage> image2Iterator(image2, region2);
 
   while(!image1Iterator.IsAtEnd())
-    {
+  {
     bool result = image1Iterator.Get() && image2Iterator.Get();
-    itk::Index<2> index =
-           Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >(image1Iterator.GetIndex() -
-                                                                image1->GetLargestPossibleRegion().GetIndex());
+
+    auto offset = image1Iterator.GetIndex() - image1->GetLargestPossibleRegion().GetIndex();
+    auto index = ITKHelpers::Convert2DValue<itk::Index<2> >(offset);
     output->SetPixel(index, result);
     ++image1Iterator;
     ++image2Iterator;
-    }
+  }
 }
 
 template<typename TInputImage, typename TOutputImage>
@@ -1383,8 +1393,9 @@ void XORRegions(const TInputImage* const image1, const itk::ImageRegion<2>& regi
     bool result = image1Iterator.Get() ^ image2Iterator.Get(); // ^ is XOR (exclusive OR)
     if(result)
     {
-      itk::Index<2> index = Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >
-                            (image1Iterator.GetIndex() - region1.GetIndex());
+      auto offset = image1Iterator.GetIndex() - region1.GetIndex();
+      auto index = ITKHelpers::Convert2DValue<itk::Index<2> >(offset);
+
       output->SetPixel(index, trueValue);
     }
     ++image1Iterator;

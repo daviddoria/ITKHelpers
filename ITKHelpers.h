@@ -43,6 +43,17 @@ namespace ITKHelpers
 ///////// Function templates (defined in ITKHelpers.hpp) /////////
 ////////////////////////////////////////////////////////////////////////
 
+/** Convert any type with operator[] and two values to any other type with operator[]
+  * an two values (i.e. itk::Index<2> and itk::Offset<2> ).
+  * We place the TInput as the second template paramter because it can be
+  * automatically deduced from the 'object' that is passed. An example call is:
+  * itk::Index<2> index = {{0,0}};
+  * auto offset = ConvertFrom<itk::Offset<2> > (index);
+  */
+template<typename TReturn, typename TInput>
+TReturn Convert2DValue(const TInput& object);
+
+/** Median filter an image. */
 template<typename TImage>
 void MedianFilter(const TImage* const image, const unsigned int kernelRadius,
                   TImage* const output);
