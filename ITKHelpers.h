@@ -39,6 +39,26 @@ class Mask;
 #include "itkSize.h"
 #include "itkVectorImage.h"
 
+// We implement some overload/specializations from Helpers that desl with ITK types
+namespace Helpers
+{
+  /** A specialization of FuzzyCompare (from Helpers) for CovariantVector */
+  template<typename TA, typename TB, unsigned int N>
+  typename std::enable_if<std::numeric_limits<TA>::is_specialized &&
+                          std::numeric_limits<TB>::is_specialized, bool>::type
+  FuzzyCompare(const itk::CovariantVector<TA, N>& a,
+               const itk::CovariantVector<TB, N>& b,
+               const TA& epsilon = std::numeric_limits<TA>::epsilon());
+
+  /** A specialization of FuzzyCompare (from Helpers) for Vector */
+  template<typename TA, typename TB, unsigned int N>
+  typename std::enable_if<std::numeric_limits<TA>::is_specialized &&
+                          std::numeric_limits<TB>::is_specialized, bool>::type
+  FuzzyCompare(const itk::Vector<TA, N>& a,
+               const itk::Vector<TB, N>& b,
+               const TA& epsilon = std::numeric_limits<TA>::epsilon());
+}
+
 namespace ITKHelpers
 {
   using namespace ITKHelpersTypes;
