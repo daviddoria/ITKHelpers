@@ -2,17 +2,11 @@ cmake_minimum_required(VERSION 2.8)
 
 project(ITKHelpers)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+ENABLE_TESTING() # This has to be in the root directory if we want to run 'ctest' from the root build directory.
 
-# Only include Helpers if it is not already available
-get_property(FoundHelpers GLOBAL PROPERTY HelpersIncludeDirs SET)
-if(NOT FoundHelpers)
-  add_subdirectory(Helpers)
-endif()
+add_subdirectory(CMakeHelpers)
 
-get_property(HelpersIncludeDirs GLOBAL PROPERTY HelpersIncludeDirs)
-set(ITKHelpers_include_dirs ${ITKHelpers_include_dirs} ${HelpersIncludeDirs})
-get_property(HelpersLibs GLOBAL PROPERTY HelpersLibs)
-set(ITKHelpers_libraries ${ITKHelpers_libraries} ${HelpersLibs})
+UseSubmodule(Helpers ITKHelpers)
 
 # Enable c++11
 if(UNIX)
@@ -42,18 +36,10 @@ ITKHelpers.hpp ITKTypeTraits.h ITKContainerInterface.h ITKContainerInterface.hpp
 ITKHelpersTypes.h itkRGBToHSVColorSpacePixelAccessor.h itkRGBToLabColorSpacePixelAccessor.h)
 
 # Allow this project to be detected and used as a submodule
-set(ITKHelpers_include_dirs ${ITKHelpers_include_dirs} ${CMAKE_CURRENT_SOURCE_DIR})
-set_property(GLOBAL PROPERTY ITKHelpersIncludeDirs ${ITKHelpers_include_dirs})
-set_property(GLOBAL PROPERTY ITKHelpersLibs ${ITKHelpers_libraries})
+CreateSubmodule(ITKHelpers)
 
 # Build the tests if requested
 option(ITKHelpers_BuildTests "Build ITKHelpers tests?" OFF)
 if(ITKHelpers_BuildTests)
   add_subdirectory(Tests)
 endif()
-
-# Display where this code was used from (if it is used as a submodule, there may be multiple instances of this submodule in the project, only the first of which is used)
-option(ITKHelpers_ShowSubmoduleLocation "Show the path from which ITKHelpers was used?" OFF)
-if(ITKHelpers_ShowSubmoduleLocation)
-  message("ITKHelpers used from ${CMAKE_CURRENT_SOURCE_DIR}")
-endif(ITKHelpers_ShowSubmoduleLocation)
