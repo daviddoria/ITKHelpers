@@ -20,37 +20,126 @@
 
 #include "itkCovariantVector.h"
 
-static void TestGenericCovariantVector();
-static void TestUnsignedCharCovariantVector();
+static bool TestVariableLengthVector();
+static bool TestCovariantVector();
 
 int main()
 {
-  TestGenericCovariantVector();
-  TestUnsignedCharCovariantVector();
+  bool allPass = true;
 
+  allPass &= TestVariableLengthVector();
 
-  return 0;
+  allPass &= TestCovariantVector();
+
+  if(allPass)
+  {
+    return EXIT_SUCCESS;
+  }
+  else
+  {
+    return EXIT_FAILURE;
+  }
 }
 
-void TestGenericCovariantVector()
+bool TestCovariantVector()
 {
-  itk::CovariantVector<int, 3> v;
-  v.Fill(0);
-  std::cout << v << std::endl;
+  bool allPass = true;
 
-  TypeTraits<itk::CovariantVector<int, 3> >::ComponentType c = v[0];
-  std::cout << c << std::endl;
+  // Same larger type
+  {
+    typedef itk::CovariantVector<double, 3> VectorType;
+    typedef itk::CovariantVector<double, 3> CorrectLargerType;
+    if(!std::is_same<TypeTraits<VectorType>::LargerType, CorrectLargerType>::value)
+    {
+      std::cerr << "TestCovariantVector: Same larger type failed!" << std::endl;
+      allPass = false;
+    }
+  }
+
+  // Larger type
+  {
+    typedef itk::CovariantVector<int, 3> VectorType;
+    typedef itk::CovariantVector<float, 3> CorrectLargerType;
+    if(!std::is_same<TypeTraits<VectorType>::LargerType, CorrectLargerType>::value)
+    {
+      std::cerr << "TestCovariantVector: Larger type failed!" << std::endl;
+      allPass = false;
+    }
+  }
+
+  // Component type
+  {
+    typedef itk::CovariantVector<int, 3> VectorType;
+    typedef int CorrectComponentType;
+    if(!std::is_same<TypeTraits<VectorType>::ComponentType, CorrectComponentType>::value)
+    {
+      std::cerr << "TestCovariantVector: Same component type failed!" << std::endl;
+      allPass = false;
+    }
+  }
+
+  // Larger component type
+  {
+    typedef itk::CovariantVector<int, 3> VectorType;
+    typedef float CorrectLargerComponentType;
+    if(!std::is_same<TypeTraits<VectorType>::LargerComponentType, CorrectLargerComponentType>::value)
+    {
+      std::cerr << "TestCovariantVector: Larger component type failed!" << std::endl;
+      allPass = false;
+    }
+  }
+
+  return allPass;
 }
 
-void TestUnsignedCharCovariantVector()
+
+bool TestVariableLengthVector()
 {
-  itk::CovariantVector<unsigned char, 3> v;
-  v.Fill(0);
-  //std::cout << v << std::endl;
+  bool allPass = true;
 
-  TypeTraits<itk::CovariantVector<unsigned char, 3> >::ComponentType c = 2.3f;
-  std::cout << static_cast<float>(c) << std::endl;
+  // Same larger type
+  {
+    typedef itk::VariableLengthVector<double> VectorType;
+    typedef itk::VariableLengthVector<double> CorrectLargerType;
+    if(!std::is_same<TypeTraits<VectorType>::LargerType, CorrectLargerType>::value)
+    {
+      std::cerr << "TestVariableLengthVector: Same larger type failed!" << std::endl;
+      allPass = false;
+    }
+  }
 
-  TypeTraits<itk::CovariantVector<unsigned char, 3> >::LargerComponentType larger = 2.3f;
-  std::cout << larger << std::endl;
+  // Larger type
+  {
+    typedef itk::VariableLengthVector<int> VectorType;
+    typedef itk::VariableLengthVector<float> CorrectLargerType;
+    if(!std::is_same<TypeTraits<VectorType>::LargerType, CorrectLargerType>::value)
+    {
+      std::cerr << "TestVariableLengthVector: Larger type failed!" << std::endl;
+      allPass = false;
+    }
+  }
+
+  // Component type
+  {
+    typedef itk::VariableLengthVector<int> VectorType;
+    typedef int CorrectComponentType;
+    if(!std::is_same<TypeTraits<VectorType>::ComponentType, CorrectComponentType>::value)
+    {
+      std::cerr << "TestVariableLengthVector: Same component type failed!" << std::endl;
+      allPass = false;
+    }
+  }
+
+  // Larger component type
+  {
+    typedef itk::VariableLengthVector<int> VectorType;
+    typedef float CorrectLargerComponentType;
+    if(!std::is_same<TypeTraits<VectorType>::LargerComponentType, CorrectLargerComponentType>::value)
+    {
+      std::cerr << "TestVariableLengthVector: Larger component type failed!" << std::endl;
+      allPass = false;
+    }
+  }
+
+  return allPass;
 }

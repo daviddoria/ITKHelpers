@@ -42,9 +42,35 @@ struct TypeTraits<itk::VariableLengthVector<T> >
 template <>
 struct TypeTraits<itk::VariableLengthVector<unsigned char> >
 {
+  typedef itk::VariableLengthVector<unsigned char> SelfType;
+
   typedef itk::VariableLengthVector<float> LargerType;
   typedef float LargerComponentType;
-  typedef unsigned char ComponentType;
+  typedef typename SelfType::ValueType ComponentType;
+};
+
+/** For itk::VariableLengthVector<int>, use itk::VariableLengthVector<float> as the LargerType.
+  * This is a partial specialization. */
+template <>
+struct TypeTraits<itk::VariableLengthVector<int> >
+{
+  typedef itk::VariableLengthVector<int> SelfType;
+
+  typedef itk::VariableLengthVector<float> LargerType;
+  typedef float LargerComponentType;
+  typedef typename SelfType::ValueType ComponentType;
+};
+
+/** For itk::VariableLengthVector<unsigned int>, use itk::VariableLengthVector<float> as the LargerType.
+  * This is a partial specialization. */
+template <>
+struct TypeTraits<itk::VariableLengthVector<unsigned int> >
+{
+  typedef itk::VariableLengthVector<unsigned int> SelfType;
+
+  typedef itk::VariableLengthVector<float> LargerType;
+  typedef float LargerComponentType;
+  typedef typename SelfType::ValueType ComponentType;
 };
 
 /** For itk::RGBPixel<T>.
@@ -72,9 +98,11 @@ struct TypeTraits<itk::CovariantVector<T, N> >
 template <unsigned int N>
 struct TypeTraits<itk::CovariantVector<unsigned char, N> >
 {
+  typedef itk::CovariantVector<unsigned char, N> SelfType;
+
   typedef itk::CovariantVector<float, N> LargerType;
   typedef float LargerComponentType;
-  typedef unsigned char ComponentType;
+  typedef typename SelfType::ValueType ComponentType;
 };
 
 /** For itk::CovariantVector<int, N>, use itk::CovariantVector<float, N> as the LargerType.
@@ -82,9 +110,23 @@ struct TypeTraits<itk::CovariantVector<unsigned char, N> >
 template <unsigned int N>
 struct TypeTraits<itk::CovariantVector<int, N> >
 {
+  typedef itk::CovariantVector<int, N> SelfType;
+
   typedef itk::CovariantVector<float, N> LargerType;
   typedef float LargerComponentType;
-  typedef unsigned char ComponentType;
+  typedef typename SelfType::ValueType ComponentType;
+};
+
+/** For itk::CovariantVector<unsigned int, N>, use itk::CovariantVector<float, N> as the LargerType.
+  * This is a partial specialization. */
+template <unsigned int N>
+struct TypeTraits<itk::CovariantVector<unsigned int, N> >
+{
+  typedef itk::CovariantVector<unsigned int, N> SelfType;
+
+  typedef itk::CovariantVector<float, N> LargerType;
+  typedef float LargerComponentType;
+  typedef typename SelfType::ValueType ComponentType;
 };
 
 #endif
