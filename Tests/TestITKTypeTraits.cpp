@@ -22,6 +22,7 @@
 
 static bool TestVariableLengthVector();
 static bool TestCovariantVector();
+static bool TestRGBPixel();
 
 int main()
 {
@@ -30,6 +31,8 @@ int main()
   allPass &= TestVariableLengthVector();
 
   allPass &= TestCovariantVector();
+
+  allPass &= TestRGBPixel();
 
   if(allPass)
   {
@@ -78,6 +81,17 @@ bool TestCovariantVector()
     }
   }
 
+  // Same larger component type
+  {
+    typedef itk::CovariantVector<float, 3> VectorType;
+    typedef float CorrectLargerComponentType;
+    if(!std::is_same<TypeTraits<VectorType>::LargerComponentType, CorrectLargerComponentType>::value)
+    {
+      std::cerr << "TestCovariantVector: Same larger component type failed!" << std::endl;
+      allPass = false;
+    }
+  }
+
   // Larger component type
   {
     typedef itk::CovariantVector<int, 3> VectorType;
@@ -91,7 +105,6 @@ bool TestCovariantVector()
 
   return allPass;
 }
-
 
 bool TestVariableLengthVector()
 {
@@ -130,6 +143,17 @@ bool TestVariableLengthVector()
     }
   }
 
+  // Same larger component type
+  {
+    typedef itk::VariableLengthVector<float> VectorType;
+    typedef float CorrectLargerComponentType;
+    if(!std::is_same<TypeTraits<VectorType>::LargerComponentType, CorrectLargerComponentType>::value)
+    {
+      std::cerr << "TestCovariantVector: Same larger component type failed!" << std::endl;
+      allPass = false;
+    }
+  }
+
   // Larger component type
   {
     typedef itk::VariableLengthVector<int> VectorType;
@@ -137,6 +161,69 @@ bool TestVariableLengthVector()
     if(!std::is_same<TypeTraits<VectorType>::LargerComponentType, CorrectLargerComponentType>::value)
     {
       std::cerr << "TestVariableLengthVector: Larger component type failed!" << std::endl;
+      allPass = false;
+    }
+  }
+
+  return allPass;
+}
+
+
+bool TestRGBPixel()
+{
+  bool allPass = true;
+
+  // Same larger type
+  {
+    typedef itk::RGBPixel<double> VectorType;
+    typedef itk::RGBPixel<double> CorrectLargerType;
+    if(!std::is_same<TypeTraits<VectorType>::LargerType, CorrectLargerType>::value)
+    {
+      std::cerr << "TestRGBPixel: Same larger type failed!" << std::endl;
+      allPass = false;
+    }
+  }
+
+  // Larger type
+  {
+    typedef itk::RGBPixel<int> VectorType;
+    typedef itk::RGBPixel<float> CorrectLargerType;
+    if(!std::is_same<TypeTraits<VectorType>::LargerType, CorrectLargerType>::value)
+    {
+      std::cerr << "TestRGBPixel: Larger type failed!" << std::endl;
+      allPass = false;
+    }
+  }
+
+  // Component type
+  {
+    typedef itk::RGBPixel<int> VectorType;
+    typedef int CorrectComponentType;
+    if(!std::is_same<TypeTraits<VectorType>::ComponentType, CorrectComponentType>::value)
+    {
+      std::cerr << "TestRGBPixel: Same component type failed!" << std::endl;
+      allPass = false;
+    }
+  }
+
+  // Same larger component type
+  {
+    typedef itk::RGBPixel<float> VectorType;
+    typedef float CorrectLargerComponentType;
+    if(!std::is_same<TypeTraits<VectorType>::LargerComponentType, CorrectLargerComponentType>::value)
+    {
+      std::cerr << "TestRGBPixel: Same larger component type failed!" << std::endl;
+      allPass = false;
+    }
+  }
+
+  // Larger component type
+  {
+    typedef itk::RGBPixel<int> VectorType;
+    typedef float CorrectLargerComponentType;
+    if(!std::is_same<TypeTraits<VectorType>::LargerComponentType, CorrectLargerComponentType>::value)
+    {
+      std::cerr << "TestRGBPixel: Larger component type failed!" << std::endl;
       allPass = false;
     }
   }
