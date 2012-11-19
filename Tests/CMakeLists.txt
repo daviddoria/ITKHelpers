@@ -22,3 +22,6 @@ target_link_libraries(TestITKTypeTraits ${ITKHelpers_libraries})
 
 add_executable(TestColorSpaceConversions TestColorSpaceConversions.cpp)
 target_link_libraries(TestColorSpaceConversions ${ITKHelpers_libraries})
+
+add_executable(TestNormImageAdaptor TestNormImageAdaptor.cpp)
+target_link_libraries(TestNormImageAdaptor ${ITKHelpers_libraries})
