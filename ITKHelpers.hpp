@@ -399,21 +399,23 @@ void CopyRegion(const TImage* sourceImage, TImage* targetImage,
                 const itk::ImageRegion<2>& sourceRegion, const itk::ImageRegion<2>& targetRegion)
 {
   if(targetRegion.GetSize() != sourceRegion.GetSize())
-    {
-    std::cerr << "Can't copy regions that aren't the same size!" << std::endl;
+  {
+    std::cerr << "Can't copy regions that aren't the same size!" << std::endl
+              << "Target region is " << targetRegion.GetSize() << std::endl
+              << "Source region is " << sourceRegion.GetSize() << std::endl;
     return;
-    }
+  }
 
   itk::ImageRegionConstIterator<TImage> sourceIterator(sourceImage, sourceRegion);
   itk::ImageRegionIterator<TImage> targetIterator(targetImage, targetRegion);
 
   while(!sourceIterator.IsAtEnd())
-    {
+  {
     targetIterator.Set(sourceIterator.Get());
 
     ++sourceIterator;
     ++targetIterator;
-    }
+  }
 }
 
 template <class TImage>
