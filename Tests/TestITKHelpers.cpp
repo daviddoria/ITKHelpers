@@ -18,113 +18,131 @@
 
 #include "ITKHelpers.h"
 
-static void TestGetClosedContourOrdering();
+static bool TestGetClosedContourOrdering();
 
-static void TestGetOpenContourOrdering();
+static bool TestGetOpenContourOrdering();
 
-static void TestDrawRectangle();
+static bool TestDrawRectangle();
 
-static void TestIsClosedLoop();
+static bool TestIsClosedLoop();
 
-static void TestRandomImage();
+static bool TestRandomImage();
 
-static void TestBlurAllChannelsScalar();
+static bool TestBlurAllChannelsScalar();
 
-static void TestBlurAllChannelsVector();
+static bool TestBlurAllChannelsVector();
 
-static void TestBilateralFilterAllChannels();
+static bool TestBilateralFilterAllChannels();
 
-static void TestHistogramOfGradients();
+static bool TestHistogramOfGradients();
 
-static void TestExtractChannel();
-static void TestExtractChannels();
+static bool TestExtractChannel();
+static bool TestExtractChannels();
 
-static void TestSumOfComponentMagnitudes();
+static bool TestSumOfComponentMagnitudes();
 
-static void TestClosestValueIndex();
+static bool TestClosestValueIndex();
 
-void TestDeepCopyFloatScalar();
-void TestDeepCopyUnsignedCharScalar();
-void TestDeepCopyFloatVector();
-void TestDeepCopyUnsignedCharVector();
+bool TestDeepCopyFloatScalar();
+bool TestDeepCopyUnsignedCharScalar();
+bool TestDeepCopyFloatVector();
+bool TestDeepCopyUnsignedCharVector();
 
-static void TestUpsample();
-static void TestDownsample();
+static bool TestUpsample();
+static bool TestDownsample();
 
-static void TestGetAllPatchesContainingPixel();
+static bool TestGetAllPatchesContainingPixel();
 
-static void TestBreadthFirstOrderingNonZeroPixels();
+static bool TestBreadthFirstOrderingNonZeroPixels();
 
-static void TestGetBoundaryPixels();
+static bool TestGetBoundaryPixels();
 
-static void TestDivideRegion();
+static bool TestDivideRegion();
 
-static void TestMinOfIndex();
+static bool TestMinOfIndex();
 
-static void TestMinOfAllIndices();
+static bool TestMinOfAllIndices();
 
-static void TestComputeGradientsInRegion();
+static bool TestComputeGradientsInRegion();
 
-static void TestCreateLuminanceImage();
+static bool TestCreateLuminanceImage();
 
-static void TestHasBracketOperator();
+static bool TestHasBracketOperator();
+
+template<typename TImage>
+static bool TestHasBracketOperator_ConstTemplate(const TImage* const image);
+
+template<typename TImage>
+static bool TestHasBracketOperator_Template(TImage* image);
+
+template<typename TImage>
+static bool TestHasBracketOperator_Template2();
 
 int main(int, char **)
 {
-  TestRandomImage();
+  bool allPass = true;
 
-  TestGetClosedContourOrdering();
+  allPass &= TestRandomImage();
 
-  TestGetOpenContourOrdering();
+  allPass &= TestGetClosedContourOrdering();
 
-  TestDrawRectangle();
+  allPass &= TestGetOpenContourOrdering();
 
-  TestIsClosedLoop();
+  allPass &= TestDrawRectangle();
 
-  TestClosestValueIndex();
+  allPass &= TestIsClosedLoop();
 
-  TestBreadthFirstOrderingNonZeroPixels();
+  allPass &= TestClosestValueIndex();
 
-  TestBlurAllChannelsVector();
-  TestBlurAllChannelsScalar();
-  TestBilateralFilterAllChannels();
+  allPass &= TestBreadthFirstOrderingNonZeroPixels();
 
-  TestHistogramOfGradients();
+  allPass &= TestBlurAllChannelsVector();
+  allPass &= TestBlurAllChannelsScalar();
+  allPass &= TestBilateralFilterAllChannels();
 
-  TestExtractChannel();
-  TestExtractChannels();
+  allPass &= TestHistogramOfGradients();
 
-  TestSumOfComponentMagnitudes();
+  allPass &= TestExtractChannel();
+  allPass &= TestExtractChannels();
 
-  TestGetAllPatchesContainingPixel();
+  allPass &= TestSumOfComponentMagnitudes();
 
-  TestDownsample();
-  TestUpsample();
+  allPass &= TestGetAllPatchesContainingPixel();
 
-  TestDeepCopyFloatScalar();
-  TestDeepCopyUnsignedCharScalar();
-  TestDeepCopyFloatVector();
-  TestDeepCopyUnsignedCharVector();
+  allPass &= TestDownsample();
+  allPass &= TestUpsample();
 
-  TestGetBoundaryPixels();
+  allPass &= TestDeepCopyFloatScalar();
+  allPass &= TestDeepCopyUnsignedCharScalar();
+  allPass &= TestDeepCopyFloatVector();
+  allPass &= TestDeepCopyUnsignedCharVector();
 
-  TestDivideRegion();
+  allPass &= TestGetBoundaryPixels();
 
-  TestMinOfIndex();
+  allPass &= TestDivideRegion();
 
-  TestMinOfAllIndices();
+  allPass &= TestMinOfIndex();
 
-  TestComputeGradientsInRegion();
+  allPass &= TestMinOfAllIndices();
 
-  TestCreateLuminanceImage();
+  allPass &= TestComputeGradientsInRegion();
 
-  TestHasBracketOperator();
+  allPass &= TestCreateLuminanceImage();
 
-  return 0;
+  allPass &= TestHasBracketOperator();
+
+  if(allPass)
+  {
+    return EXIT_SUCCESS;
+  }
+  else
+  {
+    return EXIT_FAILURE;
+  }
 }
 
 
-void TestBlurAllChannelsScalar()
+bool TestBlurAllChannelsScalar()
 {
   // Create an image
   typedef itk::Image<unsigned char, 2> ImageType;
@@ -161,9 +179,10 @@ void TestBlurAllChannelsScalar()
   ITKHelpers::WriteImage(blurred.GetPointer(), "blurred_1.png");
   }
 
+  return true;
 }
 
-void TestBlurAllChannelsVector()
+bool TestBlurAllChannelsVector()
 {
   // Create an image
   typedef itk::VectorImage<float, 2> ImageType;
@@ -199,9 +218,10 @@ void TestBlurAllChannelsVector()
   ITKHelpers::WriteRGBImage(blurred.GetPointer(), "blurred_0.png");
   }
 
+  return true;
 }
 
-void TestBilateralFilterAllChannels()
+bool TestBilateralFilterAllChannels()
 {
   {
   typedef itk::VectorImage<float, 2> ImageType;
@@ -222,10 +242,12 @@ void TestBilateralFilterAllChannels()
 //   float sigma = 2.0f;
 //   ITKHelpers::AnisotropicBlurAllChannels(image.GetPointer(), blurred.GetPointer(), sigma);
 //   }
+
+  return true;
 }
 
 
-void TestGetAllPatchesContainingPixel()
+bool TestGetAllPatchesContainingPixel()
 {
   typedef itk::Image<float, 2> ImageType;
   ImageType::Pointer image = ImageType::New();
@@ -245,9 +267,10 @@ void TestGetAllPatchesContainingPixel()
 
   std::cout << "Number of patches " << allPatches.size() << std::endl;
 
+  return true;
 }
 
-void TestDeepCopyFloatScalar()
+bool TestDeepCopyFloatScalar()
 {
   itk::Index<2> corner = {{0,0}};
   itk::Size<2> size = {{10,10}};
@@ -260,9 +283,11 @@ void TestDeepCopyFloatScalar()
 
   ImageType::Pointer imageOut = ImageType::New();
   ITKHelpers::DeepCopy(imageIn.GetPointer(), imageOut.GetPointer());
+
+  return true;
 }
 
-void TestDeepCopyUnsignedCharScalar()
+bool TestDeepCopyUnsignedCharScalar()
 {
   itk::Index<2> corner = {{0,0}};
   itk::Size<2> size = {{10,10}};
@@ -275,9 +300,11 @@ void TestDeepCopyUnsignedCharScalar()
 
   ImageType::Pointer imageOut = ImageType::New();
   ITKHelpers::DeepCopy(imageIn.GetPointer(), imageOut.GetPointer());
+
+  return true;
 }
 
-void TestDeepCopyFloatVector()
+bool TestDeepCopyFloatVector()
 {
   itk::Index<2> corner = {{0,0}};
   itk::Size<2> size = {{10,10}};
@@ -291,9 +318,11 @@ void TestDeepCopyFloatVector()
 
   ImageType::Pointer imageOut = ImageType::New();
   ITKHelpers::DeepCopy(imageIn.GetPointer(), imageOut.GetPointer());
+
+  return true;
 }
 
-void TestDeepCopyUnsignedCharVector()
+bool TestDeepCopyUnsignedCharVector()
 {
   itk::Index<2> corner = {{0,0}};
   itk::Size<2> size = {{10,10}};
@@ -307,9 +336,11 @@ void TestDeepCopyUnsignedCharVector()
 
   ImageType::Pointer imageOut = ImageType::New();
   ITKHelpers::DeepCopy(imageIn.GetPointer(), imageOut.GetPointer());
+
+  return true;
 }
 
-void TestDownsample()
+bool TestDownsample()
 {
   typedef itk::Image<unsigned char, 2> ImageType;
   ImageType::Pointer image = ImageType::New();
@@ -327,9 +358,11 @@ void TestDownsample()
 
   std::cout << "TestDownsample() output size: "
             << downsampled->GetLargestPossibleRegion().GetSize() << std::endl;
+
+  return true;
 }
 
-void TestUpsample()
+bool TestUpsample()
 {
   typedef itk::Image<unsigned char, 2> ImageType;
   ImageType::Pointer image = ImageType::New();
@@ -347,9 +380,11 @@ void TestUpsample()
 
   std::cout << "TestUpsample() output size: "
             << upsampled->GetLargestPossibleRegion().GetSize() << std::endl;
+
+  return true;
 }
 
-void TestClosestValueIndex()
+bool TestClosestValueIndex()
 {
   typedef itk::CovariantVector<float, 3> PointType;
   std::vector<PointType> vec;
@@ -372,9 +407,11 @@ void TestClosestValueIndex()
   unsigned int closestId = ITKHelpers::ClosestValueIndex(vec, query);
 
   std::cout << "Closest point to " << query << " is " << vec[closestId] << std::endl;
+
+  return true;
 }
 
-void TestSumOfComponentMagnitudes()
+bool TestSumOfComponentMagnitudes()
 {
   itk::VariableLengthVector<float> a(2);
   a.Fill(3.0);
@@ -382,9 +419,11 @@ void TestSumOfComponentMagnitudes()
   float sum = ITKHelpers::SumOfComponentMagnitudes(a);
 
   std::cout << "Sum of " << a << " is " << sum << std::endl;
+
+  return true;
 }
 
-void TestExtractChannel()
+bool TestExtractChannel()
 {
   // VectorImage
   {
@@ -480,9 +519,11 @@ void TestExtractChannel()
   FloatScalarImageType::Pointer floatScalarImage = FloatScalarImageType::New();
   ITKHelpers::ExtractChannel(image.GetPointer(), 0, floatScalarImage.GetPointer());
   }
+
+  return true;
 }
 
-void TestExtractChannels()
+bool TestExtractChannels()
 {
   typedef itk::VectorImage<float, 2> VectorImageType;
   VectorImageType::Pointer image = VectorImageType::New();
@@ -507,9 +548,11 @@ void TestExtractChannels()
   typedef itk::VectorImage<unsigned char, 2> UnsignedCharScalarImageType;
   UnsignedCharScalarImageType::Pointer unsignedCharScalarImage = UnsignedCharScalarImageType::New();
   ITKHelpers::ExtractChannels(image.GetPointer(), channels, unsignedCharScalarImage.GetPointer());
+
+  return true;
 }
 
-void TestHistogramOfGradients()
+bool TestHistogramOfGradients()
 {
   typedef itk::Image<float, 2> ImageType;
   ImageType::Pointer image = ImageType::New();
@@ -530,9 +573,11 @@ void TestHistogramOfGradients()
     std::cout << histogram[i] << " ";
   }
   std::cout << std::endl;
+
+  return true;
 }
 
-void TestBreadthFirstOrderingNonZeroPixels()
+bool TestBreadthFirstOrderingNonZeroPixels()
 {
   std::cout << "TestBreadthFirstOrderingNonZeroPixels()" << std::endl;
 
@@ -564,9 +609,11 @@ void TestBreadthFirstOrderingNonZeroPixels()
   }
 
   std::cout << std::endl;
+
+  return true;
 }
 
-void TestIsClosedLoop()
+bool TestIsClosedLoop()
 {
   std::cout << "TestIsClosedLoop()" << std::endl;
 
@@ -620,9 +667,11 @@ void TestIsClosedLoop()
 
   std::cout << "Is closed loop? " << isClosedLoop << std::endl;
   }
+
+  return true;
 }
 
-void TestDrawRectangle()
+bool TestDrawRectangle()
 {
   typedef itk::Image<unsigned char, 2> ImageType;
   ImageType::Pointer image = ImageType::New();
@@ -641,9 +690,11 @@ void TestDrawRectangle()
                             corner0, corner1);
 
   ITKHelpers::WriteImage(image.GetPointer(), "rectangle.png");
+
+  return true;
 }
 
-void TestGetOpenContourOrdering()
+bool TestGetOpenContourOrdering()
 {
   typedef itk::Image<unsigned char, 2> ImageType;
   ImageType::Pointer image = ImageType::New();
@@ -673,9 +724,11 @@ void TestGetOpenContourOrdering()
   }
 
   std::cout << std::endl;
+
+  return true;
 }
 
-void TestGetClosedContourOrdering()
+bool TestGetClosedContourOrdering()
 {
   typedef itk::Image<unsigned char, 2> ImageType;
   ImageType::Pointer image = ImageType::New();
@@ -703,9 +756,11 @@ void TestGetClosedContourOrdering()
   }
 
   std::cout << std::endl;
+
+  return true;
 }
 
-void TestRandomImage()
+bool TestRandomImage()
 {
   typedef itk::Image<unsigned char, 2> ImageType;
   ImageType::Pointer image = ImageType::New();
@@ -720,9 +775,11 @@ void TestRandomImage()
 
   ITKHelpers::RandomImage(image.GetPointer());
   ITKHelpers::WriteImage(image.GetPointer(), "random.png");
+
+  return true;
 }
 
-void TestGetBoundaryPixels()
+bool TestGetBoundaryPixels()
 {
   itk::Index<2> corner = {{0,0}};
   itk::Size<2> size = {{3,3}};
@@ -736,9 +793,11 @@ void TestGetBoundaryPixels()
   {
     std::cout << boundaryPixels[i] << std::endl;
   }
+
+  return true;
 }
 
-void TestDivideRegion()
+bool TestDivideRegion()
 {
   // Test an evenly divisible region
   {
@@ -769,9 +828,11 @@ void TestDivideRegion()
     std::cout << "Subregion " << i << " : " << subregions[i] << std::endl;
   }
   }
+
+  return true;
 }
 
-void TestMinOfIndex()
+bool TestMinOfIndex()
 {
   typedef itk::CovariantVector<int, 3> CovariantVectorType;
   std::vector<CovariantVectorType> vectorOfVectors;
@@ -787,9 +848,11 @@ void TestMinOfIndex()
   int minComponent2 = Helpers::MinOfIndex(vectorOfVectors, 2);
 
   std::cout << "minComponent2: " << minComponent2 << std::endl;
+
+  return true;
 }
 
-void TestMinOfAllIndices()
+bool TestMinOfAllIndices()
 {
   typedef itk::CovariantVector<int, 3> VectorType;
   std::vector<VectorType> vectorOfVectors;
@@ -811,9 +874,11 @@ void TestMinOfAllIndices()
   {
     std::cout << minComponents[i] << std::endl;
   }
+
+  return true;
 }
 
-void TestComputeGradientsInRegion()
+bool TestComputeGradientsInRegion()
 {
   itk::Index<2> imageCorner = {{0,0}};
   itk::Size<2> imageSize = {{100,100}};
@@ -847,9 +912,11 @@ void TestComputeGradientsInRegion()
 
   std::cout << "Writing..." << std::endl;
   ITKHelpers::WriteImage(gradientImage.GetPointer(), "GradientImage.mha");
+
+  return true;
 }
 
-void TestCreateLuminanceImage()
+bool TestCreateLuminanceImage()
 {
   // From RGB image
   {
@@ -885,15 +952,58 @@ void TestCreateLuminanceImage()
   ITKHelpers::CreateLuminanceImage(vectorImage.GetPointer(), luminanceImage.GetPointer());
   }
 
+  return true;
 }
 
-void TestHasBracketOperator()
+bool TestHasBracketOperator()
 {
   {
-  typedef itk::CovariantVector<int, 3> VectorType;
+  typedef itk::CovariantVector<int, 3> IntVectorType;
 
-  static_assert(Helpers::HasBracketOperator<VectorType>::value,
-              "TestHasBracketOperator for CovariantVector failed!");
+  static_assert(Helpers::HasBracketOperator<IntVectorType>::value,
+              "TestHasBracketOperator for CovariantVector<int, 3> failed!");
+  }
+
+  {
+  typedef itk::CovariantVector<unsigned char, 3> UCharVectorType;
+
+  static_assert(Helpers::HasBracketOperator<UCharVectorType>::value,
+              "TestHasBracketOperator for CovariantVector<unsigned char, 3> failed!");
+  }
+
+  {
+  typedef itk::CovariantVector<float, 3> FloatVectorType;
+
+  static_assert(Helpers::HasBracketOperator<FloatVectorType>::value,
+              "TestHasBracketOperator for CovariantVector<float, 3> failed!");
+  }
+
+  {
+  typedef itk::Image<itk::CovariantVector<float, 3>, 2> FloatVectorImageType;
+
+  static_assert(Helpers::HasBracketOperator<FloatVectorImageType::PixelType>::value,
+              "TestHasBracketOperator for CovariantVector<float, 3> failed!");
+  }
+
+  {
+  typedef itk::Image<itk::CovariantVector<float, 3>, 2> FloatVectorImageType;
+  FloatVectorImageType::Pointer image = FloatVectorImageType::New();
+
+  TestHasBracketOperator_Template(image.GetPointer());
+  }
+
+  {
+  typedef itk::Image<itk::CovariantVector<float, 3>, 2> FloatVectorImageType;
+  itk::SmartPointer<FloatVectorImageType> image = FloatVectorImageType::New();
+
+  TestHasBracketOperator_Template(image.GetPointer());
+  TestHasBracketOperator_ConstTemplate(image.GetPointer());
+  }
+
+  {
+  typedef itk::Image<itk::CovariantVector<float, 3>, 2> FloatVectorImageType;
+
+  TestHasBracketOperator_Template2<FloatVectorImageType>();
   }
 
   {
@@ -903,9 +1013,43 @@ void TestHasBracketOperator()
               "TestHasBracketOperator for VariableLengthVector failed!");
   }
 
+  {
+  typedef std::vector<int> VectorType;
+
+  static_assert(Helpers::HasBracketOperator<VectorType>::value,
+              "TestHasBracketOperator for std::vector failed!");
+  }
+
   // This (intentionally) fails
 //  {
 //  static_assert(Helpers::HasBracketOperator<float>::value,
 //              "TestHasBracketOperator for float failed!");
 //  }
+
+  return true;
+}
+
+template<typename TImage>
+bool TestHasBracketOperator_ConstTemplate(const TImage* const image)
+{
+  static_assert(Helpers::HasBracketOperator<typename TImage::PixelType>::value,
+              "TestHasBracketOperator for TImage failed!");
+  return true;
+}
+
+template<typename TImage>
+bool TestHasBracketOperator_Template(TImage* image)
+{
+  static_assert(Helpers::HasBracketOperator<typename TImage::PixelType>::value,
+              "TestHasBracketOperator for TImage failed!");
+  return true;
+}
+
+
+template<typename TImage>
+bool TestHasBracketOperator_Template2()
+{
+  static_assert(Helpers::HasBracketOperator<typename TImage::PixelType>::value,
+              "TestHasBracketOperator for TImage failed!");
+  return true;
 }

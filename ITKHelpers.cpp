@@ -27,6 +27,8 @@
 // Helpers submodule
 #include <Helpers/Helpers.h>
 
+#include <cmath>
+
 namespace ITKHelpers
 {
 
@@ -390,10 +392,10 @@ std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region,
 
   while(!imageIterator.IsAtEnd())
   {
-    if( (abs(imageIterator.GetIndex()[0] - region.GetIndex()[0]) < static_cast<itk::Index<2>::IndexValueType>(thickness)) ||
-        (abs(imageIterator.GetIndex()[0] - (region.GetIndex()[0] + region.GetSize()[0] - 1)) < static_cast<itk::Index<2>::IndexValueType>(thickness)) ||
-        (abs(imageIterator.GetIndex()[1] - region.GetIndex()[1]) < static_cast<itk::Index<2>::IndexValueType>(thickness)) ||
-        (abs(imageIterator.GetIndex()[1] - (region.GetIndex()[1] + region.GetSize()[1] - 1)) < static_cast<itk::Index<2>::IndexValueType>(thickness)))
+    if( (std::abs(imageIterator.GetIndex()[0] - region.GetIndex()[0]) < static_cast<itk::Index<2>::IndexValueType>(thickness)) ||
+		(std::abs(imageIterator.GetIndex()[0] - (region.GetIndex()[0] + static_cast<itk::Index<2>::IndexValueType>(region.GetSize()[0]) - 1)) < static_cast<itk::Index<2>::IndexValueType>(thickness)) ||
+        (std::abs(imageIterator.GetIndex()[1] - region.GetIndex()[1]) < static_cast<itk::Index<2>::IndexValueType>(thickness)) ||
+        (std::abs(imageIterator.GetIndex()[1] - (region.GetIndex()[1] + static_cast<itk::Index<2>::IndexValueType>(region.GetSize()[1]) - 1)) < static_cast<itk::Index<2>::IndexValueType>(thickness)))
     {
       boundaryPixels.push_back(imageIterator.GetIndex());
     }
@@ -931,6 +933,54 @@ itk::ImageRegion<2> CropRegionAtPosition(itk::ImageRegion<2> regionToCrop, const
   regionToCrop.SetIndex(regionToCrop.GetIndex() - offset);
 
   return regionToCrop;
+}
+
+void WriteBoolImage(const itk::Image<bool, 2>* const image, const std::string& fileName)
+{
+  typedef itk::Image<unsigned char, 2> UnsignedCharImageType;
+  UnsignedCharImageType::Pointer unsignedCharImage = UnsignedCharImageType::New();
+  unsignedCharImage->SetRegions(image->GetLargestPossibleRegion());
+  unsignedCharImage->Allocate();
+
+  itk::ImageRegionIteratorWithIndex<UnsignedCharImageType>
+      unsignedCharImageIterator(unsignedCharImage, unsignedCharImage->GetLargestPossibleRegion());
+  while(!unsignedCharImageIterator.IsAtEnd())
+    {
+    if(image->GetPixel(unsignedCharImageIterator.GetIndex()))
+    {
+      unsignedCharImageIterator.Set(255);
+    }
+    else
+    {
+      unsignedCharImageIterator.Set(0);
+    }
+    ++unsignedCharImageIterator;
+    }
+
+  WriteImage(unsignedCharImage.GetPointer(), fileName);
+}
+
+void WriteIndexImage(const itk::Image<itk::Index<2>, 2>* const image, const std::string& fileName)
+{
+  typedef itk::Image<itk::CovariantVector<int, 2> > VectorImageType;
+  VectorImageType::Pointer vectorImage = VectorImageType::New();
+  vectorImage->SetRegions(image->GetLargestPossibleRegion());
+  vectorImage->Allocate();
+
+  itk::ImageRegionIteratorWithIndex<VectorImageType>
+      vectorImageIterator(vectorImage, vectorImage->GetLargestPossibleRegion());
+  while(!vectorImageIterator.IsAtEnd())
+  {
+    VectorImageType::PixelType vectorPixel;
+    vectorPixel[0] = image->GetPixel(vectorImageIterator.GetIndex())[0];
+    vectorPixel[1] = image->GetPixel(vectorImageIterator.GetIndex())[1];
+
+    vectorImageIterator.Set(vectorPixel);
+
+    ++vectorImageIterator;
+  }
+
+  WriteImage(vectorImage.GetPointer(), fileName);
 }
 
 } // end namespace

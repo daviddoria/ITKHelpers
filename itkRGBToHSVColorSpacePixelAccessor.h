@@ -35,12 +35,14 @@ namespace Accessor
  * an ImageAdaptor to make an RGBPixel image appear as being
  * an image of Vector pixel type in HSI Color Space.
  *
+ * InternalTpe defines the internal real representation of data.
+ *
  * \sa ImageAdaptor
  * \ingroup ImageAdaptors
  *
  */
 
-template <class TInput, class TOutput>
+template <class TInput, class TOutput, typename TInternalType = RGBPixel<TInput> >
 class ITK_EXPORT RGBToHSVColorSpacePixelAccessor
 {
 public:
@@ -51,9 +53,7 @@ public:
    * that this class will exhibit */
   typedef  Vector<TOutput,3>     ExternalType;
 
-  /** Internal typedef. It defines the internal real
-   * representation of data */
-  typedef   RGBPixel<TInput>    InternalType;
+  typedef TInternalType InternalType;
 
   /** Write access to the RGBToHSVColorSpace component */
   inline void Set( InternalType & output, const ExternalType & input ) const

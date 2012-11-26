@@ -35,6 +35,7 @@
 #include "itkCastImageFilter.h"
 #include "itkComposeImageFilter.h"
 #include "itkDerivativeImageFilter.h"
+#include "itkForwardDifferenceOperator.h"
 #include "itkGaussianOperator.h"
 #include "itkGradientImageFilter.h"
 #include "itkImageAdaptor.h"
@@ -63,8 +64,51 @@
 #include "itkRGBToLabColorSpacePixelAccessor.h"
 #include "itkRGBToHSVColorSpacePixelAccessor.h"
 
+namespace Helpers
+{
+  template<typename TA, typename TB, unsigned int N>
+  typename std::enable_if<std::numeric_limits<TA>::is_specialized &&
+                          std::numeric_limits<TB>::is_specialized, bool>::type
+  FuzzyCompare(const itk::CovariantVector<TA, N>& a,
+               const itk::CovariantVector<TB, N>& b,
+               const TA& epsilon = std::numeric_limits<TA>::epsilon())
+  {
+    if((a-b).GetNorm() < epsilon)
+    {
+      return true;
+    }
+
+    return false;
+  }
+
+  template<typename TA, typename TB, unsigned int N>
+  typename std::enable_if<std::numeric_limits<TA>::is_specialized &&
+                          std::numeric_limits<TB>::is_specialized, bool>::type
+  FuzzyCompare(const itk::Vector<TA, N>& a,
+               const itk::Vector<TB, N>& b,
+               const TA& epsilon = std::numeric_limits<TA>::epsilon())
+  {
+    if((a-b).GetNorm() < epsilon)
+    {
+      return true;
+    }
+
+    return false;
+  }
+
+} // end namespace Helpers
+
 namespace ITKHelpers
 {
+
+template <typename TReturn, typename TInput>
+TReturn convert(const TInput& input)
+{
+  TReturn output;
+  output[0] = input[0];
+  output[1] = input[1];
+  return output;
+}
 
 template<typename TImage>
 bool HasNeighborWithValueOtherThan(const itk::Index<2>& pixel, const TImage* const image,
@@ -760,6 +804,15 @@ template<typename TInputImage, typename TOutputImage>
 void ExtractChannels(const TInputImage* const image, const std::vector<unsigned int> channels,
                     TOutputImage* const output)
 {
+  // Size the image if necessary
+  if(output->GetLargestPossibleRegion().GetSize()[0] == 0)
+  {
+    output->SetRegions(image->GetLargestPossibleRegion());
+    output->Allocate();
+  }
+
+  assert(image->GetLargestPossibleRegion() == output->GetLargestPossibleRegion());
+
   if(output->GetNumberOfComponentsPerPixel() != channels.size())
   {
     std::stringstream ss;
@@ -789,8 +842,8 @@ void ExtractChannels(const TInputImage* const image, const std::vector<unsigned 
 
   for(unsigned int channelIndex = 0; channelIndex < channels.size(); ++channelIndex)
   {
-    std::cout << "Extracting channel " << channels[channelIndex]
-              << " and setting channel " << channelIndex << std::endl;
+//    std::cout << "Extracting channel " << channels[channelIndex]
+//              << " and setting channel " << channelIndex << std::endl;
     typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
     indexSelectionFilter->SetIndex(channels[channelIndex]);
     indexSelectionFilter->SetInput(image);
@@ -823,35 +876,47 @@ void ScaleChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned
 
   DeepCopy(image, output);
 
-  ReplaceChannel(output, channel, rescaleFilter->GetOutput(), output);
+  ReplaceChannel(output, channel, rescaleFilter->GetOutput());
 }
 
-template<typename TPixel>
-void ReplaceChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned int channel,
-                    const itk::Image<TPixel, 2>* const replacement, itk::VectorImage<TPixel, 2>* const output)
+template<typename TImage, typename TReplacementImage, typename TChannelVector>
+void ReplaceChannels(TImage* const image, const TChannelVector& channels,
+                     const TReplacementImage* const replacementImage)
 {
+  for(unsigned int channelId = 0; channelId < channels.size(); ++channelId)
+  {
+    typedef itk::Image<float, 2> FloatScalarImageType;
+    FloatScalarImageType::Pointer replacementChannel = FloatScalarImageType::New();
+    ExtractChannel(replacementImage, channels[channelId], replacementChannel.GetPointer());
+    ReplaceChannel(image, channels[channelId], replacementChannel.GetPointer());
+  }
+}
+
+template<typename TImage, typename TReplacementImage>
+void ReplaceChannel(TImage* const image, const unsigned int channel,
+                    const TReplacementImage* const replacement)
+{
+  static_assert(std::is_pod<typename TReplacementImage::PixelType>::value, "ReplaceChannel(): TReplacementImage::PixelType must be a POD");
+
   if(image->GetLargestPossibleRegion() != replacement->GetLargestPossibleRegion())
-    {
-    throw std::runtime_error("Image and replacement channel are not the same size!");
-    }
+  {
+    throw std::runtime_error("ReplaceChannel(): Image and replacement channel are not the same size!");
+  }
 
-  DeepCopy(image, output);
+  itk::ImageRegionConstIteratorWithIndex<TImage> imageIterator(image, image->GetLargestPossibleRegion());
 
-  itk::ImageRegionConstIterator<itk::VectorImage<TPixel, 2> > iterator(image, image->GetLargestPossibleRegion());
-
-  while(!iterator.IsAtEnd())
-    {
-    typename itk::VectorImage<TPixel, 2>::PixelType pixel = iterator.Get();
-    pixel[channel] = replacement->GetPixel(iterator.GetIndex());
-    output->SetPixel(iterator.GetIndex(), pixel);
-    ++iterator;
-    }
+  while(!imageIterator.IsAtEnd())
+  {
+    typename TImage::PixelType pixel = imageIterator.Get();
+    pixel[channel] = replacement->GetPixel(imageIterator.GetIndex());
+    image->SetPixel(imageIterator.GetIndex(), pixel);
+    ++imageIterator;
+  }
 }
 
 template<typename TPixel>
-void ReplaceChannel(const itk::Image<TPixel, 2>* const image, const unsigned int channel,
-                    const itk::Image<TPixel, 2>* const replacement,
-                    itk::Image<TPixel, 2>* const output)
+void ReplaceChannel(itk::Image<TPixel, 2>* const image, const unsigned int channel,
+                    const itk::Image<TPixel, 2>* const replacement)
 {
   if(image->GetLargestPossibleRegion() != replacement->GetLargestPossibleRegion())
     {
@@ -865,7 +930,7 @@ void ReplaceChannel(const itk::Image<TPixel, 2>* const image, const unsigned int
     throw std::runtime_error(ss.str());
   }
 
-  DeepCopy(replacement, output);
+  DeepCopy(replacement, image);
 }
 
 template<typename TImage>
@@ -1013,7 +1078,8 @@ void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1,
 template<typename T>
 itk::Index<2> CreateIndex(const T& v)
 {
-  itk::Index<2> index = {{v[0], v[1]}};
+  itk::Index<2> index = {{static_cast<itk::Index<2>::IndexValueType>(v[0]),
+                          static_cast<itk::Index<2>::IndexValueType>(v[1])}};
   return index;
 }
 
@@ -1321,14 +1387,15 @@ void SubtractRegions(const TImage* const image1, const itk::ImageRegion<2>& regi
   itk::ImageRegionConstIterator<TImage> image2Iterator(image2, region2);
 
   while(!image1Iterator.IsAtEnd())
-    {
+  {
     float difference = image1Iterator.Get() - image2Iterator.Get();
-    itk::Index<2> index = Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >
-                          (image1Iterator.GetIndex() - image1->GetLargestPossibleRegion().GetIndex());
+    auto offset = image1Iterator.GetIndex() - image1->GetLargestPossibleRegion().GetIndex();
+    auto index = ITKHelpers::Convert2DValue<itk::Index<2> >(offset);
+
     output.SetPixel(index, difference);
     ++image1Iterator;
     ++image2Iterator;
-    }
+  }
 }
 
 template<typename TImage>
@@ -1345,15 +1412,15 @@ void ANDRegions(const TImage* const image1, const itk::ImageRegion<2>& region1, 
   itk::ImageRegionConstIterator<TImage> image2Iterator(image2, region2);
 
   while(!image1Iterator.IsAtEnd())
-    {
+  {
     bool result = image1Iterator.Get() && image2Iterator.Get();
-    itk::Index<2> index =
-           Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >(image1Iterator.GetIndex() -
-                                                                image1->GetLargestPossibleRegion().GetIndex());
+
+    auto offset = image1Iterator.GetIndex() - image1->GetLargestPossibleRegion().GetIndex();
+    auto index = ITKHelpers::Convert2DValue<itk::Index<2> >(offset);
     output->SetPixel(index, result);
     ++image1Iterator;
     ++image2Iterator;
-    }
+  }
 }
 
 template<typename TInputImage, typename TOutputImage>
@@ -1383,8 +1450,9 @@ void XORRegions(const TInputImage* const image1, const itk::ImageRegion<2>& regi
     bool result = image1Iterator.Get() ^ image2Iterator.Get(); // ^ is XOR (exclusive OR)
     if(result)
     {
-      itk::Index<2> index = Helpers::ConvertFrom<itk::Index<2>, itk::Offset<2> >
-                            (image1Iterator.GetIndex() - region1.GetIndex());
+      auto offset = image1Iterator.GetIndex() - region1.GetIndex();
+      auto index = ITKHelpers::Convert2DValue<itk::Index<2> >(offset);
+
       output->SetPixel(index, trueValue);
     }
     ++image1Iterator;
@@ -1449,15 +1517,19 @@ template<typename TImage>
 std::vector<typename TImage::PixelType> GetPixelValuesInRegion(const TImage* const image,
                                                                const itk::ImageRegion<2>& region)
 {
-  std::vector<typename TImage::PixelType> values;
+  assert(image->GetLargestPossibleRegion().IsInside(region));
+
+  std::vector<typename TImage::PixelType> values(region.GetNumberOfPixels());
 
   itk::ImageRegionConstIterator<TImage> imageIterator(image, region);
 
+  unsigned int counter = 0;
   while(!imageIterator.IsAtEnd())
-    {
-    values.push_back(imageIterator.Get());
+  {
+    values[counter] = imageIterator.Get();
+    counter++;
     ++imageIterator;
-    }
+  }
 
   return values;
 }
@@ -1479,6 +1551,13 @@ std::vector<typename TImage::PixelType> GetPixelValuesInRegion(const TImage* con
 template<typename TVectorImage, typename TScalarImage>
 void SetChannel(TVectorImage* const vectorImage, const unsigned int channel, const TScalarImage* const image)
 {
+  // Size the image if necessary
+  if(vectorImage->GetLargestPossibleRegion().GetSize()[0] == 0)
+  {
+    vectorImage->SetRegions(image->GetLargestPossibleRegion());
+    vectorImage->Allocate();
+  }
+
   assert(vectorImage->GetLargestPossibleRegion() == image->GetLargestPossibleRegion());
 
   if(channel > vectorImage->GetNumberOfComponentsPerPixel() - 1)
@@ -1492,13 +1571,79 @@ void SetChannel(TVectorImage* const vectorImage, const unsigned int channel, con
   itk::ImageRegionIterator<TVectorImage> outputIterator(vectorImage, vectorImage->GetLargestPossibleRegion());
 
   while(!inputIterator.IsAtEnd())
-    {
+  {
     typename TVectorImage::PixelType pixel = outputIterator.Get();
     pixel[channel] = inputIterator.Get();
     outputIterator.Set(pixel);
     ++inputIterator;
     ++outputIterator;
+  }
+}
+
+template<typename TInputImage, typename TOutputImage>
+void ConvertTo3Channel(const TInputImage* const image, TOutputImage* const output)
+{
+  output->SetRegions(image->GetLargestPossibleRegion());
+  output->Allocate();
+
+  for(unsigned int channel = 0; channel < 3; ++channel)
+  {
+    SetChannel(output, channel, image);
+  }
+}
+
+template<typename TInputPixel, typename TOutputPixel, unsigned int NComponents>
+void ConvertTo3Channel(const itk::Image<itk::CovariantVector<TInputPixel, NComponents> >* const image,
+                       itk::Image<itk::CovariantVector<TOutputPixel, 3> >* const output)
+{
+  typedef itk::Image<itk::CovariantVector<TInputPixel, NComponents> > InputImageType;
+  typedef itk::Image<itk::CovariantVector<TOutputPixel, 3> > OutputImageType;
+
+  if(image->GetNumberOfComponentsPerPixel() == 3)
+  {
+    DeepCopy(image,output);
+    return;
+  }
+  else if(image->GetNumberOfComponentsPerPixel() > 3)
+  {
+    output->SetRegions(image->GetLargestPossibleRegion());
+    output->Allocate();
+    for(unsigned int channel = 0; channel < 3; ++channel)
+    {
+      typedef itk::Image<typename OutputImageType::PixelType::ComponentType, 2> OutputChannelType;
+      typename OutputChannelType::Pointer outputComponent =
+          OutputChannelType::New();
+      outputComponent->SetRegions(image->GetLargestPossibleRegion());
+      outputComponent->Allocate();
+      ExtractChannel(image, channel, outputComponent.GetPointer());
+
+      SetChannel(output, channel, outputComponent.GetPointer());
     }
+  }
+  else if(image->GetNumberOfComponentsPerPixel() == 1)
+  {
+    output->SetRegions(image->GetLargestPossibleRegion());
+    output->Allocate();
+
+    typedef itk::Image<typename OutputImageType::PixelType::ComponentType, 2> OutputChannelType;
+    typename OutputChannelType::Pointer outputComponent =
+        OutputChannelType::New();
+    outputComponent->SetRegions(image->GetLargestPossibleRegion());
+    outputComponent->Allocate();
+    ExtractChannel(image, 0, outputComponent.GetPointer());
+
+    for(unsigned int channel = 0; channel < 3; ++channel)
+    {
+      SetChannel(output, channel, outputComponent.GetPointer());
+    }
+  }
+  else
+  {
+    std::stringstream ss;
+    ss << "ConvertTo3Channel(): Not sure what to do with an image with "
+       << image->GetNumberOfComponentsPerPixel() << " channels!";
+    throw std::runtime_error(ss.str());
+  }
 }
 
 template<typename TPixel>
@@ -1518,14 +1663,14 @@ void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image,
     output->SetNumberOfComponentsPerPixel(3);
     output->Allocate();
     for(unsigned int channel = 0; channel < 3; ++channel)
-      {
+    {
       typename itk::Image<TPixel, 2>::Pointer outputComponent = itk::Image<TPixel, 2>::New();
       outputComponent->SetRegions(image->GetLargestPossibleRegion());
       outputComponent->Allocate();
       ExtractChannel(image, channel, outputComponent.GetPointer());
 
       SetChannel(output, channel, outputComponent.GetPointer());
-      }
+    }
   }
   else if(image->GetNumberOfComponentsPerPixel() == 1)
   {
@@ -1533,26 +1678,15 @@ void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image,
     output->SetNumberOfComponentsPerPixel(3);
     output->Allocate();
 
-    typedef itk::Image<TPixel, 2> ScalarImageType;
-    typename ScalarImageType::Pointer outputComponent = ScalarImageType::New();
+    typename itk::Image<TPixel, 2>::Pointer outputComponent = itk::Image<TPixel, 2>::New();
     outputComponent->SetRegions(image->GetLargestPossibleRegion());
     outputComponent->Allocate();
     ExtractChannel(image, 0, outputComponent.GetPointer());
 
-    itk::ImageRegionConstIterator<ScalarImageType> inputIterator(outputComponent, outputComponent->GetLargestPossibleRegion());
-    itk::ImageRegionIterator<ImageType> outputIterator(output, output->GetLargestPossibleRegion());
-
-    while(!inputIterator.IsAtEnd())
-      {
-      // Copy the first (only) channel of the input to the output
-      typename ImageType::PixelType pixel = outputIterator.Get();
-      pixel[0] = inputIterator.Get();
-      pixel[1] = inputIterator.Get();
-      pixel[2] = inputIterator.Get();
-      outputIterator.Set(pixel);
-      ++inputIterator;
-      ++outputIterator;
-      }
+    for(unsigned int channel = 0; channel < 3; ++channel)
+    {
+      SetChannel(output, channel, outputComponent.GetPointer());
+    }
   }
   else
   {
@@ -1606,7 +1740,7 @@ void ClampAllChannelsTo255(TImage* const image)
 template<typename TImage>
 void ScaleAllChannelsTo255(TImage* const image)
 {
-  typedef itk::Image<typename TImage::InternalPixelType, 2> ScalarImageType;
+  typedef itk::Image<typename TImage::PixelType::ComponentType, 2> ScalarImageType;
   for(unsigned int channel = 0; channel < image->GetNumberOfComponentsPerPixel(); ++channel)
   {
     typename ScalarImageType::Pointer outputComponent = ScalarImageType::New();
@@ -1689,13 +1823,10 @@ void WriteImage(const TImage* const image, const std::string& filename)
   }
 }
 
-
-template<typename TImage>
-void WriteRGBImage(const TImage* const input, const std::string& filename)
+template <typename TImage>
+void WriteRGBImage(const TImage* const input, const std::string& filename,
+                   typename std::enable_if<Helpers::HasBracketOperator<typename TImage::PixelType>::value>::type* = 0)
 {
-  static_assert(Helpers::HasBracketOperator<typename TImage::PixelType>::value,
-                "WriteRGBImage requires the pixels to have an operator[]!");
-
   typedef itk::Image<itk::CovariantVector<unsigned char, 3>, 2> RGBImageType;
 
   RGBImageType::Pointer output = RGBImageType::New();
@@ -1711,6 +1842,37 @@ void WriteRGBImage(const TImage* const input, const std::string& filename)
     for(unsigned int i = 0; i < 3; ++i)
       {
       pixel[i] = inputIterator.Get()[i];
+      }
+    outputIterator.Set(pixel);
+    ++inputIterator;
+    ++outputIterator;
+    }
+
+  typename itk::ImageFileWriter<RGBImageType>::Pointer writer = itk::ImageFileWriter<RGBImageType>::New();
+  writer->SetFileName(filename);
+  writer->SetInput(output);
+  writer->Update();
+}
+
+template <typename TImage>
+void WriteRGBImage(const TImage* const input, const std::string& filename,
+                   typename std::enable_if<!Helpers::HasBracketOperator<typename TImage::PixelType>::value>::type* = 0)
+{
+  typedef itk::Image<itk::CovariantVector<unsigned char, 3>, 2> RGBImageType;
+
+  RGBImageType::Pointer output = RGBImageType::New();
+  output->SetRegions(input->GetLargestPossibleRegion());
+  output->Allocate();
+
+  itk::ImageRegionConstIterator<TImage> inputIterator(input, input->GetLargestPossibleRegion());
+  itk::ImageRegionIterator<RGBImageType> outputIterator(output, output->GetLargestPossibleRegion());
+
+  while(!inputIterator.IsAtEnd())
+    {
+    itk::CovariantVector<unsigned char, 3> pixel;
+    for(unsigned int i = 0; i < 3; ++i)
+      {
+      pixel[i] = inputIterator.Get(); // This is the only line that is different from the version that requires pixels to have operator[]
       }
     outputIterator.Set(pixel);
     ++inputIterator;
@@ -1932,13 +2094,13 @@ float StandardDeviation(const TImage* const image)
   return sqrt(Variance(image));
 }
 
-template<typename TImage>
-std::vector<typename TImage::InternalPixelType> ComputeMinOfAllChannels(const TImage* const image)
+template<typename TImage, typename TVector>
+void ComputeMinOfAllChannels(const TImage* const image, TVector& mins)
 {
-  std::vector<typename TImage::InternalPixelType> mins(image->GetNumberOfComponentsPerPixel(), -1);
+  assert(Helpers::length(mins) == image->GetNumberOfComponentsPerPixel());
 
   for(unsigned int i = 0; i < image->GetNumberOfComponentsPerPixel(); ++i)
-    {
+  {
     typedef itk::VectorIndexSelectionCastImageFilter<TImage, FloatScalarImageType> IndexSelectionType;
     typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
     indexSelectionFilter->SetIndex(i);
@@ -1951,18 +2113,16 @@ std::vector<typename TImage::InternalPixelType> ComputeMinOfAllChannels(const TI
     imageCalculatorFilter->Compute();
 
     mins[i] = imageCalculatorFilter->GetMinimum();
-    }
-
-  return mins;
+  }
 }
 
-template<typename TImage>
-std::vector<typename TImage::InternalPixelType> ComputeMaxOfAllChannels(const TImage* const image)
+template<typename TImage, typename TVector>
+void ComputeMaxOfAllChannels(const TImage* const image, TVector& maxs)
 {
-  std::vector<typename TImage::InternalPixelType> maxs(image->GetNumberOfComponentsPerPixel(), -1);
+  assert(Helpers::length(maxs) == image->GetNumberOfComponentsPerPixel());
 
   for(unsigned int i = 0; i < image->GetNumberOfComponentsPerPixel(); ++i)
-    {
+  {
     typedef itk::VectorIndexSelectionCastImageFilter<TImage, FloatScalarImageType> IndexSelectionType;
     typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
     indexSelectionFilter->SetIndex(i);
@@ -1975,11 +2135,8 @@ std::vector<typename TImage::InternalPixelType> ComputeMaxOfAllChannels(const TI
     imageCalculatorFilter->Compute();
 
     maxs[i] = imageCalculatorFilter->GetMaximum();
-    }
-
-  return maxs;
+  }
 }
-
 
 template <class TImage>
 void CentralDifferenceDerivative(const TImage* const image, const unsigned int direction, TImage* const output)
@@ -2026,16 +2183,21 @@ void WriteVectorImageRegionAsRGB(const itk::VectorImage<TPixel,2>* const image,
 }
 
 template <typename TImage>
-void VectorImageToRGBImageInRegion(const TImage* const image, RGBImageType* const rgbImage, const itk::ImageRegion<2>& region)
+void VectorImageToRGBImageInRegion(const TImage* const image, RGBImageType* const rgbImage,
+                                   const itk::ImageRegion<2>& region)
 {
   // Only the first 3 components are used (assumed to be RGB)
-  rgbImage->SetRegions(region);
-  rgbImage->Allocate();
+
+  if(rgbImage->GetLargestPossibleRegion() != image->GetLargestPossibleRegion())
+  {
+    rgbImage->SetRegions(image->GetLargestPossibleRegion());
+    rgbImage->Allocate();
+  }
 
   itk::ImageRegionConstIteratorWithIndex<TImage> inputIterator(image, region);
 
   while(!inputIterator.IsAtEnd())
-    {
+  {
     typename TImage::PixelType inputPixel = inputIterator.Get();
     RGBImageType::PixelType outputPixel;
     outputPixel.SetRed(inputPixel[0]);
@@ -2044,7 +2206,7 @@ void VectorImageToRGBImageInRegion(const TImage* const image, RGBImageType* cons
 
     rgbImage->SetPixel(inputIterator.GetIndex(), outputPixel);
     ++inputIterator;
-    }
+  }
 }
 
 template <typename TImage>
@@ -2428,9 +2590,9 @@ void ApplyMultichannelImageAdaptor(TInputImage* const inputImage, TOutputImage* 
   DeepCopy(reassembler->GetOutput(), outputImage);
 }
 
-template<typename TImage>
-void BlurAllChannels(const TImage* const image, TImage* const output,
-                     const float sigma)
+template<typename TInputImage, typename TOutputImage>
+void BlurAllChannelsInRegion(const TInputImage* const image, TOutputImage* const output,
+                             const float sigma, const itk::ImageRegion<2>& region)
 {
   if(sigma <= 0)
   {
@@ -2439,14 +2601,22 @@ void BlurAllChannels(const TImage* const image, TImage* const output,
     throw std::runtime_error(ss.str());
   }
   typedef itk::SmoothingRecursiveGaussianImageFilter<
-    TImage, TImage >  BlurFilterType;
+    TInputImage, TOutputImage >  BlurFilterType;
 
   typename BlurFilterType::Pointer blurFilter = BlurFilterType::New();
   blurFilter->SetInput(image);
   blurFilter->SetSigma(sigma);
+  blurFilter->GetOutput()->SetRequestedRegion(region);
   blurFilter->Update();
 
   ITKHelpers::DeepCopy(blurFilter->GetOutput(), output);
+}
+
+template<typename TInputImage, typename TOutputImage>
+void BlurAllChannels(const TInputImage* const image, TOutputImage* const output,
+                     const float sigma)
+{
+  BlurAllChannelsInRegion(image, output, sigma, image->GetLargestPossibleRegion());
 }
 
 template <class TImage>
@@ -3006,6 +3176,46 @@ void CreateLuminanceImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* con
   luminanceFilter->Update();
 
   DeepCopy(luminanceFilter->GetOutput(), luminanceImage);
+}
+
+template<typename TScalarImage, typename TGradientImage>
+void ForwardDifferenceDerivatives(const TScalarImage* const scalarImage, TGradientImage* const gradientImage)
+{
+  // Setup operator
+  typedef itk::ForwardDifferenceOperator<float, 2> OperatorType;
+  itk::Size<2> radius;
+  radius.Fill(1); // a radius of 1x1 creates a 3x3 operator
+
+  // Compute both derivative images
+  // X Derivative
+  OperatorType operatorX;
+  operatorX.SetDirection(0); // Create the operator for the X axis derivative
+  operatorX.CreateToRadius(radius);
+
+  typedef itk::NeighborhoodOperatorImageFilter<TScalarImage, TScalarImage> NeighborhoodOperatorImageFilterType;
+  typename NeighborhoodOperatorImageFilterType::Pointer xDerivativeFilter = NeighborhoodOperatorImageFilterType::New();
+  xDerivativeFilter->SetOperator(operatorX);
+  xDerivativeFilter->SetInput(scalarImage);
+  xDerivativeFilter->Update();
+
+  // Y Derivative
+  OperatorType operatorY;
+  operatorY.SetDirection(1); // Create the operator for the Y axis derivative
+  operatorY.CreateToRadius(radius);
+
+  typename NeighborhoodOperatorImageFilterType::Pointer yDerivativeFilter = NeighborhoodOperatorImageFilterType::New();
+  yDerivativeFilter->SetOperator(operatorY);
+  yDerivativeFilter->SetInput(scalarImage);
+  yDerivativeFilter->Update();
+
+  // Combine the derivative images into a gradient image
+  typedef itk::ComposeImageFilter<TScalarImage, TGradientImage> ComposeImageFilterType;
+  typename ComposeImageFilterType::Pointer composeImageFilterType = ComposeImageFilterType::New();
+  composeImageFilterType->SetInput(0, xDerivativeFilter->GetOutput());
+  composeImageFilterType->SetInput(1, yDerivativeFilter->GetOutput());
+  composeImageFilterType->Update();
+
+  DeepCopy(composeImageFilterType->GetOutput(), gradientImage);
 }
 
 }// end namespace ITKHelpers
