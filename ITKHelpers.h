@@ -450,6 +450,9 @@ void SetChannel(TVectorImage* const vectorImage, const unsigned int channel, con
 template<typename TImage>
 void ScaleAllChannelsTo255(TImage* const image);
 
+template<typename TImage>
+void ClampAllChannelsTo255(TImage* const image);
+
 template<typename TInputImage,typename TOutputImage>
 void CastImage(const TInputImage* const inputImage, TOutputImage* const outputImage);
 

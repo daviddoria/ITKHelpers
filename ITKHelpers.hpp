@@ -1577,6 +1577,33 @@ void ScaleTo255(TImage* const image)
 }
 
 template<typename TImage>
+void ClampAllChannelsTo255(TImage* const image)
+{
+  itk::ImageRegionIterator<TImage> imageIterator(image, image->GetLargestPossibleRegion());
+
+  while(!imageIterator.IsAtEnd())
+  {
+    for(unsigned int channel = 0; channel < image->GetNumberOfComponentsPerPixel(); ++channel)
+    {
+      typename TImage::PixelType pixel = imageIterator.Get();
+      if(Helpers::index(pixel, channel) < 0)
+      {
+        Helpers::index(pixel, channel) = 0;
+        imageIterator.Set(pixel);
+      }
+
+      if(Helpers::index(pixel, channel) > 255)
+      {
+        Helpers::index(pixel, channel) = 255;
+        imageIterator.Set(pixel);
+      }
+    }
+
+    ++imageIterator;
+  }
+}
+
+template<typename TImage>
 void ScaleAllChannelsTo255(TImage* const image)
 {
   typedef itk::Image<typename TImage::InternalPixelType, 2> ScalarImageType;
