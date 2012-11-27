@@ -899,7 +899,7 @@ namespace detail
                       TOutputImage* const output);
 }
 
-}// end namespace
+}// end namespace ITKHelpers
 
 #include "ITKHelpers.hpp"
 

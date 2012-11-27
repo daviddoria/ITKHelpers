@@ -16,6 +16,9 @@
  *
  *=========================================================================*/
 
+#ifndef ITKHelpers_HPP
+#define ITKHelpers_HPP
+
 #include "ITKHelpers.h" // make syntax parser happy
 #include "ITKTypeTraits.h"
 #include "ITKContainerInterface.h"
@@ -2981,3 +2984,5 @@ void CreateLuminanceImage(const itk::Image<itk::RGBPixel<unsigned char>, 2>* con
 }
 
 }// end namespace ITKHelpers
+
+#endif // ITKHelpers_HPP
