@@ -3223,6 +3223,26 @@ void ForwardDifferenceDerivatives(const TScalarImage* const scalarImage, TGradie
   DeepCopy(composeImageFilterType->GetOutput(), gradientImage);
 }
 
+template<typename TImage>
+bool AllPixelsEqualTo(const TImage* const image, const itk::ImageRegion<2>& region,
+                      const typename TImage::PixelType& value)
+{
+  itk::ImageRegionConstIteratorWithIndex<TImage> imageIterator(image, region);
+
+  while(!imageIterator.IsAtEnd())
+  {
+    if(imageIterator.Get() != value)
+    {
+      return false;
+    }
+
+    ++imageIterator;
+  }
+
+  // If none of the pixels were not equal to 'value', then all of them are equal to 'value'
+  return true;
+}
+
 }// end namespace ITKHelpers
 
 #endif // ITKHelpers_HPP

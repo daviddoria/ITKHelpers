@@ -81,6 +81,11 @@ template<typename TImage>
 void MedianFilter(const TImage* const image, const unsigned int kernelRadius,
                   TImage* const output);
 
+/** Determine if all pixels in region are equal to a specified value. */
+template<typename TImage>
+bool AllPixelsEqualTo(const TImage* const image, const itk::ImageRegion<2>& region,
+                      const typename TImage::PixelType& value);
+
 /** Apply an 'operationFunctor' to all pixels that pass the 'testFunctor'. */
 template <typename TImage, typename TTestFunctor, typename TOperationFunctor>
 void ApplyOperationToTestedPixels(TImage* const image,
