@@ -27,13 +27,16 @@
 #include "itkVariableLengthVector.h"
 #include "itkRGBPixel.h"
 
+////////////// VariableLengthVector ///////////////
+
 /** For generic itk::VariableLengthVector, use the same type as the LargerType.
   * This is a partial specialization. */
 template <typename T>
 struct TypeTraits<itk::VariableLengthVector<T> >
 {
-  typedef itk::VariableLengthVector<T> LargerType;
   typedef typename TypeTraits<T>::LargerType LargerComponentType;
+  typedef itk::VariableLengthVector<LargerComponentType> LargerType;
+
   typedef T ComponentType;
 };
 
@@ -42,28 +45,50 @@ struct TypeTraits<itk::VariableLengthVector<T> >
 template <>
 struct TypeTraits<itk::VariableLengthVector<unsigned char> >
 {
-  typedef itk::VariableLengthVector<float> LargerType;
+  typedef itk::VariableLengthVector<unsigned char> SelfType;
+
   typedef float LargerComponentType;
-  typedef unsigned char ComponentType;
+  typedef itk::VariableLengthVector<LargerComponentType> LargerType;
+
+  typedef typename SelfType::ValueType ComponentType;
 };
 
-/** For itk::RGBPixel<T>.
+/** For itk::VariableLengthVector<int>, use itk::VariableLengthVector<float> as the LargerType.
   * This is a partial specialization. */
-template <typename T>
-struct TypeTraits<itk::RGBPixel<T> >
+template <>
+struct TypeTraits<itk::VariableLengthVector<int> >
 {
-  typedef itk::RGBPixel<T> LargerType;
-  typedef T LargerComponentType;
-  typedef T ComponentType;
+  typedef itk::VariableLengthVector<int> SelfType;
+
+  typedef float LargerComponentType;
+  typedef itk::VariableLengthVector<LargerComponentType> LargerType;
+
+  typedef typename SelfType::ValueType ComponentType;
 };
+
+/** For itk::VariableLengthVector<unsigned int>, use itk::VariableLengthVector<float> as the LargerType.
+  * This is a partial specialization. */
+template <>
+struct TypeTraits<itk::VariableLengthVector<unsigned int> >
+{
+  typedef itk::VariableLengthVector<unsigned int> SelfType;
+
+  typedef float LargerComponentType;
+  typedef itk::VariableLengthVector<LargerComponentType> LargerType;
+
+  typedef typename SelfType::ValueType ComponentType;
+};
+
+////////////// CovariantVector ///////////////
 
 /** For itk::CovariantVector<T, N>.
   * This is a partial specialization. */
 template <typename T, unsigned int N>
 struct TypeTraits<itk::CovariantVector<T, N> >
 {
-  typedef itk::CovariantVector<T, N> LargerType;
   typedef T LargerComponentType;
+  typedef itk::CovariantVector<LargerComponentType, N> LargerType;
+
   typedef T ComponentType;
 };
 
@@ -72,9 +97,12 @@ struct TypeTraits<itk::CovariantVector<T, N> >
 template <unsigned int N>
 struct TypeTraits<itk::CovariantVector<unsigned char, N> >
 {
-  typedef itk::CovariantVector<float, N> LargerType;
+  typedef itk::CovariantVector<unsigned char, N> SelfType;
+
   typedef float LargerComponentType;
-  typedef unsigned char ComponentType;
+  typedef itk::CovariantVector<LargerComponentType, N> LargerType;
+
+  typedef typename SelfType::ValueType ComponentType;
 };
 
 /** For itk::CovariantVector<int, N>, use itk::CovariantVector<float, N> as the LargerType.
@@ -82,9 +110,79 @@ struct TypeTraits<itk::CovariantVector<unsigned char, N> >
 template <unsigned int N>
 struct TypeTraits<itk::CovariantVector<int, N> >
 {
-  typedef itk::CovariantVector<float, N> LargerType;
+  typedef itk::CovariantVector<int, N> SelfType;
+
   typedef float LargerComponentType;
-  typedef unsigned char ComponentType;
+  typedef itk::CovariantVector<LargerComponentType, N> LargerType;
+
+  typedef typename SelfType::ValueType ComponentType;
+};
+
+/** For itk::CovariantVector<unsigned int, N>, use itk::CovariantVector<float, N> as the LargerType.
+  * This is a partial specialization. */
+template <unsigned int N>
+struct TypeTraits<itk::CovariantVector<unsigned int, N> >
+{
+  typedef itk::CovariantVector<unsigned int, N> SelfType;
+
+  typedef float LargerComponentType;
+  typedef itk::CovariantVector<LargerComponentType, N> LargerType;
+
+  typedef typename SelfType::ValueType ComponentType;
+};
+
+/////////////////////// RGBPixel ////////////////////
+/** For itk::RGBPixel<T>.
+  * This is a partial specialization. */
+template <typename T>
+struct TypeTraits<itk::RGBPixel<T> >
+{
+  typedef itk::RGBPixel<T> SelfType;
+
+  typedef T LargerComponentType;
+
+  typedef itk::RGBPixel<LargerComponentType> LargerType;
+
+  typedef typename SelfType::ComponentType ComponentType;
+};
+
+/** For itk::RGBPixel<unsigned char>.
+  * This is a partial specialization. */
+template <>
+struct TypeTraits<itk::RGBPixel<unsigned char> >
+{
+  typedef itk::RGBPixel<unsigned char> SelfType;
+
+  typedef float LargerComponentType;
+  typedef itk::RGBPixel<LargerComponentType> LargerType;
+
+  typedef typename SelfType::ComponentType ComponentType;
+};
+
+/** For itk::RGBPixel<unsigned int>.
+  * This is a partial specialization. */
+template <>
+struct TypeTraits<itk::RGBPixel<unsigned int> >
+{
+  typedef itk::RGBPixel<unsigned int> SelfType;
+
+  typedef float LargerComponentType;
+  typedef itk::RGBPixel<LargerComponentType> LargerType;
+
+  typedef typename SelfType::ComponentType ComponentType;
+};
+
+/** For itk::RGBPixel<unsigned int>.
+  * This is a partial specialization. */
+template <>
+struct TypeTraits<itk::RGBPixel<int> >
+{
+  typedef itk::RGBPixel<int> SelfType;
+
+  typedef float LargerComponentType;
+  typedef itk::RGBPixel<LargerComponentType> LargerType;
+
+  typedef typename SelfType::ComponentType ComponentType;
 };
 
 #endif

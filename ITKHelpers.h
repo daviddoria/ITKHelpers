@@ -20,13 +20,16 @@
 #define ITKHelpers_H
 
 #include "ITKHelpersTypes.h"
+#include "ITKContainerInterface.h"
 
 // Submodules
 class Mask;
+#include <Helpers/Helpers.h>
 #include <Helpers/TypeTraits.h>
 
 // STL
 #include <string>
+#include <type_traits>
 
 // ITK
 #include "itkImage.h"
@@ -36,6 +39,26 @@ class Mask;
 #include "itkSize.h"
 #include "itkVectorImage.h"
 
+// We implement some overload/specializations from Helpers that desl with ITK types
+namespace Helpers
+{
+  /** A specialization of FuzzyCompare (from Helpers) for CovariantVector */
+  template<typename TA, typename TB, unsigned int N>
+  typename std::enable_if<std::numeric_limits<TA>::is_specialized &&
+                          std::numeric_limits<TB>::is_specialized, bool>::type
+  FuzzyCompare(const itk::CovariantVector<TA, N>& a,
+               const itk::CovariantVector<TB, N>& b,
+               const TA& epsilon = std::numeric_limits<TA>::epsilon());
+
+  /** A specialization of FuzzyCompare (from Helpers) for Vector */
+  template<typename TA, typename TB, unsigned int N>
+  typename std::enable_if<std::numeric_limits<TA>::is_specialized &&
+                          std::numeric_limits<TB>::is_specialized, bool>::type
+  FuzzyCompare(const itk::Vector<TA, N>& a,
+               const itk::Vector<TB, N>& b,
+               const TA& epsilon = std::numeric_limits<TA>::epsilon());
+}
+
 namespace ITKHelpers
 {
   using namespace ITKHelpersTypes;
@@ -43,6 +66,17 @@ namespace ITKHelpers
 ///////// Function templates (defined in ITKHelpers.hpp) /////////
 ////////////////////////////////////////////////////////////////////////
 
+/** Convert any type with operator[] and two values to any other type with operator[]
+  * an two values (i.e. itk::Index<2> and itk::Offset<2> ).
+  * We place the TInput as the second template paramter because it can be
+  * automatically deduced from the 'object' that is passed. An example call is:
+  * itk::Index<2> index = {{0,0}};
+  * auto offset = ConvertFrom<itk::Offset<2> > (index);
+  */
+template<typename TReturn, typename TInput>
+TReturn Convert2DValue(const TInput& object);
+
+/** Median filter an image. */
 template<typename TImage>
 void MedianFilter(const TImage* const image, const unsigned int kernelRadius,
                   TImage* const output);
@@ -93,9 +127,14 @@ bool HasNeighborWithValueOtherThan(const itk::Index<2>& pixel, const TImage* con
                                    const typename TImage::PixelType& value);
 
 /** Blur all channels of an image. */
-template<typename TImage>
-void BlurAllChannels(const TImage* const image, TImage* const output,
+template<typename TInputImage, typename TOutputImage>
+void BlurAllChannels(const TInputImage* const image, TOutputImage* const output,
                      const float sigma);
+
+/** Blur all channels of an image. */
+template<typename TInputImage, typename TOutputImage>
+void BlurAllChannelsInRegion(const TInputImage* const image, TOutputImage* const output,
+                             const float sigma, const itk::ImageRegion<2>& region);
 
 /** Blur all channels of an image, preserving edges. */
 template<typename TInputImage, typename TPixelType>
@@ -302,7 +341,10 @@ template<typename TInputImage, typename TOutputImage>
 void ExtractChannels(const TInputImage* const image, const std::vector<unsigned int> channels,
                     TOutputImage* const output);
 
-/** Extract a region of an image. */
+/** Extract a region of an image. The 'output' image has Index={0,0}, not the index of 'region'.
+  * That is, it creates a new "standalone" image that does not reference the old location/region
+  * in any way.
+  */
 template<typename TImage>
 void ExtractRegion(const TImage* const image, const itk::ImageRegion<2>& region,
                    TImage* const output);
@@ -312,22 +354,38 @@ template<typename TPixel>
 void ScaleChannel(const itk::VectorImage<TPixel, 2>* const image, const unsigned int channel,
                   const TPixel channelMax, typename itk::VectorImage<TPixel, 2>* const output);
 
-/** Force an image to be 3 channels. If it is already 3 channels, copy it through. If it is less than 3 channels. */
+/** Force an image to be 3 channels. If it is already 3 channels, copy it through.
+  * If it has more than 3 channels, extract the first 3.
+  * If it has one channel, copy that channel to the first 3 channels of the output.
+  * If it has 2 or >3 channels, throw an error.
+  */
+template<typename TInputImage, typename TOutputImage>
+void ConvertTo3Channel(const TInputImage* const image, TOutputImage* const output);
+
+template<typename TInputPixel, typename TOutputPixel, unsigned int NComponents>
+void ConvertTo3Channel(const itk::Image<itk::CovariantVector<TInputPixel, NComponents> >* const image,
+                       itk::Image<itk::CovariantVector<TOutputPixel, 3> >* const output);
+
+/** Specialization for VectorImage. */
 template<typename TPixel>
 void ConvertTo3Channel(const typename itk::VectorImage<TPixel, 2>* const image,
-                      typename itk::VectorImage<TPixel, 2>* const output);
+                       typename itk::VectorImage<TPixel, 2>* const output);
 
 /** Replace a channel of an image. */
-template<typename TPixel>
-void ReplaceChannel(const typename itk::VectorImage<TPixel, 2>* const image, const unsigned int channel,
-                    const typename itk::Image<TPixel, 2>* const replacement,
-                    typename itk::VectorImage<TPixel, 2>* const output);
+template<typename TImage, typename TReplacementImage>
+void ReplaceChannel(TImage* const image, const unsigned int channel,
+                    const TReplacementImage* const replacement);
+
+/** Replace channels of a 'image' with those in 'replacement'. Of course the channels listed in 'channels'
+  * Must be available in 'replacementImage'. */
+template<typename TImage, typename TReplacementImage, typename TChannelVector>
+void ReplaceChannels(TImage* const image, const TChannelVector& channels,
+                     const TReplacementImage* const replacementImage);
 
 /** A specialization to allow this function to pass through scalar images. */
 template<typename TPixel>
-void ReplaceChannel(const itk::Image<TPixel, 2>* const image, const unsigned int channel,
-                    const itk::Image<TPixel, 2>* const replacement,
-                    itk::Image<TPixel, 2>* const output);
+void ReplaceChannel(itk::Image<TPixel, 2>* const image, const unsigned int channel,
+                    const itk::Image<TPixel, 2>* const replacement);
 
 /** Read an image from a file. */
 template<typename TImage>
@@ -450,6 +508,9 @@ void SetChannel(TVectorImage* const vectorImage, const unsigned int channel, con
 template<typename TImage>
 void ScaleAllChannelsTo255(TImage* const image);
 
+template<typename TImage>
+void ClampAllChannelsTo255(TImage* const image);
+
 template<typename TInputImage,typename TOutputImage>
 void CastImage(const TInputImage* const inputImage, TOutputImage* const outputImage);
 
@@ -487,15 +548,14 @@ float StandardDeviation(const TImage* const image);
 template<typename TImage>
 float Variance(const TImage* const image);
 
-/** Compute the minimum value of each channel of the image and return them in a vector whose length is
- *  the same as the number of components of the image. */
-template<typename TImage>
-std::vector<typename TImage::InternalPixelType> ComputeMinOfAllChannels(const TImage* const image);
+/** Compute the minimum value of each channel of the image. Store the results in the provided (presized to the number of channels) vector. */
+template<typename TImage, typename TVector>
+void ComputeMinOfAllChannels(const TImage* const image, TVector& mins);
 
 /** Compute the maximum value of each channel of the image and return them in a vector whose length is
  *  the same as the number of components of the image. */
-template<typename TImage>
-std::vector<typename TImage::InternalPixelType> ComputeMaxOfAllChannels(const TImage* const image);
+template<typename TImage, typename TVector>
+void ComputeMaxOfAllChannels(const TImage* const image, TVector& maxs);
 
 /** Create a string representation of a vector. */
 template <typename TVector>
@@ -606,9 +666,15 @@ std::vector<itk::Index<2> > BreadthFirstOrderingNonZeroPixels(const TImage* cons
 template <class TImage>
 bool IsClosedLoop(const TImage* const image, const itk::Index<2>& start);
 
-/**  Write the first 3 channels of an image to a file as unsigned chars. */
-template<typename TImage>
-void WriteRGBImage(const TImage* const input, const std::string& filename);
+/**  Write the scalar image to a file as an RGB image (unsigned chars) with 3 identical channels. */
+template <typename TImage>
+void WriteRGBImage(const TImage* const input, const std::string& filename,
+                    typename std::enable_if<!Helpers::HasBracketOperator<typename TImage::PixelType>::value>::type* = 0);
+
+/**  Write the first 3 channels of the image to a file as an RGB image (unsigned chars). */
+template <typename TImage>
+void WriteRGBImage(const TImage* const input, const std::string& filename,
+                   typename std::enable_if<Helpers::HasBracketOperator<typename TImage::PixelType>::value>::type* = 0);
 
 /** Write an image to a file named 'prefix'_'iteration'.extension*/
 template <typename TImage>
@@ -677,7 +743,8 @@ void StackImages(const TImage1* const image1,
                  const TImage2* const image2,
                  TOutputImage* const output);
 
-/** Convert the first 3 channels of a float vector image to an unsigned char/color/rgb image (only in 'region'). */
+/** Convert the first 3 channels of a float vector image to an unsigned char/color/rgb image (only in 'region').
+  * The output image is made to be the same size as the input image.*/
 template <typename TImage>
 void VectorImageToRGBImageInRegion(const TImage* const image, RGBImageType* const rgbImage, const itk::ImageRegion<2>& region);
 
@@ -722,6 +789,10 @@ itk::ImageRegion<2> ComputeBoundingBox(const TImage* const image,
 /** Multiply objects component wise. */
 template<typename TVector>
 TVector ComponentWiseMultiple(const TVector& a, const TVector& b);
+
+/** Forward difference derivatives. */
+template<typename TScalarImage, typename TGradientImage>
+void ForwardDifferenceDerivatives(const TScalarImage* const scalarImage, TGradientImage* const gradientImage);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////// Non-template function declarations (defined in Helpers.cpp) ///////////////////
@@ -883,6 +954,12 @@ itk::Offset<2> IndexToOffset(const itk::Index<2>& index);
 
 /** Crop region with a region as if it were in a different position. */
 itk::ImageRegion<2> CropRegionAtPosition(itk::ImageRegion<2> regionToCrop, const itk::ImageRegion<2>& fullRegion, itk::ImageRegion<2> cropPosition);
+
+/** Write a bool image as a black/white image. */
+void WriteBoolImage(const itk::Image<bool, 2>* const image, const std::string& fileName);
+
+/** Write an image of indices as a vector image. */
+void WriteIndexImage(const itk::Image<itk::Index<2>, 2>* const image, const std::string& fileName);
 
 /** Divide a 'region' into a number of subregions. For example, if 'region' is 10x10 and 'divisionsPerDimension' is 2, the function
   * will produce 4 5x5 regions. NOTE: if the region is not exactly divisible in each dimension by 'divisionsPerDimension', some pixels

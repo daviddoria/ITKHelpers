@@ -25,24 +25,32 @@
 #include "itkImageAdaptor.h"
 #include "itkVectorImage.h"
 
-static void TestAdaptor();
-static void TestConversion_Range();
-static void TestConversion_Instantiations();
+static bool TestAdaptor();
+static bool TestConversion_Range();
+static bool TestConversion_Instantiations();
 
 int main()
 {
-//  TestAdaptor();
+  bool allPass = true;
 
-  TestConversion_Range();
+  allPass &= TestAdaptor();
 
-  TestConversion_Instantiations();
+  allPass &= TestConversion_Range();
 
-  return 0;
+  allPass &= TestConversion_Instantiations();
+
+  if(allPass)
+  {
+    return EXIT_SUCCESS;
+  }
+  else
+  {
+    return EXIT_FAILURE;
+  }
 }
 
-void TestAdaptor()
+bool TestAdaptor()
 {
-  //typedef itk::RGBPixel<unsigned char> RGBPixelType;
   typedef itk::CovariantVector<unsigned char, 3> RGBPixelType;
 
   typedef itk::Image<RGBPixelType, 2> ImageType;
@@ -63,17 +71,26 @@ void TestAdaptor()
   red[2] = 0;
   image->SetPixel(corner, red);
 
-//   typedef itk::Accessor::RGBToHSVColorSpacePixelAccessor<unsigned char, float> RGBToHSVColorSpaceAccessorType;
-//   typedef itk::ImageAdaptor<ImageType, RGBToHSVColorSpaceAccessorType> RGBToHSVImageAdaptorType;
-//   RGBToHSVImageAdaptorType::Pointer rgbToHSVAdaptor = RGBToHSVImageAdaptorType::New();
-//   rgbToHSVAdaptor->SetImage(image);
-//
-//   std::cout << rgbToHSVAdaptor->GetPixel(corner) << std::endl;
+  typedef itk::Accessor::RGBToHSVColorSpacePixelAccessor<unsigned char, float, RGBPixelType>
+      RGBToHSVColorSpaceAccessorType;
+  typedef itk::ImageAdaptor<ImageType, RGBToHSVColorSpaceAccessorType> RGBToHSVImageAdaptorType;
+  RGBToHSVImageAdaptorType::Pointer rgbToHSVAdaptor = RGBToHSVImageAdaptorType::New();
+  rgbToHSVAdaptor->SetImage(image);
 
+  auto convertedPixel = rgbToHSVAdaptor->GetPixel(corner);
+  decltype(convertedPixel) correctConversion;
+  correctConversion[0] = 0;
+  correctConversion[1] = 1;
+  correctConversion[2] = 1;
+  if(!Helpers::FuzzyCompare(convertedPixel, correctConversion))
+  {
+    return false;
+  }
 
+  return true;
 }
 
-void TestConversion_Instantiations()
+bool TestConversion_Instantiations()
 {
   std::cout << "TestConversion_Instantiations()" << std::endl;
 
@@ -138,7 +155,7 @@ void TestConversion_Instantiations()
 }
 
 
-void TestConversion_Range()
+bool TestConversion_Range()
 {
   std::cout << "TestConversion_Range()" << std::endl;
 
