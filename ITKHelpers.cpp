@@ -118,13 +118,18 @@ itk::ImageRegion<2> GetQuadrant(const itk::ImageRegion<2>& region, const unsigne
 
 unsigned int GetNumberOfComponentsPerPixelInFile(const std::string& filename)
 {
-  typedef itk::VectorImage<float, 2> TestImageType;
-  typedef  itk::ImageFileReader<TestImageType> ImageReaderType;
-  ImageReaderType::Pointer imageReader = ImageReaderType::New();
-  imageReader->SetFileName(filename);
-  imageReader->Update();
+//  typedef itk::VectorImage<float, 2> TestImageType;
+//  typedef  itk::ImageFileReader<TestImageType> ImageReaderType;
+//  ImageReaderType::Pointer imageReader = ImageReaderType::New();
+//  imageReader->SetFileName(filename);
+//  imageReader->Update();
 
-  return imageReader->GetOutput()->GetNumberOfComponentsPerPixel();
+//  return imageReader->GetOutput()->GetNumberOfComponentsPerPixel();
+
+  itk::ImageIOBase::Pointer imageIO =
+        itk::ImageIOFactory::CreateImageIO(
+            filename.c_str(), itk::ImageIOFactory::ReadMode);
+  return imageIO->GetNumberOfDimensions();
 }
 
 std::string GetIndexString(const itk::Index<2>& index)
