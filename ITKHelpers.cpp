@@ -60,10 +60,10 @@ std::vector<itk::Index<2> > GetIndicesInRegion(const itk::ImageRegion<2>& region
 
   itk::ImageRegionConstIteratorWithIndex<DummyImageType> regionIterator(image, region);
   while(!regionIterator.IsAtEnd())
-    {
+  {
     indices.push_back(regionIterator.GetIndex());
     ++regionIterator;
-    }
+  }
   return indices;
 }
 
@@ -152,16 +152,16 @@ FloatVector2Type AverageVectors(const std::vector<FloatVector2Type>& vectors)
   totalVector.Fill(0);
 
   if(vectors.size() == 0)
-    {
+  {
     std::cerr << "Cannot average 0 vectors!" << std::endl;
     return totalVector;
-    }
+  }
 
-  for(unsigned int i = 0; i < vectors.size(); ++i)
-    {
-    totalVector[0] += vectors[i][0];
-    totalVector[1] += vectors[i][1];
-    }
+  for(auto vec : vectors)
+  {
+    totalVector[0] += vec[0];
+    totalVector[1] += vec[1];
+  }
 
   FloatVector2Type averageVector;
   averageVector[0] = totalVector[0] / static_cast<float>(vectors.size());
@@ -285,11 +285,11 @@ std::vector<itk::Index<2> > Get8Neighbors(const itk::Index<2>& pixel)
   std::vector<itk::Index<2> > neighborsInRegion;
 
   std::vector<itk::Offset<2> > neighborOffsets = Get8NeighborOffsets();
-  for(unsigned int i = 0; i < neighborOffsets.size(); ++i)
-    {
-    itk::Index<2> index = pixel + neighborOffsets[i];
+  for(auto offset : neighborOffsets)
+  {
+    itk::Index<2> index = pixel + offset;
     neighborsInRegion.push_back(index);
-    }
+  }
   return neighborsInRegion;
 }
 
@@ -298,14 +298,14 @@ std::vector<itk::Index<2> > Get8NeighborsInRegion(const itk::ImageRegion<2>& reg
   std::vector<itk::Index<2> > neighborsInRegion;
 
   std::vector<itk::Offset<2> > neighborOffsets = Get8NeighborOffsets();
-  for(unsigned int i = 0; i < neighborOffsets.size(); ++i)
-    {
-    itk::Index<2> index = pixel + neighborOffsets[i];
+  for(auto offset : neighborOffsets)
+  {
+    itk::Index<2> index = pixel + offset;
     if(region.IsInside(index))
-      {
+    {
       neighborsInRegion.push_back(index);
-      }
     }
+  }
   return neighborsInRegion;
 }
 
@@ -314,19 +314,19 @@ std::vector<itk::Offset<2> > Get8NeighborOffsets()
   std::vector<itk::Offset<2> > offsets;
 
   for(int i = -1; i <= 1; ++i)
-    {
+  {
     for(int j = -1; j <= 1; ++j)
-      {
+    {
       if(i == 0 && j == 0)
-        {
+      {
         continue;
-        }
+      }
       itk::Offset<2> offset;
       offset[0] = i;
       offset[1] = j;
       offsets.push_back(offset);
-      }
     }
+  }
   return offsets;
 }
 
@@ -358,9 +358,9 @@ std::vector<itk::Offset<2> > Get8NeighborOffsets()
 std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >& offsets, const itk::Index<2>& index)
 {
   std::vector<itk::Index<2> > indices;
-  for(unsigned int i = 0; i < offsets.size(); ++i)
+  for(auto offset : offsets)
   {
-    indices.push_back(index + offsets[i]);
+    indices.push_back(index + offset);
   }
   return indices;
 }
@@ -368,19 +368,19 @@ std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >&
 std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >& offsets)
 {
   std::vector<itk::Index<2> > indices;
-  for(unsigned int i = 0; i < offsets.size(); ++i)
+  for(auto offset : offsets)
   {
-    indices.push_back(CreateIndex(offsets[i]));
+    indices.push_back(CreateIndex(offset));
   }
   return indices;
 }
 
-std::vector<itk::Offset<2> > IndicesToOffsets(const std::vector<itk::Index<2> >& indices, const itk::Index<2>& index)
+std::vector<itk::Offset<2> > IndicesToOffsets(const std::vector<itk::Index<2> >& indices, const itk::Index<2>& referenceIndex)
 {
   std::vector<itk::Offset<2> > offsets;
-  for(unsigned int i = 0; i < indices.size(); ++i)
+  for(auto index : indices)
   {
-    offsets.push_back(indices[i] - index);
+    offsets.push_back(index - referenceIndex);
   }
   return offsets;
 }
@@ -415,7 +415,7 @@ std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region)
   std::vector<itk::Index<2> > boundaryPixels;
 
   for(unsigned int i = region.GetIndex()[0]; i < region.GetIndex()[0] + region.GetSize()[0]; ++i)
-    {
+  {
     itk::Index<2> index;
     index[0] = i;
     index[1] = region.GetIndex()[1];
@@ -424,10 +424,10 @@ std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region)
     index[0] = i;
     index[1] = region.GetIndex()[1] + region.GetSize()[1] - 1;
     boundaryPixels.push_back(index);
-    }
+  }
 
   for(unsigned int j = region.GetIndex()[1]; j < region.GetIndex()[1] + region.GetSize()[1]; ++j)
-    {
+  {
     itk::Index<2> index;
     index[0] = region.GetIndex()[0];
     index[1] = j;
@@ -436,7 +436,7 @@ std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region)
     index[0] = region.GetIndex()[0] + region.GetSize()[0] - 1;
     index[1] = j;
     boundaryPixels.push_back(index);
-    }
+  }
 
   return boundaryPixels;
 }
@@ -472,10 +472,11 @@ void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::Im
   vectors3D->SetRegions(regionOfInterestImageFilter->GetOutput()->GetLargestPossibleRegion());
   vectors3D->Allocate();
 
-  itk::ImageRegionConstIterator<FloatVector2ImageType> iterator(regionOfInterestImageFilter->GetOutput(), regionOfInterestImageFilter->GetOutput()->GetLargestPossibleRegion());
+  itk::ImageRegionConstIterator<FloatVector2ImageType> iterator(regionOfInterestImageFilter->GetOutput(),
+                                                                regionOfInterestImageFilter->GetOutput()->GetLargestPossibleRegion());
 
   while(!iterator.IsAtEnd())
-    {
+  {
     FloatVector2Type vec2d = iterator.Get();
     FloatVector3Type vec3d;
     vec3d[0] = vec2d[0];
@@ -484,7 +485,7 @@ void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::Im
 
     vectors3D->SetPixel(iterator.GetIndex(), vec3d);
     ++iterator;
-    }
+  }
 
   //std::cout << "regionOfInterestImageFilter " << regionOfInterestImageFilter->GetOutput()->GetLargestPossibleRegion() << std::endl;
 
@@ -507,7 +508,7 @@ std::vector<itk::Index<2> > DilatePixelList(const std::vector<itk::Index<2> >& p
 
   typedef std::vector<itk::Index<2> > PixelVectorType;
 
-  for(PixelVectorType::const_iterator iter = pixelList.begin(); iter != pixelList.end(); ++iter)
+  for(auto iter = pixelList.begin(); iter != pixelList.end(); ++iter)
   {
     // Note, this must be 255, not just any non-zero number, for BinaryDilateImageFilter to work properly.
     image->SetPixel(*iter, 255);
@@ -557,10 +558,10 @@ void IndicesToBinaryImage(const std::vector<itk::Index<2> >& indices, UnsignedCh
   image->FillBuffer(0);
 
   // Set the pixels of indices in list to 255
-  for(unsigned int i = 0; i < indices.size(); i++)
-    {
-    image->SetPixel(indices[i], 255);
-    }
+  for(auto index : indices)
+  {
+    image->SetPixel(index, 255);
+  }
 }
 
 std::vector<itk::Index<2> > Get4NeighborIndicesInsideRegion(const itk::Index<2>& pixel,
@@ -620,7 +621,7 @@ itk::ImageRegion<2> GetInternalRegion(const itk::ImageRegion<2>& wholeRegion, co
 std::vector<itk::ImageRegion<2> > GetPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices, const unsigned int patchRadius)
 {
   std::vector<itk::ImageRegion<2> > regions(indices.size());
-  for(unsigned int i = 0; i < indices.size(); ++i)
+  for(int i = 0; i < indices.size(); ++i)
   {
     regions[i] = GetRegionInRadiusAroundPixel(indices[i], patchRadius);
   }
@@ -632,9 +633,9 @@ std::vector<itk::ImageRegion<2> > GetValidPatchesCenteredAtIndices(const std::ve
                                                                    const unsigned int patchRadius)
 {
   std::vector<itk::ImageRegion<2> > regions;
-  for(unsigned int i = 0; i < indices.size(); ++i)
+  for(auto index : indices)
   {
-    itk::ImageRegion<2> region = GetRegionInRadiusAroundPixel(indices[i], patchRadius);
+    itk::ImageRegion<2> region = GetRegionInRadiusAroundPixel(index, patchRadius);
 
     if(imageRegion.IsInside(region))
     {
@@ -781,9 +782,9 @@ bool IsNeighbor(const itk::Index<2>& index1, const itk::Index<2>& index2)
 {
   std::vector<itk::Index<2> > neighbors = Get8Neighbors(index1);
 
-  for(unsigned int i = 0; i < neighbors.size(); ++i)
+  for(auto neighbor : neighbors)
   {
-    if(neighbors[i] == index2)
+    if(neighbor == index2)
     {
       return true;
     }
@@ -798,9 +799,9 @@ std::vector<itk::ImageRegion<2> > Get8NeighborRegionsInRegion(const itk::ImageRe
 
   std::vector<itk::Index<2> > neighborPixels = Get8NeighborsInRegion(searchRegion, pixel);
 
-  for(unsigned int i = 0; i < neighborPixels.size(); ++i)
+  for(auto neighborhoodPixel : neighborPixels)
   {
-    itk::ImageRegion<2> region = GetRegionInRadiusAroundPixel(neighborPixels[i], queryRegionSize[0]/2);
+    itk::ImageRegion<2> region = GetRegionInRadiusAroundPixel(neighborhoodPixel, queryRegionSize[0]/2);
     if(searchRegion.IsInside(region))
     {
       validNeighborRegions.push_back(region);
@@ -858,9 +859,9 @@ void HighlightAndWriteRegions(const itk::Size<2>& imageSize, const std::vector<i
   image->Allocate();
   image->FillBuffer(0);
 
-  for(size_t i = 0; i < regions.size(); ++i)
+  for(auto region : regions)
   {
-    SetRegionToConstant(image.GetPointer(), regions[i], 255);
+    SetRegionToConstant(image.GetPointer(), region, 255);
   }
 
   WriteImage(image.GetPointer(), filename);
