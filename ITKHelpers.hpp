@@ -3262,6 +3262,20 @@ std::vector<itk::Index<2> > Get4NeighborsWithValue(const TImage* const image,
   }
 }
 
+template<typename TImage>
+bool Has4NeighborsWithValue(const TImage* const image,
+                            const itk::Index<2>& pixel,
+                            const typename TImage::PixelType& value)
+{
+  std::vector<itk::Index<2> > neighbors = Get4NeighborsWithValue(image, pixel, value);
+  if(neighbors.size() > 0)
+  {
+    return true;
+  }
+
+  return false;
+}
+
 }// end namespace ITKHelpers
 
 #endif // ITKHelpers_HPP

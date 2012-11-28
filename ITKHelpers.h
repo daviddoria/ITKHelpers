@@ -72,6 +72,12 @@ std::vector<itk::Index<2> > Get4NeighborsWithValue(const TImage* const image,
                                                    const itk::Index<2>& pixel,
                                                    const typename TImage::PixelType& value);
 
+/** Determine if any of the 4-neighbor indices around 'pixel' are equal to 'value'. */
+template<typename TImage>
+bool Has4NeighborsWithValue(const TImage* const image,
+                            const itk::Index<2>& pixel,
+                            const typename TImage::PixelType& value);
+
 /** Convert any type with operator[] and two values to any other type with operator[]
   * an two values (i.e. itk::Index<2> and itk::Offset<2> ).
   * We place the TInput as the second template paramter because it can be
@@ -868,7 +874,7 @@ std::vector<itk::Index<2> > Get8NeighborsInRegion(const itk::ImageRegion<2>& reg
 
 /** Get the neighboring of a 'pixel' (of size 'queryRegionSize') that are inside of a 'searchRegion'. */
 std::vector<itk::ImageRegion<2> > Get8NeighborRegionsInRegion(const itk::ImageRegion<2>& searchRegion, const itk::Index<2>& pixel,
-                                                        const itk::Size<2>& queryRegionSize);
+                                                              const itk::Size<2>& queryRegionSize);
 
 /** The return value MUST be a smart pointer. */
 itk::ImageBase<2>::Pointer CreateImageWithSameType(const itk::ImageBase<2>* input);
@@ -888,16 +894,19 @@ std::vector<itk::Offset<2> > IndicesToOffsets(const std::vector<itk::Index<2> >&
 std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region);
 
 /** Get the locations of the pixels within 'thickness' on the boundary (interior only) of a region. */
-std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region, const unsigned int thickness);
+std::vector<itk::Index<2> > GetBoundaryPixels(const itk::ImageRegion<2>& region,
+                                              const unsigned int thickness);
 
 /** Given a list of pixels, form them into an image, dilate the image,
   * and get the list of pixels in the dilated image. */
 std::vector<itk::Index<2> > DilatePixelList(const std::vector<itk::Index<2> >& pixelList,
-                                            const itk::ImageRegion<2>& region, const unsigned int radius);
+                                            const itk::ImageRegion<2>& region,
+                                            const unsigned int radius);
 
 /** Get the region of an image where a patch with radius 'patchRadius' centered on
   * every pixel will be entirely inside 'wholeRegion'. */
-itk::ImageRegion<2> GetInternalRegion(const itk::ImageRegion<2>& wholeRegion, const unsigned int patchRadius);
+itk::ImageRegion<2> GetInternalRegion(const itk::ImageRegion<2>& wholeRegion,
+                                      const unsigned int patchRadius);
 
 /** Get all patches in 'imageRegion' with radius 'patchRadius' that contains a specified 'pixel'. */
 std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<2>& pixel,
@@ -905,7 +914,8 @@ std::vector<itk::ImageRegion<2> > GetAllPatchesContainingPixel(const itk::Index<
                                                                const itk::ImageRegion<2>& imageRegion);
 
 /** Get all patches with radius 'patchRadius'. */
-std::vector<itk::ImageRegion<2> > GetAllPatches(const itk::ImageRegion<2>& region, const unsigned int patchRadius);
+std::vector<itk::ImageRegion<2> > GetAllPatches(const itk::ImageRegion<2>& region,
+                                                const unsigned int patchRadius);
 
 /** Get the regions of patches surrounding every pixel in 'indices'. */
 std::vector<itk::ImageRegion<2> > GetPatchesCenteredAtIndices(const std::vector<itk::Index<2> >& indices,
@@ -917,7 +927,8 @@ std::vector<itk::ImageRegion<2> > GetValidPatchesCenteredAtIndices(const std::ve
                                                                    const unsigned int patchRadius);
 
 /** Find which location in 'pixels' is closest to 'queryPixel'. */
-unsigned int ClosestIndexId(const std::vector<itk::Index<2> >& pixels, const itk::Index<2>& queryPixel);
+unsigned int ClosestIndexId(const std::vector<itk::Index<2> >& pixels,
+                            const itk::Index<2>& queryPixel);
 
 /** Subtract 1 if necessary from each or either component to make both components even. */
 itk::Size<2> MakeSizeEven(const itk::Size<2>& inputSize);
@@ -942,7 +953,8 @@ itk::ImageIOBase::IOComponentType GetPixelTypeFromFile(const std::string& filena
 /** Paraview requires 3D vectors to display glyphs, even if the vectors are really 2D.
     These functions appends a 0 to each vectors of a 2D vector image so that it can be
     easily visualized with Paraview. */
-void Write2DVectorRegion(const FloatVector2ImageType* const image, const itk::ImageRegion<2>& region,
+void Write2DVectorRegion(const FloatVector2ImageType* const image,
+                         const itk::ImageRegion<2>& region,
                          const std::string& filename);
 
 /** Calls Write2DVectorRegion on a full image. */
@@ -958,25 +970,31 @@ itk::ImageRegion<2> DilateRegion(const itk::ImageRegion<2>& region, const unsign
 itk::ImageRegion<2> ErodeRegion(const itk::ImageRegion<2>& region, const unsigned int radius);
 
 /** Write an image where the pixels in 'regions' have been colored. */
-void HighlightAndWriteRegions(const itk::Size<2>& imageSize, const std::vector<itk::ImageRegion<2> >& regions, const std::string& filename);
+void HighlightAndWriteRegions(const itk::Size<2>& imageSize,
+                              const std::vector<itk::ImageRegion<2> >& regions,
+                              const std::string& filename);
 
 /** Convert an itk::Index to an itk::Offset simply by copying the [0] and [1] values. */
 itk::Offset<2> IndexToOffset(const itk::Index<2>& index);
 
 /** Crop region with a region as if it were in a different position. */
-itk::ImageRegion<2> CropRegionAtPosition(itk::ImageRegion<2> regionToCrop, const itk::ImageRegion<2>& fullRegion, itk::ImageRegion<2> cropPosition);
+itk::ImageRegion<2> CropRegionAtPosition(itk::ImageRegion<2> regionToCrop,
+                                         const itk::ImageRegion<2>& fullRegion,
+                                         itk::ImageRegion<2> cropPosition);
 
 /** Write a bool image as a black/white image. */
 void WriteBoolImage(const itk::Image<bool, 2>* const image, const std::string& fileName);
 
 /** Write an image of indices as a vector image. */
-void WriteIndexImage(const itk::Image<itk::Index<2>, 2>* const image, const std::string& fileName);
+void WriteIndexImage(const itk::Image<itk::Index<2>, 2>* const image,
+                     const std::string& fileName);
 
 /** Divide a 'region' into a number of subregions. For example, if 'region' is 10x10 and 'divisionsPerDimension' is 2, the function
   * will produce 4 5x5 regions. NOTE: if the region is not exactly divisible in each dimension by 'divisionsPerDimension', some pixels
   * (at the end of the region) will not be used. For example, if 'region' is 11x11 and 'divisionsPerDimension' is 2, the last row and last
   * column will not be included at all in the returned regions. */
-std::vector<itk::ImageRegion<2> > DivideRegion(const itk::ImageRegion<2>& region, const unsigned int divisionsPerDimension);
+std::vector<itk::ImageRegion<2> > DivideRegion(const itk::ImageRegion<2>& region,
+                                               const unsigned int divisionsPerDimension);
 
 namespace detail
 {
