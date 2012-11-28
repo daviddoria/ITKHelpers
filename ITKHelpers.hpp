@@ -1212,7 +1212,8 @@ std::vector<itk::Index<2> > GetPixelsWithValue(const TImage* const image,
 }
 
 template<typename TImage>
-std::vector<itk::Index<2> > GetPixelsWithValueInRegion(const TImage* const image, itk::ImageRegion<2> region,
+std::vector<itk::Index<2> > GetPixelsWithValueInRegion(const TImage* const image,
+                                                       itk::ImageRegion<2> region,
                                                        const typename TImage::PixelType& value)
 {
   region.Crop(image->GetLargestPossibleRegion());
@@ -1233,14 +1234,16 @@ std::vector<itk::Index<2> > GetPixelsWithValueInRegion(const TImage* const image
 }
 
 template<typename TImage>
-unsigned int CountPixelsWithValue(const TImage* const image, const typename TImage::PixelType& value)
+unsigned int CountPixelsWithValue(const TImage* const image,
+                                  const typename TImage::PixelType& value)
 {
-  return GetPixelsWithValue(image, image->GetLargestPossibleRegion(), value).size();
+  return GetPixelsWithValueInRegion(image, image->GetLargestPossibleRegion(), value).size();
 }
 
 template<typename TImage>
 typename TypeTraits<typename TImage::PixelType>::LargerType
-AverageOfPixelsAtIndices(const TImage* const image, const std::vector<itk::Index<2> >& indices)
+AverageOfPixelsAtIndices(const TImage* const image,
+                         const std::vector<itk::Index<2> >& indices)
 {
   std::vector<typename TImage::PixelType> pixels;
   for(auto index : indices)
@@ -1254,7 +1257,8 @@ AverageOfPixelsAtIndices(const TImage* const image, const std::vector<itk::Index
 
 template<typename TImage>
 typename TypeTraits<typename TImage::PixelType>::LargerType
-VarianceOfPixelsAtIndices(const TImage* const image, const std::vector<itk::Index<2> >& indices)
+VarianceOfPixelsAtIndices(const TImage* const image,
+                          const std::vector<itk::Index<2> >& indices)
 {
   std::vector<typename TImage::PixelType> pixels;
   for(auto index : indices)

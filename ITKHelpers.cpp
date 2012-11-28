@@ -129,7 +129,7 @@ unsigned int GetNumberOfComponentsPerPixelInFile(const std::string& filename)
   itk::ImageIOBase::Pointer imageIO =
         itk::ImageIOFactory::CreateImageIO(
             filename.c_str(), itk::ImageIOFactory::ReadMode);
-  return imageIO->GetNumberOfDimensions();
+  return imageIO->GetNumberOfComponents();
 }
 
 std::string GetIndexString(const itk::Index<2>& index)
