@@ -514,14 +514,14 @@ std::vector<itk::Index<2> > GetNonZeroPixels(const TImage* image, const itk::Ima
   typename itk::ImageRegionConstIterator<TImage> imageIterator(image, region);
 
   while(!imageIterator.IsAtEnd())
-    {
+  {
     if(imageIterator.Get())
-      {
+    {
       nonZeroPixels.push_back(imageIterator.GetIndex());
-      }
+    }
 
     ++imageIterator;
-    }
+  }
   return nonZeroPixels;
 }
 
@@ -1208,7 +1208,7 @@ template<typename TImage>
 std::vector<itk::Index<2> > GetPixelsWithValue(const TImage* const image,
                                                const typename TImage::PixelType& value)
 {
-  return GetPixelsWithValue(image, image->GetLargestPossibleRegion(), value);
+  return GetPixelsWithValueInRegion(image, image->GetLargestPossibleRegion(), value);
 }
 
 template<typename TImage>
@@ -3260,6 +3260,8 @@ std::vector<itk::Index<2> > Get4NeighborsWithValue(const TImage* const image,
       neighborsWithValue.push_back(neighbor);
     }
   }
+
+  return neighborsWithValue;
 }
 
 template<typename TImage>
@@ -3274,6 +3276,46 @@ bool Has4NeighborsWithValue(const TImage* const image,
   }
 
   return false;
+}
+
+template<typename TImage>
+unsigned int CountDifferentPixels(const TImage* const image1,
+                                  const TImage* const image2,
+                                  const float threshold)
+{
+//  typedef itk::Testing::ComparisonImageFilter<ForegroundBackgroundSegmentMask,
+//      ForegroundBackgroundSegmentMask>
+//      ComparisonFilterType;
+//  ComparisonFilterType::Pointer comparisonFilter = ComparisonFilterType::New();
+//  comparisonFilter->SetTestInput(result);
+//  comparisonFilter->SetValidInput(baselineMask);
+
+//  if(comparisonFilter->GetNumberOfPixelsWithDifferences() != 0)
+//  {
+//    return EXIT_FAILURE;
+//  }
+
+  if(image1->GetLargestPossibleRegion() != image2->GetLargestPossibleRegion())
+  {
+    throw std::runtime_error("CountDifferentPixels() can only compare images of the same size!");
+  }
+  itk::ImageRegion<2> region = image1->GetLargestPossibleRegion();
+  itk::ImageRegionConstIterator<TImage> image1Iterator(image1, region);
+  itk::ImageRegionConstIterator<TImage> image2Iterator(image2, region);
+
+  unsigned int numberOfDifferentPixels = 0;
+  while(!image1Iterator.IsAtEnd())
+  {
+    if(!Helpers::FuzzyCompare(image1Iterator.Get(), image2Iterator.Get()))
+    {
+      numberOfDifferentPixels++;
+    }
+
+    ++image1Iterator;
+    ++image2Iterator;
+  }
+
+  return numberOfDifferentPixels;
 }
 
 }// end namespace ITKHelpers

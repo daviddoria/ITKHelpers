@@ -39,7 +39,7 @@ class Mask;
 #include "itkSize.h"
 #include "itkVectorImage.h"
 
-// We implement some overload/specializations from Helpers that desl with ITK types
+// We implement some overload/specializations from Helpers that deal with ITK types
 namespace Helpers
 {
   /** A specialization of FuzzyCompare (from Helpers) for CovariantVector */
@@ -92,6 +92,12 @@ TReturn Convert2DValue(const TInput& object);
 template<typename TImage>
 void MedianFilter(const TImage* const image, const unsigned int kernelRadius,
                   TImage* const output);
+
+/** Compare images pixelwise. */
+template<typename TImage>
+unsigned int CountDifferentPixels(const TImage* const image1,
+                                  const TImage* const image2,
+                                  const float threshold = 0.00001f);
 
 /** Determine if all pixels in region are equal to a specified value. */
 template<typename TImage>
