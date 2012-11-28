@@ -3243,6 +3243,25 @@ bool AllPixelsEqualTo(const TImage* const image, const itk::ImageRegion<2>& regi
   return true;
 }
 
+template<typename TImage>
+std::vector<itk::Index<2> > Get4NeighborsWithValue(const TImage* const image,
+                                                   const itk::Index<2>& pixel,
+                                                   const typename TImage::PixelType& value)
+{
+  std::vector<itk::Index<2> > neighborsWithValue;
+
+  std::vector<itk::Index<2> > neighbors =
+      Get4NeighborIndicesInsideRegion(pixel, image->GetLargestPossibleRegion());
+
+  for (auto neighbor : neighbors)
+  {
+    if(image->GetPixel(neighbor) == value)
+    {
+      neighborsWithValue.push_back(neighbor);
+    }
+  }
+}
+
 }// end namespace ITKHelpers
 
 #endif // ITKHelpers_HPP

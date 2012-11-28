@@ -66,6 +66,12 @@ namespace ITKHelpers
 ///////// Function templates (defined in ITKHelpers.hpp) /////////
 ////////////////////////////////////////////////////////////////////////
 
+/** Get the 4-neighbor indices around 'pixel' that are equal to 'value'. */
+template<typename TImage>
+std::vector<itk::Index<2> > Get4NeighborsWithValue(const TImage* const image,
+                                                   const itk::Index<2>& pixel,
+                                                   const typename TImage::PixelType& value);
+
 /** Convert any type with operator[] and two values to any other type with operator[]
   * an two values (i.e. itk::Index<2> and itk::Offset<2> ).
   * We place the TInput as the second template paramter because it can be
