@@ -404,8 +404,8 @@ void CopyRegion(const TImage* sourceImage, TImage* targetImage,
   if(targetRegion.GetSize() != sourceRegion.GetSize())
   {
     std::cerr << "Can't copy regions that aren't the same size!" << std::endl
-              << "Target region is " << targetRegion.GetSize() << std::endl
-              << "Source region is " << sourceRegion.GetSize() << std::endl;
+              << "Target region size " << targetRegion.GetSize() << std::endl
+              << "Source region size " << sourceRegion.GetSize() << std::endl;
     return;
   }
 
