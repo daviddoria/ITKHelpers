@@ -1,6 +1,6 @@
 [submodule "Helpers"]
 	path = Helpers
-	url = http://github.com/daviddoria/Helpers.git
+	url = ../Helpers.git
 [submodule "CMakeHelpers"]
 	path = CMakeHelpers
-	url = http://github.com/daviddoria/CMakeHelpers.git
+	url = ../CMakeHelpers.git
