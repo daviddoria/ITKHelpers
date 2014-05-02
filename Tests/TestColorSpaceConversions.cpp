@@ -152,6 +152,8 @@ bool TestConversion_Instantiations()
 
   std::cout << hsvImage->GetPixel(corner) << std::endl;
   }
+
+  return true;
 }
 
 
@@ -250,4 +252,5 @@ bool TestConversion_Range()
   std::cout << hsvImage->GetPixel(corner) << std::endl;
   }
 
+  return true;
 }

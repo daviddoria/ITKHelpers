@@ -25,7 +25,7 @@ namespace Helpers
 {
 
 template<typename T>
-unsigned int length(const itk::RGBPixel<T>& v)
+unsigned int length(const itk::RGBPixel<T>& )
 {
   return 3;
 }

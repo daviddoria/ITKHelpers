@@ -1030,7 +1030,7 @@ bool TestHasBracketOperator()
 }
 
 template<typename TImage>
-bool TestHasBracketOperator_ConstTemplate(const TImage* const image)
+bool TestHasBracketOperator_ConstTemplate(const TImage* const )
 {
   static_assert(Helpers::HasBracketOperator<typename TImage::PixelType>::value,
               "TestHasBracketOperator for TImage failed!");
@@ -1038,7 +1038,7 @@ bool TestHasBracketOperator_ConstTemplate(const TImage* const image)
 }
 
 template<typename TImage>
-bool TestHasBracketOperator_Template(TImage* image)
+bool TestHasBracketOperator_Template(TImage* )
 {
   static_assert(Helpers::HasBracketOperator<typename TImage::PixelType>::value,
               "TestHasBracketOperator for TImage failed!");
