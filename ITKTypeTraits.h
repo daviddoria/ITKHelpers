@@ -50,7 +50,7 @@ struct TypeTraits<itk::VariableLengthVector<unsigned char> >
   typedef float LargerComponentType;
   typedef itk::VariableLengthVector<LargerComponentType> LargerType;
 
-  typedef typename SelfType::ValueType ComponentType;
+  typedef SelfType::ValueType ComponentType;
 };
 
 /** For itk::VariableLengthVector<int>, use itk::VariableLengthVector<float> as the LargerType.

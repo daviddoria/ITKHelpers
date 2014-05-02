@@ -74,7 +74,7 @@ namespace Helpers
                           std::numeric_limits<TB>::is_specialized, bool>::type
   FuzzyCompare(const itk::CovariantVector<TA, N>& a,
                const itk::CovariantVector<TB, N>& b,
-               const TA& epsilon = std::numeric_limits<TA>::epsilon())
+               const TA& epsilon)
   {
     if((a-b).GetNorm() < epsilon)
     {
@@ -89,7 +89,7 @@ namespace Helpers
                           std::numeric_limits<TB>::is_specialized, bool>::type
   FuzzyCompare(const itk::Vector<TA, N>& a,
                const itk::Vector<TB, N>& b,
-               const TA& epsilon = std::numeric_limits<TA>::epsilon())
+               const TA& epsilon)
   {
     if((a-b).GetNorm() < epsilon)
     {
@@ -1401,7 +1401,7 @@ void SubtractRegions(const TImage* const image1, const itk::ImageRegion<2>& regi
     auto offset = image1Iterator.GetIndex() - image1->GetLargestPossibleRegion().GetIndex();
     auto index = ITKHelpers::Convert2DValue<itk::Index<2> >(offset);
 
-    output.SetPixel(index, difference);
+    output->SetPixel(index, difference);
     ++image1Iterator;
     ++image2Iterator;
   }
@@ -1834,7 +1834,7 @@ void WriteImage(const TImage* const image, const std::string& filename)
 
 template <typename TImage>
 void WriteRGBImage(const TImage* const input, const std::string& filename,
-                   typename std::enable_if<Helpers::HasBracketOperator<typename TImage::PixelType>::value>::type* = 0)
+                   typename std::enable_if<Helpers::HasBracketOperator<typename TImage::PixelType>::value>::type*)
 {
   typedef itk::Image<itk::CovariantVector<unsigned char, 3>, 2> RGBImageType;
 
@@ -1865,7 +1865,7 @@ void WriteRGBImage(const TImage* const input, const std::string& filename,
 
 template <typename TImage>
 void WriteRGBImage(const TImage* const input, const std::string& filename,
-                   typename std::enable_if<!Helpers::HasBracketOperator<typename TImage::PixelType>::value>::type* = 0)
+                   typename std::enable_if<!Helpers::HasBracketOperator<typename TImage::PixelType>::value>::type*)
 {
   typedef itk::Image<itk::CovariantVector<unsigned char, 3>, 2> RGBImageType;
 
