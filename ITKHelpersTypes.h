@@ -43,6 +43,6 @@ namespace ITKHelpersTypes
   /** Variable length vector types. */
   typedef itk::VectorImage<float, 2> FloatVectorImageType;
   typedef itk::VectorImage<unsigned char, 2> UnsignedCharVectorImageType;
-};
+}
 
 #endif
