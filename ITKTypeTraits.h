@@ -63,7 +63,7 @@ struct TypeTraits<itk::VariableLengthVector<int> >
   typedef float LargerComponentType;
   typedef itk::VariableLengthVector<LargerComponentType> LargerType;
 
-  typedef typename SelfType::ValueType ComponentType;
+  typedef SelfType::ValueType ComponentType;
 };
 
 /** For itk::VariableLengthVector<unsigned int>, use itk::VariableLengthVector<float> as the LargerType.
@@ -76,7 +76,7 @@ struct TypeTraits<itk::VariableLengthVector<unsigned int> >
   typedef float LargerComponentType;
   typedef itk::VariableLengthVector<LargerComponentType> LargerType;
 
-  typedef typename SelfType::ValueType ComponentType;
+  typedef SelfType::ValueType ComponentType;
 };
 
 ////////////// CovariantVector ///////////////
@@ -156,7 +156,7 @@ struct TypeTraits<itk::RGBPixel<unsigned char> >
   typedef float LargerComponentType;
   typedef itk::RGBPixel<LargerComponentType> LargerType;
 
-  typedef typename SelfType::ComponentType ComponentType;
+  typedef SelfType::ComponentType ComponentType;
 };
 
 /** For itk::RGBPixel<unsigned int>.
@@ -169,7 +169,7 @@ struct TypeTraits<itk::RGBPixel<unsigned int> >
   typedef float LargerComponentType;
   typedef itk::RGBPixel<LargerComponentType> LargerType;
 
-  typedef typename SelfType::ComponentType ComponentType;
+  typedef SelfType::ComponentType ComponentType;
 };
 
 /** For itk::RGBPixel<unsigned int>.
@@ -182,7 +182,7 @@ struct TypeTraits<itk::RGBPixel<int> >
   typedef float LargerComponentType;
   typedef itk::RGBPixel<LargerComponentType> LargerType;
 
-  typedef typename SelfType::ComponentType ComponentType;
+  typedef SelfType::ComponentType ComponentType;
 };
 
 #endif
