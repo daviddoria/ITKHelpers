@@ -1031,7 +1031,6 @@ void StackImages(const typename itk::VectorImage<TPixel, 2>* const image1,
                  const typename itk::VectorImage<TPixel, 2>* const image2,
                  typename itk::VectorImage<TPixel, 2>* const output)
 {
-  typedef typename itk::VectorImage<TPixel, 2> VectorImageType;
   typedef typename itk::Image<TPixel, 2> ScalarImageType;
 
   if(image1->GetLargestPossibleRegion() != image2->GetLargestPossibleRegion())
@@ -1605,7 +1604,6 @@ template<typename TInputPixel, typename TOutputPixel, unsigned int NComponents>
 void ConvertTo3Channel(const itk::Image<itk::CovariantVector<TInputPixel, NComponents> >* const image,
                        itk::Image<itk::CovariantVector<TOutputPixel, 3> >* const output)
 {
-  typedef itk::Image<itk::CovariantVector<TInputPixel, NComponents> > InputImageType;
   typedef itk::Image<itk::CovariantVector<TOutputPixel, 3> > OutputImageType;
 
   if(image->GetNumberOfComponentsPerPixel() == 3)
@@ -1659,7 +1657,7 @@ template<typename TPixel>
 void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image,
                       typename itk::VectorImage<TPixel, 2>* const output)
 {
-  typedef itk::VectorImage<TPixel, 2> ImageType;
+  typedef itk::Image<TPixel, 2> ImageType;
 
   if(image->GetNumberOfComponentsPerPixel() == 3)
   {
@@ -1673,7 +1671,7 @@ void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image,
     output->Allocate();
     for(unsigned int channel = 0; channel < 3; ++channel)
     {
-      typename itk::Image<TPixel, 2>::Pointer outputComponent = itk::Image<TPixel, 2>::New();
+      typename ImageType::Pointer outputComponent = ImageType::New();
       outputComponent->SetRegions(image->GetLargestPossibleRegion());
       outputComponent->Allocate();
       ExtractChannel(image, channel, outputComponent.GetPointer());
@@ -1687,7 +1685,7 @@ void ConvertTo3Channel(const itk::VectorImage<TPixel, 2>* const image,
     output->SetNumberOfComponentsPerPixel(3);
     output->Allocate();
 
-    typename itk::Image<TPixel, 2>::Pointer outputComponent = itk::Image<TPixel, 2>::New();
+    typename ImageType::Pointer outputComponent = ImageType::New();
     outputComponent->SetRegions(image->GetLargestPossibleRegion());
     outputComponent->Allocate();
     ExtractChannel(image, 0, outputComponent.GetPointer());
